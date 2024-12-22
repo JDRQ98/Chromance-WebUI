@@ -30,7 +30,9 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            color: #fff;
+            color: #000;
+            cursor: pointer;
+            z-index: 1;
         }
 
         .line {
@@ -38,6 +40,44 @@
             background-color: #000;
             height: 4px;
             transform-origin: 0 0;
+            z-index: 0;
+        }
+
+        /* Modal Styling */
+        .modal {
+            position: absolute;
+            top: 10%;
+            right: -350px; /* Initially off-screen */
+            width: 300px;
+            height: 300px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            transition: right 0.3s ease-in-out; /* Smooth sliding effect */
+            z-index: 1000;
+        }
+
+        .modal.show {
+            right: 0; /* Modal slides into view */
+        }
+
+        .modal button {
+            margin-top: 10px;
+        }
+
+        /* Close Button Style */
+        .modal button {
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .modal button:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
@@ -64,6 +104,15 @@
         <div title="node 16" class="hex" style="left: 226.795px; top: 700px;" data-id="16"></div> <!-- Node 16 -->
         <div title="node 17" class="hex" style="left: 573.205px; top: 700px;" data-id="17"></div> <!-- Node 17 -->
         <div title="node 18" class="hex" style="left: 400px; top: 800px;" data-id="18"></div> <!-- Node 18 -->
+    </div>
+
+    <!-- Modal for adjusting node properties -->
+    <div class="overlay" id="overlay"></div>
+    <div class="modal" id="modal">
+        <h2>Node Properties</h2>
+        <label for="nodeName">Node Name:</label>
+        <input type="text" id="nodeName" />
+        <button id="closeModal">Close</button>
     </div>
 
     <script>
@@ -111,15 +160,14 @@
             line.style.transform = `rotate(${ang}deg)`;
 
             // Set the line's position at the center of node1
-            line.style.left = `${x1+15}px`; // MAGIC NUMBER: 15 = half of hexagon width. TODO.
-            line.style.top = `${y1+15}px`; // MAGIC NUMBER: 15 = half of hexagon height. TODO.
+            line.style.left = `${x1 + 15}px`; // MAGIC NUMBER: 15 = half of hexagon width. TODO.
+            line.style.top = `${y1 + 15}px`; // MAGIC NUMBER: 15 = half of hexagon height. TODO.
 
             // Append the line to the container
             container.appendChild(line);
         }
 
-        window.onload = function () {
-            // Example: Draw a line between Node 0 and Node 1
+        function drawHexagon() {
             drawLine(0, 1);
             drawLine(17, 18);
             drawLine(15, 17);
@@ -150,6 +198,53 @@
             drawLine(9, 11);
             drawLine(2, 4);
             drawLine(2, 7);
+        }
+
+        let selectedNode = null;
+
+        // Function to highlight the selected node in green
+        function highlightNode(node) {
+            node.style.backgroundColor = 'green';
+        }
+
+        // Function to reset the node to its default color
+        function resetNode(node) {
+            node.style.backgroundColor = '#000';
+        }
+
+        // Function to open the modal window
+        function openModal(node) {
+            selectedNode = node;
+            document.getElementById('modal').classList.add('show');
+            document.getElementById('nodeName').value = `Node ${node.dataset.id}`; // Set node name
+        }
+
+        // Function to close the modal window
+        function closeModal() {
+            if (selectedNode) {
+                resetNode(selectedNode);
+                selectedNode = null;
+            }
+            document.getElementById('modal').classList.remove('show');
+        }
+        
+        window.onload = function () {
+            drawHexagon(); /* draw all lines */
+
+            // Add click event listeners to all nodes
+            const nodes = document.querySelectorAll('.hex');
+            nodes.forEach(node => {
+                node.addEventListener('click', function () {
+                    if (selectedNode) {
+                        resetNode(selectedNode); // Reset previous node
+                    }
+                    highlightNode(node); // Highlight the clicked node
+                    openModal(node); // Open the modal for the clicked node
+                });
+            });
+
+            // Close the modal when the close button is clicked
+            document.getElementById('closeModal').addEventListener('click', closeModal);
         };
     </script>
 </body>
