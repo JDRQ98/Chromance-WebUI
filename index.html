@@ -50,15 +50,16 @@
         .modal {
             position: absolute;
             top: 10%;
-            right: -350px;
-            width: 300px;
-            height: 300px;
+            right: -650px;
+            width: 450px;
+            height: 550px;
             background-color: white;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-            transition: right 0.3s ease-in-out;
+            transition: right 0.6s ease-in-out;
             z-index: 1000;
+             overflow-y: auto; /* Add this to enable vertical scrolling if content overflows */
         }
 
         .modal.show {
@@ -111,7 +112,6 @@
 
         #deselectAll {
             padding: 8px 15px;
-            margin-left: 25px;
             cursor: pointer;
             border-radius: 4px;
             background-color: #b92a2a;
@@ -166,7 +166,7 @@
 
         /* Menu Styles */
         .menu {
-            margin-top: 20px;
+            margin-top: 5px;
             display: flex;
             justify-content: center;
             gap: 20px;
@@ -235,6 +235,40 @@
 
         .global-settings-modal label {
             margin-right: 10px;
+        }
+
+        .setting-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .setting-container label {
+            margin-right: 10px;
+        }
+
+        .edit-button-checkbox {
+            margin-left: 10px;
+        }
+
+        .modal-settings{
+            display: none;
+        }
+        .modal-settings.show{
+          display: block;
+        }
+        .modal-buttons{
+           display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+         .modal-buttons button{
+             padding: 10px 20px;
+             cursor: pointer;
+             border-radius: 5px;
+             border: 1px solid #ddd;
         }
     </style>
 </head>
@@ -335,6 +369,8 @@
     </div>
     <div class="menu">
         <button id="deselectAll">De-select all</button>
+        <button id="selectAllActive">Select all active nodes</button>
+        <button id="restoreDefaultsButton">Restore defaults</button>
         <button id="editGlobalSettingsButton">Edit Global Settings</button>
     </div>
 
@@ -342,9 +378,83 @@
     <div class="modal" id="modal">
         <h2>Node Properties</h2>
         <div id="selectedNodesDisplay" class="overlay-selected-nodes">No nodes selected</div>
-        <input type="checkbox" id="activateNodeCheckbox">Activate node </input>
-        <div></div>
-        <button id="closeModal">Close</button>
+          <div class="setting-container">
+              <label for="activateNodeCheckbox">Activate Node:</label>
+              <input type="checkbox" id="activateNodeCheckbox">
+          </div>
+         <div class="modal-settings">
+             <div class="setting-container">
+                  <label for="modalStartingNodes">Starting node(s):</label>
+                  <select id="modalStartingNodes">
+                     <option value="center">Center nodes</option>
+                     <option value="all">All nodes</option>
+                  </select>
+                  <input type="checkbox" class="edit-button-checkbox" data-setting="startingNodes">
+              </div>
+             <div class="setting-container">
+                <label for="modalDesiredBehavior">Desired behavior:</label>
+                <select id="modalDesiredBehavior">
+                    <option value="normal">Normal</option>
+                     <option value="other">Other</option>
+                </select>
+                <input type="checkbox" class="edit-button-checkbox" data-setting="desiredBehavior">
+             </div>
+            <div class="setting-container">
+                <label for="modalRippleDirection">Ripple direction:</label>
+                  <select id="modalRippleDirection">
+                     <option value="allDirections">All directions</option>
+                      <option value="inward">Inward</option>
+                      <option value="outward">Outward</option>
+                 </select>
+                  <input type="checkbox" class="edit-button-checkbox" data-setting="rippleDirection">
+            </div>
+             <div class="setting-container">
+                <label for="modalRippleDelay">Delay between ripples [1 - 60000]:</label>
+                <input type="number" id="modalRippleDelay" min="1" max="60000" value="3000">
+                 <input type="checkbox" class="edit-button-checkbox" data-setting="rippleDelay">
+            </div>
+              <div class="setting-container">
+                   <label for="modalRippleLifeSpan">Ripple life span [1 - 60000]:</label>
+                  <input type="number" id="modalRippleLifeSpan" min="1" max="60000" value="3000">
+                 <input type="checkbox" class="edit-button-checkbox" data-setting="rippleLifeSpan">
+            </div>
+              <div class="setting-container">
+                <label for="modalRippleSpeed">Ripple speed [0.01 - 5]:</label>
+                <input type="range" id="modalRippleSpeed" min="0.01" max="5" step="0.01" value="0.5">
+                 <span id="modalRippleSpeedDisplay">0.5</span>
+                 <input type="checkbox" class="edit-button-checkbox" data-setting="rippleSpeed">
+            </div>
+              <div class="setting-container">
+                  <label for="modalDecayPerTick">Decay per tick [0.90 - 1]:</label>
+                <input type="range" id="modalDecayPerTick" min="0.90" max="1" step="0.001" value="0.985">
+                 <span id="modalDecayPerTickDisplay">0.985</span>
+                   <input type="checkbox" class="edit-button-checkbox" data-setting="decayPerTick">
+            </div>
+               <div class="setting-container">
+                   <label for="modalStartingColor">Starting Color:</label>
+                  <input type="color" id="modalStartingColor" value="#FF0000">
+                 <input type="checkbox" class="edit-button-checkbox" data-setting="startingColor">
+            </div>
+               <div class="setting-container">
+                    <label for="modalHueDeltaPeriod">Hue delta per period [0 - 60000]:</label>
+                   <input type="number" id="modalHueDeltaPeriod" min="0" max="60000" value="0">
+                 <input type="checkbox" class="edit-button-checkbox" data-setting="hueDeltaPeriod">
+            </div>
+               <div class="setting-container">
+                   <label for="modalHueDeltaTick">Hue delta per tick [0 - 500]:</label>
+                  <input type="number" id="modalHueDeltaTick" min="0" max="500" value="200">
+                     <input type="checkbox" class="edit-button-checkbox" data-setting="hueDeltaTick">
+             </div>
+              <div class="setting-container">
+                   <label for="modalNumberOfColors">Number of colors [1 - 64]:</label>
+                  <input type="number" id="modalNumberOfColors" min="1" max="64" value="7">
+                    <input type="checkbox" class="edit-button-checkbox" data-setting="numberOfColors">
+            </div>
+         </div>
+          <div class="modal-buttons">
+              <button id="saveNodeButton">Save</button>
+              <button id="discardNodeButton">Discard</button>
+        </div>
     </div>
 
     <script src="js/drawVisualizer.js"></script>
