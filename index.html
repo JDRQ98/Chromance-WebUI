@@ -43,12 +43,10 @@
             z-index: 0;
         }
 
-        /* Modal Styling */
         .modal {
             position: absolute;
             top: 10%;
             right: -350px;
-            /* Initially off-screen */
             width: 300px;
             height: 300px;
             background-color: white;
@@ -56,21 +54,15 @@
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
             transition: right 0.3s ease-in-out;
-            /* Smooth sliding effect */
             z-index: 1000;
         }
 
         .modal.show {
             right: 0;
-            /* Modal slides into view */
         }
 
         .modal button {
             margin-top: 10px;
-        }
-
-        /* Close Button Style */
-        .modal button {
             padding: 5px 10px;
             background-color: #007bff;
             color: white;
@@ -82,59 +74,85 @@
         .modal button:hover {
             background-color: #0056b3;
         }
+
+        .selected-nodes {
+            margin-top: 10px;
+            color: #333;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-evenly;
+            width: 800px;
+        }
+
+        .controls button {
+            padding: 8px 15px;
+            cursor: pointer;
+            border-radius: 4px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+        }
+
+        .controls button:hover {
+            background-color: #45a049;
+        }
+
     </style>
 </head>
 
 <body>
-    <div class="container" id="container">
-        <!-- Nodes -->
-        <div title="node 0" class="hex" style="left: 400px; top: 0px;" data-id="0"></div> <!-- Node 0 -->
-        <div title="node 1" class="hex" style="left: 226.795px; top: 100px;" data-id="1"></div> <!-- Node 1 -->
-        <div title="node 2" class="hex" style="left: 573.205px; top: 100px;" data-id="2"></div> <!-- Node 2 -->
-        <div title="node 3" class="hex" style="left: 53.795px; top: 200px;" data-id="3"></div> <!-- Node 3 -->
-        <div title="node 4" class="hex" style="left: 400px; top: 200px;" data-id="4"></div> <!-- Node 4 -->
-        <div title="node 5" class="hex" style="left: 746.41px; top: 200px;" data-id="5"></div> <!-- Node 5 -->
-        <div title="node 6" class="hex" style="left: 226.795px; top: 300px;" data-id="6"></div> <!-- Node 6 -->
-        <div title="node 7" class="hex" style="left: 573.205px; top: 300px;" data-id="7"></div> <!-- Node 7 -->
-        <div title="node 8" class="hex" style="left: 53.795px; top: 400px;" data-id="8"></div> <!-- Node 8 -->
-        <div title="node 9" class="hex" style="left: 400px; top: 400px;" data-id="9"></div> <!-- Node 9 -->
-        <div title="node 10" class="hex" style="left: 746.41px; top: 400px;" data-id="10"></div> <!-- Node 10 -->
-        <div title="node 11" class="hex" style="left: 226.795px; top: 500px;" data-id="11"></div> <!-- Node 11 -->
-        <div title="node 12" class="hex" style="left: 573.205px; top: 500px;" data-id="12"></div> <!-- Node 12 -->
-        <div title="node 13" class="hex" style="left: 53.795px; top: 600px;" data-id="13"></div> <!-- Node 13 -->
-        <div title="node 14" class="hex" style="left: 400px; top: 600px;" data-id="14"></div> <!-- Node 14 -->
-        <div title="node 15" class="hex" style="left: 746.41px; top: 600px;" data-id="15"></div> <!-- Node 15 -->
-        <div title="node 16" class="hex" style="left: 226.795px; top: 700px;" data-id="16"></div> <!-- Node 16 -->
-        <div title="node 17" class="hex" style="left: 573.205px; top: 700px;" data-id="17"></div> <!-- Node 17 -->
-        <div title="node 18" class="hex" style="left: 400px; top: 800px;" data-id="18"></div> <!-- Node 18 -->
+    <div class="controls">
+        <button id="selectBiNodes">Select Bi-Nodes</button>
+        <button id="selectTriNodes">Select Tri-Nodes</button>
+        <button id="selectQuadNodes">Select Quad-Nodes</button>
     </div>
 
-    <!-- Modal for adjusting node properties -->
+    <div class="container" id="container">
+        <!-- Nodes -->
+        <div title="node 0" class="hex" style="left: 400px; top: 0px;" data-id="0"></div>
+        <div title="node 1" class="hex" style="left: 226.795px; top: 100px;" data-id="1"></div>
+        <div title="node 2" class="hex" style="left: 573.205px; top: 100px;" data-id="2"></div>
+        <div title="node 3" class="hex" style="left: 53.795px; top: 200px;" data-id="3"></div>
+        <div title="node 4" class="hex" style="left: 400px; top: 200px;" data-id="4"></div>
+        <div title="node 5" class="hex" style="left: 746.41px; top: 200px;" data-id="5"></div>
+        <div title="node 6" class="hex" style="left: 226.795px; top: 300px;" data-id="6"></div>
+        <div title="node 7" class="hex" style="left: 573.205px; top: 300px;" data-id="7"></div>
+        <div title="node 8" class="hex" style="left: 53.795px; top: 400px;" data-id="8"></div>
+        <div title="node 9" class="hex" style="left: 400px; top: 400px;" data-id="9"></div>
+        <div title="node 10" class="hex" style="left: 746.41px; top: 400px;" data-id="10"></div>
+        <div title="node 11" class="hex" style="left: 226.795px; top: 500px;" data-id="11"></div>
+        <div title="node 12" class="hex" style="left: 573.205px; top: 500px;" data-id="12"></div>
+        <div title="node 13" class="hex" style="left: 53.795px; top: 600px;" data-id="13"></div>
+        <div title="node 14" class="hex" style="left: 400px; top: 600px;" data-id="14"></div>
+        <div title="node 15" class="hex" style="left: 746.41px; top: 600px;" data-id="15"></div>
+        <div title="node 16" class="hex" style="left: 226.795px; top: 700px;" data-id="16"></div>
+        <div title="node 17" class="hex" style="left: 573.205px; top: 700px;" data-id="17"></div>
+        <div title="node 18" class="hex" style="left: 400px; top: 800px;" data-id="18"></div>
+    </div>
+
     <div class="overlay" id="overlay"></div>
     <div class="modal" id="modal">
         <h2>Node Properties</h2>
-        <label for="nodeName">Node Name:</label>
-        <input type="text" id="nodeName" />
+        <div id="selectedNodesDisplay" class="selected-nodes">No nodes selected</div>
         <button id="closeModal">Close</button>
     </div>
 
     <script src="js/drawLines.js"></script>
     <script src="js/nodeOverlay.js"></script>
-
     <script>
+        // Add click event listeners to all nodes
         window.onload = function () {
             drawHexagon(); /* from drawLines.js - draw all lines for hexagon */
 
-            // Add click event listeners to all nodes
             const nodes = document.querySelectorAll('.hex');
             nodes.forEach(node => {
                 node.addEventListener('click', function () {
-                    handleNodeClick(node);  // from nodeOverlay.js - refer to handleNodeClick function
+                    handleNodeClick(node);  // Handle click for individual node
                 });
             });
-
-            // Close the modal when the close button is clicked
-            document.getElementById('closeModal').addEventListener('click', closeModal);
         };
     </script>
 </body>
