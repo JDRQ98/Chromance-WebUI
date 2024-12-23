@@ -8,6 +8,8 @@
     <style>
         body {
             display: flex;
+            flex-direction: column;
+            /* Stack the elements vertically */
             justify-content: center;
             align-items: center;
             height: 100vh;
@@ -75,16 +77,19 @@
             background-color: #0056b3;
         }
 
-        .selected-nodes {
+        .overlay-selected-nodes {
             margin-top: 10px;
             color: #333;
         }
 
         .controls {
-            margin-bottom: 20px;
+            margin-top: 50px;
+            margin-bottom: 10px;
+            margin-left: 50px;
+            position: static;
             display: flex;
             justify-content: space-evenly;
-            width: 800px;
+            width: 600px;
         }
 
         .controls button {
@@ -100,16 +105,20 @@
             background-color: #45a049;
         }
 
+        #deselectAll {
+            padding: 8px 15px;
+            margin-left: 25px;
+            cursor: pointer;
+            border-radius: 4px;
+            background-color: #b92a2a;
+            color: white;
+            border: none;
+        }
+
     </style>
 </head>
 
 <body>
-    <div class="controls">
-        <button id="selectBiNodes">Select Bi-Nodes</button>
-        <button id="selectTriNodes">Select Tri-Nodes</button>
-        <button id="selectQuadNodes">Select Quad-Nodes</button>
-    </div>
-
     <div class="container" id="container">
         <!-- Nodes -->
         <div title="node 0" class="hex" style="left: 400px; top: 0px;" data-id="0"></div>
@@ -133,14 +142,24 @@
         <div title="node 18" class="hex" style="left: 400px; top: 800px;" data-id="18"></div>
     </div>
 
+    <div class="controls">
+        <button id="selectBiNodes">Select Bi-Nodes</button>
+        <button id="selectTriNodes">Select Tri-Nodes</button>
+        <button id="selectQuadNodes">Select Quad-Nodes</button>
+    </div>
+    
+    <button id="deselectAll">De-select all</button>
+
     <div class="overlay" id="overlay"></div>
     <div class="modal" id="modal">
         <h2>Node Properties</h2>
-        <div id="selectedNodesDisplay" class="selected-nodes">No nodes selected</div>
+        <div id="selectedNodesDisplay" class="overlay-selected-nodes">No nodes selected</div>
+        <input type="checkbox" class="overlay-activate-checkbox">Activate node </input>
+        <div></div>
         <button id="closeModal">Close</button>
     </div>
 
-    <script src="js/drawLines.js"></script>
+    <script src="js/drawVisualizer.js"></script>
     <script src="js/nodeOverlay.js"></script>
     <script>
         // Add click event listeners to all nodes
