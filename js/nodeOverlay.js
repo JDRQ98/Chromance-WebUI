@@ -1,5 +1,6 @@
 let selectedNodes = [];  // Array to store selected nodes
 let activeNodes = [9];  // Array to store active nodes; by default, node 9 is active.
+let globalSettings = {}; // Object to store global settings
 
 // Border nodes (bi-nodes), quad nodes, and tri nodes
 const borderNodes = [0, 3, 5, 13, 15, 18];
@@ -14,6 +15,7 @@ function setupGlobalSettingsModal() {
 
     editGlobalSettingsButton.addEventListener('click', () => {
           openGlobalSettingsModal();
+          loadGlobalSettings(); // Load global settings into modal
     });
 
 
@@ -43,6 +45,12 @@ function initGlobalSettings(){
     });
 
     setupGlobalSettingsModal();
+    // Load settings to localStorage if they are not present
+    if(localStorage.getItem('globalSettings') === null){
+        resetGlobalSettings();
+    } else {
+         globalSettings = JSON.parse(localStorage.getItem('globalSettings'))
+    }
 
     const fireRippleButton = document.getElementById('fireRippleButton');
         fireRippleButton.addEventListener('click', () => {
@@ -52,16 +60,77 @@ function initGlobalSettings(){
         const submitButton = document.getElementById('submitButton');
         submitButton.addEventListener('click', () => {
            console.log("Submit button clicked");
-            //Add logic here to submit all global properties
-            closeGlobalSettingsModal();
+            saveGlobalSettings();
+           closeGlobalSettingsModal();
     });
 
     const discardButton = document.getElementById('discardButton');
         discardButton.addEventListener('click', () => {
            console.log("Discard button clicked");
-          //Add logic here to reset all global properties
-          closeGlobalSettingsModal();
+           loadGlobalSettings();
+           closeGlobalSettingsModal();
     });
+}
+
+function resetGlobalSettings(){
+       globalSettings = {
+        startingNodes: 'center',
+        desiredBehavior: 'normal',
+        rippleDirection: 'allDirections',
+        rippleDelay: 3000,
+        rippleLifeSpan: 3000,
+        rippleSpeed: 0.5,
+        decayPerTick: 0.985,
+        startingColor: '#FF0000',
+        hueDeltaPeriod: 0,
+        hueDeltaTick: 200,
+        numberOfColors: 7,
+    };
+
+    localStorage.setItem('globalSettings', JSON.stringify(globalSettings));
+}
+
+function saveGlobalSettings() {
+        globalSettings = {
+        startingNodes: document.getElementById('startingNodes').value,
+        desiredBehavior: document.getElementById('desiredBehavior').value,
+        rippleDirection: document.getElementById('rippleDirection').value,
+        rippleDelay: Number(document.getElementById('rippleDelay').value),
+        rippleLifeSpan: Number(document.getElementById('rippleLifeSpan').value),
+        rippleSpeed: Number(document.getElementById('rippleSpeed').value),
+        decayPerTick: Number(document.getElementById('decayPerTick').value),
+        startingColor: document.getElementById('startingColor').value,
+        hueDeltaPeriod: Number(document.getElementById('hueDeltaPeriod').value),
+        hueDeltaTick: Number(document.getElementById('hueDeltaTick').value),
+        numberOfColors: Number(document.getElementById('numberOfColors').value),
+        };
+      localStorage.setItem('globalSettings', JSON.stringify(globalSettings));
+    console.log("Global settings are", globalSettings);
+}
+
+function loadGlobalSettings() {
+    /* current implementation stores global settings in user's local storage! 
+    WIP: this should be changed to fetch the global settings from the microcontroller back-end.
+    For now, it's okay like this for testing purposes */
+
+        const storedSettings = JSON.parse(localStorage.getItem('globalSettings'));
+
+        if (storedSettings) {
+            document.getElementById('startingNodes').value = storedSettings.startingNodes;
+            document.getElementById('desiredBehavior').value = storedSettings.desiredBehavior;
+            document.getElementById('rippleDirection').value = storedSettings.rippleDirection;
+            document.getElementById('rippleDelay').value = storedSettings.rippleDelay;
+            document.getElementById('rippleLifeSpan').value = storedSettings.rippleLifeSpan;
+            document.getElementById('rippleSpeed').value = storedSettings.rippleSpeed;
+            document.getElementById('rippleSpeedDisplay').textContent = parseFloat(storedSettings.rippleSpeed).toFixed(2);
+            document.getElementById('decayPerTick').value = storedSettings.decayPerTick;
+            document.getElementById('decayPerTickDisplay').textContent = parseFloat(storedSettings.decayPerTick).toFixed(3);
+            document.getElementById('startingColor').value = storedSettings.startingColor;
+            document.getElementById('hueDeltaPeriod').value = storedSettings.hueDeltaPeriod;
+            document.getElementById('hueDeltaTick').value = storedSettings.hueDeltaTick;
+            document.getElementById('numberOfColors').value = storedSettings.numberOfColors;
+        }
+     console.log("Loaded global settings are", storedSettings);
 }
 
 // Function to update the styling of nodes based on their activation/selection status
