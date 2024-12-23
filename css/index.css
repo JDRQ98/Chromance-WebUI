@@ -2,9 +2,9 @@ body {
     display: flex;
     font-family: Arial, Helvetica, sans-serif;
     flex-direction: column;
-    justify-content: center;
+    justify-content: top;
     align-items: center;
-    height: 100vh;
+    height: 200vh;
     margin: 0;
     background-color: #FFF;
 }
@@ -17,12 +17,14 @@ body {
     display: block;
 }
 
-.hex-wrap { /* Added wrapper */
+.hex-wrap {
     position: absolute;
     display: flex;
+    width: 30px;
+    height: 30px;
     justify-content: center;
     align-items: center;
-    pointer-events: none; /* Allow clicks to pass through */
+    pointer-events: none;
 }
 
 .hex {
@@ -32,10 +34,8 @@ body {
     clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
     cursor: pointer;
     z-index: 1;
-     pointer-events: auto; /* Allow clicks on hex itself */
+    pointer-events: auto;
 }
-
-
 
 .line {
     position: absolute;
@@ -48,7 +48,7 @@ body {
 /* ---------- Node Styles ---------- */
 .hex-wrap.regularNode .hex {
     background-color: #000;
-     filter: none;
+    filter: none;
 }
 
 .hex-wrap.SelectedNode .hex {
@@ -56,45 +56,89 @@ body {
     filter: none;
 }
 
+
 .hex-wrap.ActiveNode {
-  filter: drop-shadow(0 0 5px blue) drop-shadow(0 0 15px blue) drop-shadow(0 0 20px blue);
-    animation: pulse-active-blue 2s infinite;
+     position: absolute; /*Needed for overlay glow positioning*/
+     animation: pulse-active-rainbow 2s infinite;
+     z-index: -2;
 }
-@keyframes pulse-active-blue {
-     0% {
-        filter: drop-shadow(0 0 5px blue) drop-shadow(0 0 15px blue) drop-shadow(0 0 20px blue);
+
+ .hex-wrap.ActiveNode::before {
+    content: "";
+        position: absolute;
+        background-color: blue;
+        filter: blur(10px);
+         opacity: 0.7;
+        z-index: -1;
+         animation: pulse-active-rainbow-overlay 2s infinite;
+}
+
+
+@keyframes pulse-active-rainbow {
+    0% {
+         filter: drop-shadow(0 0 5px hsl(0, 100%, 50%)) drop-shadow(0 0 15px hsl(0, 100%, 50%)) drop-shadow(0 0 20px hsl(0, 100%, 50%));
+
+    }
+    16% {
+        filter: drop-shadow(0 0 5px hsl(60, 100%, 50%)) drop-shadow(0 0 15px hsl(60, 100%, 50%)) drop-shadow(0 0 20px hsl(60, 100%, 50%));
+    }
+     33% {
+        filter: drop-shadow(0 0 5px hsl(120, 100%, 50%)) drop-shadow(0 0 15px hsl(120, 100%, 50%)) drop-shadow(0 0 20px hsl(120, 100%, 50%));
+     }
+
+    50% {
+        filter: drop-shadow(0 0 10px hsl(180, 100%, 50%)) drop-shadow(0 0 20px hsl(180, 100%, 50%)) drop-shadow(0 0 30px hsl(180, 100%, 50%));
+    }
+
+   66% {
+      filter: drop-shadow(0 0 5px hsl(240, 100%, 50%)) drop-shadow(0 0 15px hsl(240, 100%, 50%)) drop-shadow(0 0 20px hsl(240, 100%, 50%));
+    }
+    83%{
+        filter: drop-shadow(0 0 5px hsl(300, 100%, 50%)) drop-shadow(0 0 15px hsl(300, 100%, 50%)) drop-shadow(0 0 20px hsl(300, 100%, 50%));
+    }
+     100% {
+         filter: drop-shadow(0 0 5px hsl(360, 100%, 50%)) drop-shadow(0 0 15px hsl(360, 100%, 50%)) drop-shadow(0 0 20px hsl(360, 100%, 50%));
+    }
+}
+
+
+@keyframes pulse-active-rainbow-overlay {
+    0% {
+          opacity: 0.7;
     }
     50% {
-         filter: drop-shadow(0 0 10px blue) drop-shadow(0 0 20px blue) drop-shadow(0 0 30px blue);
+         opacity: 1;
     }
     100% {
-        filter: drop-shadow(0 0 5px blue) drop-shadow(0 0 15px blue) drop-shadow(0 0 20px blue);
+        opacity: 0.7;
     }
 }
 
 .hex-wrap.ActiveandSelectedNode {
-    filter: drop-shadow(0 0 5px purple) drop-shadow(0 0 15px purple) drop-shadow(0 0 20px purple);
-        animation: pulse-active-purple 2s infinite;
+     position: absolute;
+     animation: pulse-active-rainbow 2s infinite;
 }
 
-@keyframes pulse-active-purple {
-    0% {
-       filter: drop-shadow(0 0 5px purple) drop-shadow(0 0 15px purple) drop-shadow(0 0 20px purple);
-    }
-    50% {
-         filter: drop-shadow(0 0 10px purple) drop-shadow(0 0 20px purple) drop-shadow(0 0 30px purple);
-    }
-    100% {
-        filter: drop-shadow(0 0 5px purple) drop-shadow(0 0 15px purple) drop-shadow(0 0 20px purple);
-    }
+.hex-wrap.ActiveandSelectedNode::before {
+    content: "";
+    position: absolute;
+     top: -5px;
+        left: -5px;
+        right: -5px;
+        bottom: -5px;
+        background-color: purple;
+     filter: blur(10px);
+      opacity: 0.7;
+       z-index: -1;
+    animation: pulse-active-rainbow-overlay 2s infinite;
 }
-
 
 /* ---------- Modal Styles ---------- */
 .modal {
     position: absolute;
     top: 10%;
     right: -650px;
+    display: none;
     width: 450px;
     max-height: 550px;
     background-color: #fff;
@@ -108,6 +152,7 @@ body {
 
 .modal.show {
     right: 0;
+    display: block;
 }
 
 .modal button {
