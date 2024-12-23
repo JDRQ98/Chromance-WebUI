@@ -51,87 +51,75 @@ body {
     filter: none;
 }
 
+.hex-wrap.hex-wrap.ActiveandSelectedNode .hex,
 .hex-wrap.SelectedNode .hex {
-    background-color: green;
+    background-color: red;
     filter: none;
 }
 
-
-.hex-wrap.ActiveNode {
-     position: absolute; /*Needed for overlay glow positioning*/
-     animation: pulse-active-rainbow 2s infinite;
-     z-index: -2;
+.hex-wrap.ActiveNode,
+.hex-wrap.ActiveandSelectedNode {
+    position: absolute;
+    animation: pulse-active-rainbow 2s infinite;
 }
 
- .hex-wrap.ActiveNode::before {
+.hex-wrap.ActiveNode::before,
+.hex-wrap.ActiveandSelectedNode::before {
     content: "";
-        position: absolute;
-        background-color: blue;
-        filter: blur(10px);
-         opacity: 0.7;
-        z-index: -1;
-         animation: pulse-active-rainbow-overlay 2s infinite;
+    position: absolute;
+    background-color: green;
+    filter: blur(10px);
+    opacity: 0.7;
+    z-index: -1;
+    animation: pulse-active-rainbow-overlay 2s infinite;
 }
+
 
 
 @keyframes pulse-active-rainbow {
     0% {
-         filter: drop-shadow(0 0 5px hsl(0, 100%, 50%)) drop-shadow(0 0 15px hsl(0, 100%, 50%)) drop-shadow(0 0 20px hsl(0, 100%, 50%));
-
+        filter: drop-shadow(0 0 5px hsl(0, 100%, 50%)) drop-shadow(0 0 15px hsl(0, 100%, 50%)) drop-shadow(0 0 20px hsl(0, 100%, 50%));
     }
+
     16% {
         filter: drop-shadow(0 0 5px hsl(60, 100%, 50%)) drop-shadow(0 0 15px hsl(60, 100%, 50%)) drop-shadow(0 0 20px hsl(60, 100%, 50%));
     }
-     33% {
+
+    33% {
         filter: drop-shadow(0 0 5px hsl(120, 100%, 50%)) drop-shadow(0 0 15px hsl(120, 100%, 50%)) drop-shadow(0 0 20px hsl(120, 100%, 50%));
-     }
+    }
 
     50% {
         filter: drop-shadow(0 0 10px hsl(180, 100%, 50%)) drop-shadow(0 0 20px hsl(180, 100%, 50%)) drop-shadow(0 0 30px hsl(180, 100%, 50%));
     }
 
-   66% {
-      filter: drop-shadow(0 0 5px hsl(240, 100%, 50%)) drop-shadow(0 0 15px hsl(240, 100%, 50%)) drop-shadow(0 0 20px hsl(240, 100%, 50%));
+    66% {
+        filter: drop-shadow(0 0 5px hsl(240, 100%, 50%)) drop-shadow(0 0 15px hsl(240, 100%, 50%)) drop-shadow(0 0 20px hsl(240, 100%, 50%));
     }
-    83%{
+
+    83% {
         filter: drop-shadow(0 0 5px hsl(300, 100%, 50%)) drop-shadow(0 0 15px hsl(300, 100%, 50%)) drop-shadow(0 0 20px hsl(300, 100%, 50%));
     }
-     100% {
-         filter: drop-shadow(0 0 5px hsl(360, 100%, 50%)) drop-shadow(0 0 15px hsl(360, 100%, 50%)) drop-shadow(0 0 20px hsl(360, 100%, 50%));
+
+    100% {
+        filter: drop-shadow(0 0 5px hsl(360, 100%, 50%)) drop-shadow(0 0 15px hsl(360, 100%, 50%)) drop-shadow(0 0 20px hsl(360, 100%, 50%));
     }
 }
 
-
 @keyframes pulse-active-rainbow-overlay {
     0% {
-          opacity: 0.7;
+        opacity: 0.7;
     }
+
     50% {
-         opacity: 1;
+        opacity: 1;
     }
+
     100% {
         opacity: 0.7;
     }
 }
 
-.hex-wrap.ActiveandSelectedNode {
-     position: absolute;
-     animation: pulse-active-rainbow 2s infinite;
-}
-
-.hex-wrap.ActiveandSelectedNode::before {
-    content: "";
-    position: absolute;
-     top: -5px;
-        left: -5px;
-        right: -5px;
-        bottom: -5px;
-        background-color: purple;
-     filter: blur(10px);
-      opacity: 0.7;
-       z-index: -1;
-    animation: pulse-active-rainbow-overlay 2s infinite;
-}
 
 /* ---------- Modal Styles ---------- */
 .modal {
@@ -271,7 +259,7 @@ body {
 
 /* ---------- Menu Styles ---------- */
 .menu {
-    margin-top: 5px;
+    margin-top: 10px;
     display: flex;
     justify-content: center;
     gap: 20px;

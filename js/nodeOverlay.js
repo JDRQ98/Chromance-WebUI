@@ -77,6 +77,18 @@ function initGlobalSettings() {
         loadGlobalSettings();
         closeGlobalSettingsModal();
     });
+    
+    const deactivateAllNodesButton = document.getElementById('deactivateAllNodes');
+    deactivateAllNodesButton.addEventListener('click', () => {
+        deactivateAllNodes();
+    });
+}
+
+function deactivateAllNodes() {
+    activeNodes = [];
+    selectedNodes = [];
+    updateNodeStyles();
+    updateModal();
 }
 
 function resetAllSettings() {
@@ -157,12 +169,13 @@ function updateNodeStyles() {
         } else if (activeNodes.includes(nodeId)) {
             hexWrap.classList.add('ActiveNode');
         } else if (selectedNodes.includes(node)) {
-           hexWrap.classList.add('SelectedNode');
+            hexWrap.classList.add('SelectedNode');
         } else {
-          hexWrap.classList.add('regularNode');
+            hexWrap.classList.add('regularNode');
         }
     });
 }
+
 
 function updateModal(node) {
     const selectedIds = selectedNodes.map(node => node.dataset.id);
@@ -406,7 +419,6 @@ function saveNodeSettings(node) {
         activeNodes = activeNodes.filter(activeNodeId => activeNodeId !== nodeIdNumber);
     }
 
-
     // Only save properties from the modal that are specific to the node
     const editCheckboxes = modal.querySelectorAll('.edit-button-checkbox');
     editCheckboxes.forEach(checkbox => {
@@ -448,7 +460,6 @@ function discardNodeSettings(node) {
         const nodeIdNumber = Number(nodeId); // Convert ID to number
         activeNodes = activeNodes.filter(activeNodeId => activeNodeId !== nodeIdNumber);
     }
-
 
 
     // If there are node specific settings, delete them, to load defaults from global settings
