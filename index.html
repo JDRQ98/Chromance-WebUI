@@ -154,7 +154,7 @@
     <div class="modal" id="modal">
         <h2>Node Properties</h2>
         <div id="selectedNodesDisplay" class="overlay-selected-nodes">No nodes selected</div>
-        <input type="checkbox" class="overlay-activate-checkbox">Activate node </input>
+        <input type="checkbox" id="activateNodeCheckbox">Activate node </input>
         <div></div>
         <button id="closeModal">Close</button>
     </div>
@@ -165,6 +165,7 @@
         // Add click event listeners to all nodes
         window.onload = function () {
             drawHexagon(); /* from drawLines.js - draw all lines for hexagon */
+            updateNodeStyles(); /* from nodeOverlay.js - set nodes to correct styling based on current state */
 
             const nodes = document.querySelectorAll('.hex');
             nodes.forEach(node => {
