@@ -6,6 +6,64 @@ const borderNodes = [0, 3, 5, 13, 15, 18];
 const triNodes = [4, 6, 7, 11, 12, 14];
 const quadNodes = [1, 2, 8, 10, 16, 17];
 
+function setupGlobalSettingsModal() {
+    const editGlobalSettingsButton = document.getElementById('editGlobalSettingsButton');
+    const globalSettingsModal = document.getElementById('globalSettingsModal');
+    const overlay = document.getElementById('overlay');
+
+
+    editGlobalSettingsButton.addEventListener('click', () => {
+          openGlobalSettingsModal();
+    });
+
+
+    function openGlobalSettingsModal() {
+        globalSettingsModal.classList.add('show');
+        overlay.classList.add('show');
+    }
+
+    window.closeGlobalSettingsModal = function (){
+        globalSettingsModal.classList.remove('show');
+        overlay.classList.remove('show');
+    }
+}
+
+function initGlobalSettings(){
+    const rippleSpeedInput = document.getElementById('rippleSpeed');
+    const rippleSpeedDisplay = document.getElementById('rippleSpeedDisplay');
+    const decayPerTickInput = document.getElementById('decayPerTick');
+    const decayPerTickDisplay = document.getElementById('decayPerTickDisplay');
+
+    rippleSpeedInput.addEventListener('input', () => {
+        rippleSpeedDisplay.textContent = parseFloat(rippleSpeedInput.value).toFixed(2);
+    });
+
+    decayPerTickInput.addEventListener('input', () => {
+        decayPerTickDisplay.textContent = parseFloat(decayPerTickInput.value).toFixed(3);
+    });
+
+    setupGlobalSettingsModal();
+
+    const fireRippleButton = document.getElementById('fireRippleButton');
+        fireRippleButton.addEventListener('click', () => {
+            console.log("Fire ripple button clicked");
+            //Add the logic for firing the ripple, using all the properties from the interface
+    });
+        const submitButton = document.getElementById('submitButton');
+        submitButton.addEventListener('click', () => {
+           console.log("Submit button clicked");
+            //Add logic here to submit all global properties
+            closeGlobalSettingsModal();
+    });
+
+    const discardButton = document.getElementById('discardButton');
+        discardButton.addEventListener('click', () => {
+           console.log("Discard button clicked");
+          //Add logic here to reset all global properties
+          closeGlobalSettingsModal();
+    });
+}
+
 // Function to update the styling of nodes based on their activation/selection status
 function updateNodeStyles() {
     document.querySelectorAll('.hex').forEach(node => {

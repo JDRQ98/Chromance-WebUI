@@ -21,6 +21,8 @@
             position: relative;
             width: 800px;
             height: 800px;
+            display: block;
+            /* Visible by default */
         }
 
         .hex {
@@ -90,6 +92,8 @@
             display: flex;
             justify-content: space-evenly;
             width: 600px;
+            display: flex;
+            /* Visible by default */
         }
 
         .controls button {
@@ -113,12 +117,194 @@
             background-color: #b92a2a;
             color: white;
             border: none;
+            display: block;
+            /* Visible by default */
         }
 
+        /* Global Settings Styles (Modal)*/
+        .global-settings-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background-color: #fff;
+            z-index: 1001;
+            /* Ensure it is above other content */
+            display: none;
+        }
+
+        .global-settings-modal.show {
+            display: flex;
+        }
+
+
+        .global-settings-modal .setting {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .global-settings-modal input,
+        .global-settings-modal select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        .global-settings-modal input[type="number"],
+        .global-settings-modal input[type="range"] {
+            width: 100px;
+        }
+
+
+        /* Menu Styles */
+        .menu {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .menu button {
+            padding: 8px 15px;
+            cursor: pointer;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+        }
+
+        /* Overlay */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 1000;
+            /* Ensure it is below modal */
+        }
+
+        .overlay.show {
+            display: block;
+        }
+
+
+        .fire-ripple-button {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            margin-bottom: 20px;
+        }
+
+        .submit-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .submit-buttons button {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .submit-buttons button[id="submitButton"] {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .submit-buttons button[id="discardButton"] {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .global-settings-modal label {
+            margin-right: 10px;
+        }
     </style>
 </head>
 
 <body>
+    <div class="global-settings-modal" id="globalSettingsModal">
+        <h2>Global Ripple Attributes</h2>
+        <button class="fire-ripple-button" id="fireRippleButton">Fire Ripple</button>
+        <div class="setting">
+            <label for="startingNodes">Enter the starting node(s):</label>
+            <select id="startingNodes">
+                <option value="center">Center nodes</option>
+                <option value="all">All nodes</option>
+            </select>
+        </div>
+        <div class="setting">
+            <label for="desiredBehavior">Enter the desired behavior:</label>
+            <select id="desiredBehavior">
+                <option value="normal">Normal</option>
+                <option value="other">Other</option>
+            </select>
+        </div>
+        <div class="setting">
+            <label for="rippleDirection">Enter ripple direction:</label>
+            <select id="rippleDirection">
+                <option value="allDirections">All directions</option>
+                <option value="inward">Inward</option>
+                <option value="outward">Outward</option>
+            </select>
+        </div>
+        <div class="setting">
+            <label for="rippleDelay">Enter delay between ripples in ms [1 - 60000]:</label>
+            <input type="number" id="rippleDelay" min="1" max="60000" value="3000">
+        </div>
+        <div class="setting">
+            <label for="rippleLifeSpan">Enter ripple life span in ms [1 - 60000]:</label>
+            <input type="number" id="rippleLifeSpan" min="1" max="60000" value="3000">
+        </div>
+        <div class="setting">
+            <label for="rippleSpeed">Enter ripple speed [0.01 - 5]:</label>
+            <input type="range" id="rippleSpeed" min="0.01" max="5" step="0.01" value="0.5">
+            <span id="rippleSpeedDisplay">0.5</span>
+        </div>
+        <div class="setting">
+            <label for="decayPerTick">Enter decay per tick [0.90 - 1]:</label>
+            <input type="range" id="decayPerTick" min="0.90" max="1" step="0.001" value="0.985">
+            <span id="decayPerTickDisplay">0.985</span>
+        </div>
+        <div class="setting">
+            <label for="startingColor">Starting Color:</label>
+            <input type="color" id="startingColor" value="#FF0000">
+        </div>
+        <div class="setting">
+            <label for="hueDeltaPeriod">Enter hue delta per period [0 - 60000]:</label>
+            <input type="number" id="hueDeltaPeriod" min="0" max="60000" value="0">
+        </div>
+        <div class="setting">
+            <label for="hueDeltaTick">Enter hue delta per tick [0 - 500]:</label>
+            <input type="number" id="hueDeltaTick" min="0" max="500" value="200">
+        </div>
+        <div class="setting">
+            <label for="numberOfColors">Enter the desired number of colors [1 - 64]:</label>
+            <input type="number" id="numberOfColors" min="1" max="64" value="7">
+        </div>
+        <div class="submit-buttons">
+            <button id="submitButton">Submit</button>
+            <button id="discardButton">Discard changes</button>
+        </div>
+    </div>
+
     <div class="container" id="container">
         <!-- Nodes -->
         <div title="node 0" class="hex" style="left: 400px; top: 0px;" data-id="0"></div>
@@ -147,8 +333,10 @@
         <button id="selectTriNodes">Select Tri-Nodes</button>
         <button id="selectQuadNodes">Select Quad-Nodes</button>
     </div>
-    
-    <button id="deselectAll">De-select all</button>
+    <div class="menu">
+        <button id="deselectAll">De-select all</button>
+        <button id="editGlobalSettingsButton">Edit Global Settings</button>
+    </div>
 
     <div class="overlay" id="overlay"></div>
     <div class="modal" id="modal">
@@ -173,6 +361,7 @@
                     handleNodeClick(node);  // Handle click for individual node
                 });
             });
+            initGlobalSettings(); // initialize all global settings
         };
     </script>
 </body>
