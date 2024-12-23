@@ -12,20 +12,20 @@ function angle(x1, y1, x2, y2) {
 function drawLine(nodeId1, nodeId2) {
     // Get the container and the nodes by their IDs
     const container = document.getElementById('container');
-    const node1 = document.querySelector(`[data-id="${nodeId1}"]`);
-    const node2 = document.querySelector(`[data-id="${nodeId2}"]`);
+     const nodeWrap1 = document.querySelector(`.hex-wrap [data-id="${nodeId1}"]`).closest('.hex-wrap');
+    const nodeWrap2 = document.querySelector(`.hex-wrap [data-id="${nodeId2}"]`).closest('.hex-wrap');
 
     // If either node doesn't exist, return
-    if (!node1 || !node2) {
+    if (!nodeWrap1 || !nodeWrap2) {
         console.error('Invalid node IDs');
         return;
     }
 
-    // Get the positions of the nodes
-    const x1 = parseFloat(node1.style.left);
-    const y1 = parseFloat(node1.style.top);
-    const x2 = parseFloat(node2.style.left);
-    const y2 = parseFloat(node2.style.top);
+    // Get the positions of the nodes from the wrapper
+      const x1 = parseFloat(nodeWrap1.style.left);
+    const y1 = parseFloat(nodeWrap1.style.top);
+    const x2 = parseFloat(nodeWrap2.style.left);
+    const y2 = parseFloat(nodeWrap2.style.top);
 
     // Calculate the distance and angle
     const dist = distance(x1, y1, x2, y2);

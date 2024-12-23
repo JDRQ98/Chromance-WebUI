@@ -76,25 +76,63 @@
 
     <div class="container" id="container">
         <!-- Nodes -->
-        <div title="node 0" class="hex" style="left: 400px; top: 0px;" data-id="0"></div>
-        <div title="node 1" class="hex" style="left: 226.795px; top: 100px;" data-id="1"></div>
-        <div title="node 2" class="hex" style="left: 573.205px; top: 100px;" data-id="2"></div>
-        <div title="node 3" class="hex" style="left: 53.795px; top: 200px;" data-id="3"></div>
-        <div title="node 4" class="hex" style="left: 400px; top: 200px;" data-id="4"></div>
-        <div title="node 5" class="hex" style="left: 746.41px; top: 200px;" data-id="5"></div>
-        <div title="node 6" class="hex" style="left: 226.795px; top: 300px;" data-id="6"></div>
-        <div title="node 7" class="hex" style="left: 573.205px; top: 300px;" data-id="7"></div>
-        <div title="node 8" class="hex" style="left: 53.795px; top: 400px;" data-id="8"></div>
-        <div title="node 9" class="hex" style="left: 400px; top: 400px;" data-id="9"></div>
-        <div title="node 10" class="hex" style="left: 746.41px; top: 400px;" data-id="10"></div>
-        <div title="node 11" class="hex" style="left: 226.795px; top: 500px;" data-id="11"></div>
-        <div title="node 12" class="hex" style="left: 573.205px; top: 500px;" data-id="12"></div>
-        <div title="node 13" class="hex" style="left: 53.795px; top: 600px;" data-id="13"></div>
-        <div title="node 14" class="hex" style="left: 400px; top: 600px;" data-id="14"></div>
-        <div title="node 15" class="hex" style="left: 746.41px; top: 600px;" data-id="15"></div>
-        <div title="node 16" class="hex" style="left: 226.795px; top: 700px;" data-id="16"></div>
-        <div title="node 17" class="hex" style="left: 573.205px; top: 700px;" data-id="17"></div>
-        <div title="node 18" class="hex" style="left: 400px; top: 800px;" data-id="18"></div>
+        <div class="hex-wrap" style="left: 400px; top: 0px;">
+             <div title="node 0" class="hex"  data-id="0"></div>
+         </div>
+        <div class="hex-wrap" style="left: 226.795px; top: 100px;">
+            <div title="node 1" class="hex"  data-id="1"></div>
+        </div>
+        <div class="hex-wrap" style="left: 573.205px; top: 100px;">
+            <div title="node 2" class="hex"  data-id="2"></div>
+        </div>
+        <div class="hex-wrap" style="left: 53.795px; top: 200px;">
+            <div title="node 3" class="hex"  data-id="3"></div>
+        </div>
+        <div class="hex-wrap" style="left: 400px; top: 200px;">
+           <div title="node 4" class="hex"  data-id="4"></div>
+        </div>
+        <div class="hex-wrap" style="left: 746.41px; top: 200px;">
+            <div title="node 5" class="hex"  data-id="5"></div>
+        </div>
+        <div class="hex-wrap" style="left: 226.795px; top: 300px;">
+             <div title="node 6" class="hex"  data-id="6"></div>
+        </div>
+        <div class="hex-wrap" style="left: 573.205px; top: 300px;">
+             <div title="node 7" class="hex"  data-id="7"></div>
+        </div>
+        <div class="hex-wrap" style="left: 53.795px; top: 400px;">
+            <div title="node 8" class="hex"  data-id="8"></div>
+        </div>
+         <div class="hex-wrap" style="left: 400px; top: 400px;">
+             <div title="node 9" class="hex"  data-id="9"></div>
+        </div>
+        <div class="hex-wrap" style="left: 746.41px; top: 400px;">
+            <div title="node 10" class="hex"  data-id="10"></div>
+        </div>
+         <div class="hex-wrap" style="left: 226.795px; top: 500px;">
+           <div title="node 11" class="hex"  data-id="11"></div>
+        </div>
+        <div class="hex-wrap" style="left: 573.205px; top: 500px;">
+            <div title="node 12" class="hex"  data-id="12"></div>
+        </div>
+        <div class="hex-wrap" style="left: 53.795px; top: 600px;">
+             <div title="node 13" class="hex"  data-id="13"></div>
+        </div>
+        <div class="hex-wrap" style="left: 400px; top: 600px;">
+             <div title="node 14" class="hex"  data-id="14"></div>
+        </div>
+        <div class="hex-wrap" style="left: 746.41px; top: 600px;">
+           <div title="node 15" class="hex"  data-id="15"></div>
+        </div>
+         <div class="hex-wrap" style="left: 226.795px; top: 700px;">
+           <div title="node 16" class="hex"  data-id="16"></div>
+        </div>
+        <div class="hex-wrap" style="left: 573.205px; top: 700px;">
+            <div title="node 17" class="hex"  data-id="17"></div>
+        </div>
+        <div class="hex-wrap" style="left: 400px; top: 800px;">
+            <div title="node 18" class="hex"  data-id="18"></div>
+        </div>
     </div>
 
     <div class="controls">
@@ -118,7 +156,7 @@
         </h2>
         <div id="selectedNodesDisplay" class="overlay-selected-nodes">No nodes selected</div>
           <div class="setting-container">
-              <label for="activateNodeCheckbox">Activate Node:</label>
+              <label for="activateNodeCheckbox">Activate Node(s):</label>
               <input type="checkbox" id="activateNodeCheckbox">
           </div>
          <div class="modal-settings">

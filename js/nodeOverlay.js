@@ -149,14 +149,17 @@ function loadGlobalSettings() {
 function updateNodeStyles() {
     document.querySelectorAll('.hex').forEach(node => {
         const nodeId = Number(node.dataset.id); // Convert ID to number
+        const hexWrap = node.closest('.hex-wrap'); // Get the parent wrapper
+        hexWrap.classList.remove('regularNode', 'SelectedNode', 'ActiveNode', 'ActiveandSelectedNode');
+
         if (activeNodes.includes(nodeId) && selectedNodes.includes(node)) {
-            node.style.backgroundColor = 'purple'; // Active and selected nodes are purple
+            hexWrap.classList.add('ActiveandSelectedNode');
         } else if (activeNodes.includes(nodeId)) {
-            node.style.backgroundColor = 'blue'; // Active nodes are blue
+            hexWrap.classList.add('ActiveNode');
         } else if (selectedNodes.includes(node)) {
-            node.style.backgroundColor = 'green'; // Selected but inactive nodes are green
+           hexWrap.classList.add('SelectedNode');
         } else {
-            node.style.backgroundColor = '#000'; // Inactive and unselected nodes are black
+          hexWrap.classList.add('regularNode');
         }
     });
 }

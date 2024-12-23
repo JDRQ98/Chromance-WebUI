@@ -17,27 +17,78 @@ body {
     display: block;
 }
 
-.hex {
+.hex-wrap { /* Added wrapper */
     position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none; /* Allow clicks to pass through */
+}
+
+.hex {
     width: 30px;
     height: 30px;
     background-color: #000;
     clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: #000;
     cursor: pointer;
     z-index: 1;
+     pointer-events: auto; /* Allow clicks on hex itself */
 }
+
+
 
 .line {
     position: absolute;
     background-color: #000;
     height: 4px;
     transform-origin: 0 0;
-    z-index: 0;
+    z-index: -1;
 }
+
+/* ---------- Node Styles ---------- */
+.hex-wrap.regularNode .hex {
+    background-color: #000;
+     filter: none;
+}
+
+.hex-wrap.SelectedNode .hex {
+    background-color: green;
+    filter: none;
+}
+
+.hex-wrap.ActiveNode {
+  filter: drop-shadow(0 0 5px blue) drop-shadow(0 0 15px blue) drop-shadow(0 0 20px blue);
+    animation: pulse-active-blue 2s infinite;
+}
+@keyframes pulse-active-blue {
+     0% {
+        filter: drop-shadow(0 0 5px blue) drop-shadow(0 0 15px blue) drop-shadow(0 0 20px blue);
+    }
+    50% {
+         filter: drop-shadow(0 0 10px blue) drop-shadow(0 0 20px blue) drop-shadow(0 0 30px blue);
+    }
+    100% {
+        filter: drop-shadow(0 0 5px blue) drop-shadow(0 0 15px blue) drop-shadow(0 0 20px blue);
+    }
+}
+
+.hex-wrap.ActiveandSelectedNode {
+    filter: drop-shadow(0 0 5px purple) drop-shadow(0 0 15px purple) drop-shadow(0 0 20px purple);
+        animation: pulse-active-purple 2s infinite;
+}
+
+@keyframes pulse-active-purple {
+    0% {
+       filter: drop-shadow(0 0 5px purple) drop-shadow(0 0 15px purple) drop-shadow(0 0 20px purple);
+    }
+    50% {
+         filter: drop-shadow(0 0 10px purple) drop-shadow(0 0 20px purple) drop-shadow(0 0 30px purple);
+    }
+    100% {
+        filter: drop-shadow(0 0 5px purple) drop-shadow(0 0 15px purple) drop-shadow(0 0 20px purple);
+    }
+}
+
 
 /* ---------- Modal Styles ---------- */
 .modal {
@@ -269,7 +320,6 @@ body {
     background-color: #333;
     color: #fff;
     text-align: center;
-    font-family: Arial, Helvetica, sans-serif;
     border-radius: 6px;
     padding: 5px;
     position: absolute;
