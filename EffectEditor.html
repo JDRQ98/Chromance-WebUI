@@ -23,13 +23,6 @@
             <label for="effectDuration">Effect duration in ms [1 - 60000]:</label>
             <input type="number" id="effectDuration" min="1" max="60000" value="3000">
         </div>
-         <div class="setting">
-            <label for="startingNodes">Enter the starting node(s):</label>
-            <select id="startingNodes">
-                <option value="center">Center nodes</option>
-                <option value="all">All nodes</option>
-            </select>
-        </div>
         <div class="setting">
             <label for="desiredBehavior">Enter the desired behavior:</label>
             <select id="desiredBehavior">
@@ -75,7 +68,7 @@
             <label for="hueDeltaTick">Enter hue delta per tick [0 - 500]:</label>
             <input type="number" id="hueDeltaTick" min="0" max="500" value="200">
         </div>
-         <div class="setting">
+        <div class="setting">
             <label for="numberOfColors">Enter the desired number of colors [1 - 64]:</label>
             <input type="number" id="numberOfColors" min="1" max="64" value="7">
         </div>
@@ -92,61 +85,61 @@
     <div class="container" id="container">
         <!-- Nodes -->
         <div class="hex-wrap" style="left: 400px; top: 0px;">
-             <div title="node 0" class="hex"  data-id="0"></div>
-         </div>
+            <div title="node 0" class="hex" data-id="0"></div>
+        </div>
         <div class="hex-wrap" style="left: 226.795px; top: 100px;">
-            <div title="node 1" class="hex"  data-id="1"></div>
+            <div title="node 1" class="hex" data-id="1"></div>
         </div>
         <div class="hex-wrap" style="left: 573.205px; top: 100px;">
-            <div title="node 2" class="hex"  data-id="2"></div>
+            <div title="node 2" class="hex" data-id="2"></div>
         </div>
         <div class="hex-wrap" style="left: 53.795px; top: 200px;">
-            <div title="node 3" class="hex"  data-id="3"></div>
+            <div title="node 3" class="hex" data-id="3"></div>
         </div>
         <div class="hex-wrap" style="left: 400px; top: 200px;">
-           <div title="node 4" class="hex"  data-id="4"></div>
+            <div title="node 4" class="hex" data-id="4"></div>
         </div>
         <div class="hex-wrap" style="left: 746.41px; top: 200px;">
-            <div title="node 5" class="hex"  data-id="5"></div>
+            <div title="node 5" class="hex" data-id="5"></div>
         </div>
         <div class="hex-wrap" style="left: 226.795px; top: 300px;">
-             <div title="node 6" class="hex"  data-id="6"></div>
+            <div title="node 6" class="hex" data-id="6"></div>
         </div>
         <div class="hex-wrap" style="left: 573.205px; top: 300px;">
-             <div title="node 7" class="hex"  data-id="7"></div>
+            <div title="node 7" class="hex" data-id="7"></div>
         </div>
         <div class="hex-wrap" style="left: 53.795px; top: 400px;">
-            <div title="node 8" class="hex"  data-id="8"></div>
+            <div title="node 8" class="hex" data-id="8"></div>
         </div>
-         <div class="hex-wrap" style="left: 400px; top: 400px;">
-             <div title="node 9" class="hex"  data-id="9"></div>
+        <div class="hex-wrap" style="left: 400px; top: 400px;">
+            <div title="node 9" class="hex" data-id="9"></div>
         </div>
         <div class="hex-wrap" style="left: 746.41px; top: 400px;">
-            <div title="node 10" class="hex"  data-id="10"></div>
+            <div title="node 10" class="hex" data-id="10"></div>
         </div>
-         <div class="hex-wrap" style="left: 226.795px; top: 500px;">
-           <div title="node 11" class="hex"  data-id="11"></div>
+        <div class="hex-wrap" style="left: 226.795px; top: 500px;">
+            <div title="node 11" class="hex" data-id="11"></div>
         </div>
         <div class="hex-wrap" style="left: 573.205px; top: 500px;">
-            <div title="node 12" class="hex"  data-id="12"></div>
+            <div title="node 12" class="hex" data-id="12"></div>
         </div>
         <div class="hex-wrap" style="left: 53.795px; top: 600px;">
-             <div title="node 13" class="hex"  data-id="13"></div>
+            <div title="node 13" class="hex" data-id="13"></div>
         </div>
         <div class="hex-wrap" style="left: 400px; top: 600px;">
-             <div title="node 14" class="hex"  data-id="14"></div>
+            <div title="node 14" class="hex" data-id="14"></div>
         </div>
         <div class="hex-wrap" style="left: 746.41px; top: 600px;">
-           <div title="node 15" class="hex"  data-id="15"></div>
+            <div title="node 15" class="hex" data-id="15"></div>
         </div>
-         <div class="hex-wrap" style="left: 226.795px; top: 700px;">
-           <div title="node 16" class="hex"  data-id="16"></div>
+        <div class="hex-wrap" style="left: 226.795px; top: 700px;">
+            <div title="node 16" class="hex" data-id="16"></div>
         </div>
         <div class="hex-wrap" style="left: 573.205px; top: 700px;">
-            <div title="node 17" class="hex"  data-id="17"></div>
+            <div title="node 17" class="hex" data-id="17"></div>
         </div>
         <div class="hex-wrap" style="left: 400px; top: 800px;">
-            <div title="node 18" class="hex"  data-id="18"></div>
+            <div title="node 18" class="hex" data-id="18"></div>
         </div>
     </div>
 
@@ -165,99 +158,94 @@
         <button id="restoreDefaultsButton">Restore defaults</button>
         <button id="editGlobalSettingsButton">Edit Global Settings</button>
     </div>
-    
+
     <div class="overlay" id="overlay"></div>
     <div class="modal" id="modal">
         <h2>Node Properties
-           <i class="info-icon">i
-                <span class="tooltiptext">Hint: Node settings will follow global settings by default, unless overwritten below by the user</span>
-           </i>
+            <i class="info-icon">i
+                <span class="tooltiptext">Hint: Node settings will follow global settings by default, unless overwritten
+                    below by the user</span>
+            </i>
         </h2>
         <button class="close-modal-button" id="closeModalButton">×</button>
         <div id="selectedNodesDisplay" class="overlay-selected-nodes">No nodes selected</div>
-          <div class="setting-container">
-              <label for="activateNodeCheckbox">Activate Node(s):</label>
-              <input type="checkbox" id="activateNodeCheckbox">
-          </div>
-         <div class="modal-settings">
-             <div class="setting-container">
-                  <label for="modalStartingNodes">Starting node(s):</label>
-                  <select id="modalStartingNodes">
-                     <option value="center">Center nodes</option>
-                     <option value="all">All nodes</option>
-                  </select>
-                  <input type="checkbox" class="edit-button-checkbox" data-setting="startingNodes">
-              </div>
-             <div class="setting-container">
+        <div class="setting-container">
+            <label for="activateNodeCheckbox">Activate Node(s):</label>
+            <input type="checkbox" id="activateNodeCheckbox">
+        </div>
+        <div class="modal-settings">
+            <div class="setting-container">
                 <label for="modalDesiredBehavior">Desired behavior:</label>
                 <select id="modalDesiredBehavior">
                     <option value="normal">Normal</option>
-                     <option value="other">Other</option>
+                    <option value="other">Other</option>
                 </select>
                 <input type="checkbox" class="edit-button-checkbox" data-setting="desiredBehavior">
-             </div>
+            </div>
             <div class="setting-container">
                 <label for="modalRippleDirection">Ripple direction:</label>
-                  <select id="modalRippleDirection">
-                     <option value="allDirections">All directions</option>
-                      <option value="inward">Inward</option>
-                      <option value="outward">Outward</option>
-                 </select>
-                  <input type="checkbox" class="edit-button-checkbox" data-setting="rippleDirection">
+                <select id="modalRippleDirection">
+                    <option value="allDirections">All directions</option>
+                    <option value="inward">Inward</option>
+                    <option value="outward">Outward</option>
+                </select>
+                <input type="checkbox" class="edit-button-checkbox" data-setting="rippleDirection">
             </div>
-             <div class="setting-container">
+            <div class="setting-container">
                 <label for="modalRippleDelay">Delay between ripples [1 - 60000]:</label>
                 <input type="number" id="modalRippleDelay" min="1" max="60000" value="3000">
-                 <input type="checkbox" class="edit-button-checkbox" data-setting="rippleDelay">
+                <input type="checkbox" class="edit-button-checkbox" data-setting="rippleDelay">
             </div>
-              <div class="setting-container">
-                   <label for="modalRippleLifeSpan">Ripple life span [1 - 60000]:</label>
-                  <input type="number" id="modalRippleLifeSpan" min="1" max="60000" value="3000">
-                 <input type="checkbox" class="edit-button-checkbox" data-setting="rippleLifeSpan">
+            <div class="setting-container">
+                <label for="modalRippleLifeSpan">Ripple life span [1 - 60000]:</label>
+                <input type="number" id="modalRippleLifeSpan" min="1" max="60000" value="3000">
+                <input type="checkbox" class="edit-button-checkbox" data-setting="rippleLifeSpan">
             </div>
-              <div class="setting-container">
+            <div class="setting-container">
                 <label for="modalRippleSpeed">Ripple speed [0.01 - 5]:</label>
                 <input type="range" id="modalRippleSpeed" min="0.01" max="5" step="0.01" value="0.5">
-                 <span id="modalRippleSpeedDisplay">0.5</span>
-                 <input type="checkbox" class="edit-button-checkbox" data-setting="rippleSpeed">
+                <span id="modalRippleSpeedDisplay">0.5</span>
+                <input type="checkbox" class="edit-button-checkbox" data-setting="rippleSpeed">
             </div>
-              <div class="setting-container">
-                  <label for="modalDecayPerTick">Decay per tick [0.90 - 1]:</label>
+            <div class="setting-container">
+                <label for="modalDecayPerTick">Decay per tick [0.90 - 1]:</label>
                 <input type="range" id="modalDecayPerTick" min="0.90" max="1" step="0.001" value="0.985">
-                 <span id="modalDecayPerTickDisplay">0.985</span>
-                   <input type="checkbox" class="edit-button-checkbox" data-setting="decayPerTick">
+                <span id="modalDecayPerTickDisplay">0.985</span>
+                <input type="checkbox" class="edit-button-checkbox" data-setting="decayPerTick">
             </div>
-               <div class="setting-container">
-                   <label for="modalStartingColor">Starting Color:</label>
-                  <input type="color" id="modalStartingColor" value="#FF0000">
-                 <input type="checkbox" class="edit-button-checkbox" data-setting="startingColor">
+            <div class="setting-container">
+                <label for="modalStartingColor">Starting Color:</label>
+                <input type="color" id="modalStartingColor" value="#FF0000">
+                <input type="checkbox" class="edit-button-checkbox" data-setting="startingColor">
             </div>
-               <div class="setting-container">
-                    <label for="modalHueDeltaPeriod">Hue delta per period [0 - 60000]:</label>
-                   <input type="number" id="modalHueDeltaPeriod" min="0" max="60000" value="0">
-                 <input type="checkbox" class="edit-button-checkbox" data-setting="hueDeltaPeriod">
+            <div class="setting-container">
+                <label for="modalHueDeltaPeriod">Hue delta per period [0 - 60000]:</label>
+                <input type="number" id="modalHueDeltaPeriod" min="0" max="60000" value="0">
+                <input type="checkbox" class="edit-button-checkbox" data-setting="hueDeltaPeriod">
             </div>
-               <div class="setting-container">
-                   <label for="modalHueDeltaTick">Hue delta per tick [0 - 500]:</label>
-                  <input type="number" id="modalHueDeltaTick" min="0" max="500" value="200">
-                     <input type="checkbox" class="edit-button-checkbox" data-setting="hueDeltaTick">
-             </div>
-              <div class="setting-container">
-                   <label for="modalNumberOfColors">Number of colors [1 - 64]:</label>
-                  <input type="number" id="modalNumberOfColors" min="1" max="64" value="7">
-                    <input type="checkbox" class="edit-button-checkbox" data-setting="numberOfColors">
+            <div class="setting-container">
+                <label for="modalHueDeltaTick">Hue delta per tick [0 - 500]:</label>
+                <input type="number" id="modalHueDeltaTick" min="0" max="500" value="200">
+                <input type="checkbox" class="edit-button-checkbox" data-setting="hueDeltaTick">
             </div>
-         </div>
-          <div class="modal-buttons">
-              <button id="saveNodeButton">Save</button>
-              <button id="discardNodeButton">Discard</button>
+            <div class="setting-container">
+                <label for="modalNumberOfColors">Number of colors [1 - 64]:</label>
+                <input type="number" id="modalNumberOfColors" min="1" max="64" value="7">
+                <input type="checkbox" class="edit-button-checkbox" data-setting="numberOfColors">
+            </div>
+        </div>
+        <div class="modal-buttons">
+            <button id="saveNodeButton">Save</button>
+            <button id="discardNodeButton">Discard</button>
         </div>
     </div>
 
-    
 
-    <script src="js/drawVisualizer.js"></script> <!-- this file includes functions for drawing the Chromance structure by drawing the 'segments' based on the node positions -->
-    <script src="js/nodeOverlay.js"></script> <!-- this includes the functionality for managing nodes and their individual settings -->
+
+    <script src="js/drawVisualizer.js"></script>
+    <!-- this file includes functions for drawing the Chromance structure by drawing the 'segments' based on the node positions -->
+    <script src="js/nodeOverlay.js"></script>
+    <!-- this includes the functionality for managing nodes and their individual settings -->
     <script>
         // Add click event listeners to all nodes
         window.onload = function () {
