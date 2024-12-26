@@ -1,5 +1,5 @@
-let selectedNodes = [];  // Array to store selected nodes
-let activeNodes = [9];  // Array to store active nodes; by default, node 9 is active.
+let selectedNodes = []; // Array to store selected nodes
+let activeNodes = [9]; // Array to store active nodes; by default, node 9 is active.
 let globalSettings = {}; // Object to store global settings
 let nodeSpecificSettings = {}; // Object to store node-specific settings
 
@@ -8,6 +8,8 @@ const borderNodes = [0, 3, 5, 13, 15, 18];
 const triNodes = [4, 6, 7, 11, 12, 14];
 const quadNodes = [1, 2, 8, 10, 16, 17];
 let modalInputs = {};
+let currentEffectId = 1; // Variable to track the current effect ID
+let effects = {}; // Variable to store saved effects
 
 function setupGlobalSettingsModal() {
     const editGlobalSettingsButton = document.getElementById('editGlobalSettingsButton');
@@ -35,8 +37,36 @@ function setupGlobalSettingsModal() {
         overlay.classList.remove('show');
     }
 }
+function updateEffectTitle() {
+    const titleElement = document.getElementById('effectTitle');
+    titleElement.textContent = `Effect editor: Effect ${currentEffectId}`;
+}
 
 function initGlobalSettings() {
+    // Load effects from localStorage
+    const storedEffects = localStorage.getItem('effects');
+    if (storedEffects) {
+        effects = JSON.parse(storedEffects);
+    }
+
+    // Load settings for the current effect
+    loadCurrentEffect();
+    updateEffectTitle();
+
+    // Add listener to the effect buttons
+    const effectButtons = document.querySelectorAll('.effect-button');
+    effectButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            currentEffectId = this.dataset.effectId;
+            loadCurrentEffect();
+            updateEffectTitle();
+        });
+    });
+    const saveChangesButton = document.getElementById('saveChangesButton');
+    saveChangesButton.addEventListener('click', function () {
+        saveCurrentEffect();
+    });
+
     const rippleSpeedInput = document.getElementById('rippleSpeed');
     const rippleSpeedDisplay = document.getElementById('rippleSpeedDisplay');
     const decayPerTickInput = document.getElementById('decayPerTick');
@@ -109,6 +139,25 @@ function initGlobalSettings() {
             closeGlobalSettingsModal();
         }
     });
+}
+function loadCurrentEffect() {
+    if (effects[currentEffectId]) {
+        globalSettings = effects[currentEffectId].globalSettings;
+        nodeSpecificSettings = effects[currentEffectId].nodeSpecificSettings;
+    } else {
+        resetAllSettings();
+    }
+    loadGlobalSettings();
+    updateNodeStyles();
+}
+function saveCurrentEffect() {
+    effects[currentEffectId] = {
+        globalSettings: globalSettings,
+        nodeSpecificSettings: nodeSpecificSettings,
+    }
+
+    localStorage.setItem('effects', JSON.stringify(effects));
+    console.log("Saved effect with id", currentEffectId)
 }
 
 function deactivateAllNodes() {
@@ -328,6 +377,7 @@ function loadNodeSettings(node) {
         colorContainer.appendChild(colorInput);
     });
 
+
     // Set edit button checkbox state based on if there is node specific property
     const modal = document.getElementById('modal');
     const editCheckboxes = modal.querySelectorAll('.edit-button-checkbox');
@@ -346,11 +396,9 @@ function loadNodeSettings(node) {
             // Check if all selected nodes have the same setting
             allSame = selectedIds.every(id => {
                 if (nodeSpecificSettings[id] && nodeSpecificSettings[id].hasOwnProperty(setting)) {
-                    const isSame = nodeSpecificSettings[selectedIds[0]] && nodeSpecificSettings[selectedIds[0]][setting] === nodeSpecificSettings[id][setting];
-                    return isSame;
+                    return nodeSpecificSettings[selectedIds[0]] && nodeSpecificSettings[selectedIds[0]][setting] === nodeSpecificSettings[id][setting];
                 } else {
-                    const hasSetting = !(nodeSpecificSettings[selectedIds[0]] && nodeSpecificSettings[selectedIds[0]].hasOwnProperty(setting));
-                    return hasSetting;
+                    return !(nodeSpecificSettings[selectedIds[0]] && nodeSpecificSettings[selectedIds[0]].hasOwnProperty(setting));
                 }
             });
             if (allSame) {
@@ -362,6 +410,7 @@ function loadNodeSettings(node) {
                     }
                 })
                 checkbox.indeterminate = false;
+
             } else {
                 checkbox.checked = false;
                 checkbox.indeterminate = true;

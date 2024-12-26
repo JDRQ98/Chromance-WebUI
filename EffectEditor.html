@@ -9,6 +9,20 @@
 </head>
 
 <body>
+    <h1 id="effectTitle">Effect editor: Default</h1>
+     <div class="effect-selector">
+        <button class="effect-button" data-effect-id="1">Effect 1</button>
+        <button class="effect-button" data-effect-id="2">Effect 2</button>
+        <button class="effect-button" data-effect-id="3">Effect 3</button>
+        <button class="effect-button" data-effect-id="4">Effect 4</button>
+         <button class="effect-button" data-effect-id="5">Effect 5</button>
+         <button class="effect-button" data-effect-id="6">Effect 6</button>
+        <button class="effect-button" data-effect-id="7">Effect 7</button>
+        <button class="effect-button" data-effect-id="8">Effect 8</button>
+          <button class="effect-button" data-effect-id="9">Effect 9</button>
+          <button class="effect-button" data-effect-id="10">Effect 10</button>
+         <button id="saveChangesButton">Save Changes</button>
+    </div>
     <div class="global-settings-modal" id="globalSettingsModal">
         <h2>Global Ripple Attributes</h2>
         <button class="fire-ripple-button" id="fireRippleButton">Fire Ripple</button>
@@ -72,7 +86,7 @@
             <input type="number" id="hueDeltaTick" min="0" max="500" value="200">
         </div>
         <div class="setting">
-            <label for="numberOfRipples">Enter the number of ripples per fire:</label>
+            <label for="numberOfRipples">Enter the max number of ripples per fire:</label>
             <input type="text" id="numberOfRipples" value="1">
         </div>
         <div class="submit-buttons">
