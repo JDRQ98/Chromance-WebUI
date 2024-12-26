@@ -10,18 +10,93 @@
 
 <body>
     <h1 id="effectTitle">Effect editor: Default</h1>
-     <div class="effect-selector">
+    <div class="effect-selector">
         <button class="effect-button" data-effect-id="1">Effect 1</button>
         <button class="effect-button" data-effect-id="2">Effect 2</button>
         <button class="effect-button" data-effect-id="3">Effect 3</button>
         <button class="effect-button" data-effect-id="4">Effect 4</button>
-         <button class="effect-button" data-effect-id="5">Effect 5</button>
-         <button class="effect-button" data-effect-id="6">Effect 6</button>
+        <button class="effect-button" data-effect-id="5">Effect 5</button>
+        <button class="effect-button" data-effect-id="6">Effect 6</button>
         <button class="effect-button" data-effect-id="7">Effect 7</button>
         <button class="effect-button" data-effect-id="8">Effect 8</button>
-          <button class="effect-button" data-effect-id="9">Effect 9</button>
-          <button class="effect-button" data-effect-id="10">Effect 10</button>
-         <button id="saveChangesButton">Save Changes</button>
+        <button class="effect-button" data-effect-id="9">Effect 9</button>
+        <button class="effect-button" data-effect-id="10">Effect 10</button>
+        <button id="saveChangesButton">Save Changes</button>
+    </div>
+    <div class="container" id="container">
+        <!-- Nodes -->
+        <div class="hex-wrap" style="left: 400px; top: 0px;">
+            <div title="node 0" class="hex" data-id="0"></div>
+        </div>
+        <div class="hex-wrap" style="left: 226.795px; top: 100px;">
+            <div title="node 1" class="hex" data-id="1"></div>
+        </div>
+        <div class="hex-wrap" style="left: 573.205px; top: 100px;">
+            <div title="node 2" class="hex" data-id="2"></div>
+        </div>
+        <div class="hex-wrap" style="left: 53.795px; top: 200px;">
+            <div title="node 3" class="hex" data-id="3"></div>
+        </div>
+        <div class="hex-wrap" style="left: 400px; top: 200px;">
+            <div title="node 4" class="hex" data-id="4"></div>
+        </div>
+        <div class="hex-wrap" style="left: 746.41px; top: 200px;">
+            <div title="node 5" class="hex" data-id="5"></div>
+        </div>
+        <div class="hex-wrap" style="left: 226.795px; top: 300px;">
+            <div title="node 6" class="hex" data-id="6"></div>
+        </div>
+        <div class="hex-wrap" style="left: 573.205px; top: 300px;">
+            <div title="node 7" class="hex" data-id="7"></div>
+        </div>
+        <div class="hex-wrap" style="left: 53.795px; top: 400px;">
+            <div title="node 8" class="hex" data-id="8"></div>
+        </div>
+        <div class="hex-wrap" style="left: 400px; top: 400px;">
+            <div title="node 9" class="hex" data-id="9"></div>
+        </div>
+        <div class="hex-wrap" style="left: 746.41px; top: 400px;">
+            <div title="node 10" class="hex" data-id="10"></div>
+        </div>
+        <div class="hex-wrap" style="left: 226.795px; top: 500px;">
+            <div title="node 11" class="hex" data-id="11"></div>
+        </div>
+        <div class="hex-wrap" style="left: 573.205px; top: 500px;">
+            <div title="node 12" class="hex" data-id="12"></div>
+        </div>
+        <div class="hex-wrap" style="left: 53.795px; top: 600px;">
+            <div title="node 13" class="hex" data-id="13"></div>
+        </div>
+        <div class="hex-wrap" style="left: 400px; top: 600px;">
+            <div title="node 14" class="hex" data-id="14"></div>
+        </div>
+        <div class="hex-wrap" style="left: 746.41px; top: 600px;">
+            <div title="node 15" class="hex" data-id="15"></div>
+        </div>
+        <div class="hex-wrap" style="left: 226.795px; top: 700px;">
+            <div title="node 16" class="hex" data-id="16"></div>
+        </div>
+        <div class="hex-wrap" style="left: 573.205px; top: 700px;">
+            <div title="node 17" class="hex" data-id="17"></div>
+        </div>
+        <div class="hex-wrap" style="left: 400px; top: 800px;">
+            <div title="node 18" class="hex" data-id="18"></div>
+        </div>
+    </div>
+    <div class="menu">
+        <button id="openGlobalSettingsButton">Open Global Settings</button>
+        <button id="restoreDefaultsButton">Restore defaults</button>
+        <button id="editGlobalSettingsButton">Edit Global Settings</button>
+    </div>
+    <div class="controls">
+        <button id="selectBiNodes">Select Bi-Nodes</button>
+        <button id="selectTriNodes">Select Tri-Nodes</button>
+        <button id="selectQuadNodes">Select Quad-Nodes</button>
+        <button id="deselectAll">De-select all</button>
+    </div>
+    <div class="menu">
+        <button id="selectAllActive">Select all active nodes</button>
+        <button id="deactivateAllNodes">De-activate all nodes</button>
     </div>
     <div class="global-settings-modal" id="globalSettingsModal">
         <h2>Global Ripple Attributes</h2>
@@ -94,84 +169,6 @@
             <button id="discardButton">Discard changes</button>
         </div>
     </div>
-
-    <div class="container" id="container">
-        <!-- Nodes -->
-        <div class="hex-wrap" style="left: 400px; top: 0px;">
-            <div title="node 0" class="hex" data-id="0"></div>
-        </div>
-        <div class="hex-wrap" style="left: 226.795px; top: 100px;">
-            <div title="node 1" class="hex" data-id="1"></div>
-        </div>
-        <div class="hex-wrap" style="left: 573.205px; top: 100px;">
-            <div title="node 2" class="hex" data-id="2"></div>
-        </div>
-        <div class="hex-wrap" style="left: 53.795px; top: 200px;">
-            <div title="node 3" class="hex" data-id="3"></div>
-        </div>
-        <div class="hex-wrap" style="left: 400px; top: 200px;">
-            <div title="node 4" class="hex" data-id="4"></div>
-        </div>
-        <div class="hex-wrap" style="left: 746.41px; top: 200px;">
-            <div title="node 5" class="hex" data-id="5"></div>
-        </div>
-        <div class="hex-wrap" style="left: 226.795px; top: 300px;">
-            <div title="node 6" class="hex" data-id="6"></div>
-        </div>
-        <div class="hex-wrap" style="left: 573.205px; top: 300px;">
-            <div title="node 7" class="hex" data-id="7"></div>
-        </div>
-        <div class="hex-wrap" style="left: 53.795px; top: 400px;">
-            <div title="node 8" class="hex" data-id="8"></div>
-        </div>
-        <div class="hex-wrap" style="left: 400px; top: 400px;">
-            <div title="node 9" class="hex" data-id="9"></div>
-        </div>
-        <div class="hex-wrap" style="left: 746.41px; top: 400px;">
-            <div title="node 10" class="hex" data-id="10"></div>
-        </div>
-        <div class="hex-wrap" style="left: 226.795px; top: 500px;">
-            <div title="node 11" class="hex" data-id="11"></div>
-        </div>
-        <div class="hex-wrap" style="left: 573.205px; top: 500px;">
-            <div title="node 12" class="hex" data-id="12"></div>
-        </div>
-        <div class="hex-wrap" style="left: 53.795px; top: 600px;">
-            <div title="node 13" class="hex" data-id="13"></div>
-        </div>
-        <div class="hex-wrap" style="left: 400px; top: 600px;">
-            <div title="node 14" class="hex" data-id="14"></div>
-        </div>
-        <div class="hex-wrap" style="left: 746.41px; top: 600px;">
-            <div title="node 15" class="hex" data-id="15"></div>
-        </div>
-        <div class="hex-wrap" style="left: 226.795px; top: 700px;">
-            <div title="node 16" class="hex" data-id="16"></div>
-        </div>
-        <div class="hex-wrap" style="left: 573.205px; top: 700px;">
-            <div title="node 17" class="hex" data-id="17"></div>
-        </div>
-        <div class="hex-wrap" style="left: 400px; top: 800px;">
-            <div title="node 18" class="hex" data-id="18"></div>
-        </div>
-    </div>
-
-    <div class="controls">
-        <button id="selectBiNodes">Select Bi-Nodes</button>
-        <button id="selectTriNodes">Select Tri-Nodes</button>
-        <button id="selectQuadNodes">Select Quad-Nodes</button>
-        <button id="deselectAll">De-select all</button>
-    </div>
-    <div class="menu">
-        <button id="selectAllActive">Select all active nodes</button>
-        <button id="deactivateAllNodes">De-activate all nodes</button>
-    </div>
-    <div class="menu">
-        <button id="openGlobalSettingsButton">Open Global Settings</button>
-        <button id="restoreDefaultsButton">Restore defaults</button>
-        <button id="editGlobalSettingsButton">Edit Global Settings</button>
-    </div>
-
     <div class="overlay" id="overlay"></div>
     <div class="modal" id="modal">
         <h2>Node Properties
@@ -229,16 +226,16 @@
             <div class="setting-container">
                 <label>Starting Color(s):</label>
                 <div class="color-button-container">
-                     <button id="addModalColorButton" class="add-color-button">+</button>
-                     <button id="removeModalColorButton" class="remove-color-button">-</button>
-                     <button id="modalRainbowButton">Rainbow</button>
-                     <button id="modalRandomButton">Random</button>
-                      <button id="modalSimilarButton">Similar</button>
-                 </div>
+                    <button id="addModalColorButton" class="add-color-button">+</button>
+                    <button id="removeModalColorButton" class="remove-color-button">-</button>
+                    <button id="modalRainbowButton">Rainbow</button>
+                    <button id="modalRandomButton">Random</button>
+                    <button id="modalSimilarButton">Similar</button>
+                </div>
                 <div id="modalColorContainer" class="color-container">
-               </div>
-              
-               <input type="checkbox" class="edit-button-checkbox" data-setting="startingColor">
+                </div>
+
+                <input type="checkbox" class="edit-button-checkbox" data-setting="startingColor">
             </div>
             <div class="setting-container">
                 <label for="modalHueDeltaTick">Hue delta per tick [0 - 500]:</label>
@@ -251,28 +248,10 @@
             <button id="discardNodeButton">Discard</button>
         </div>
     </div>
-
-
-
     <script src="js/drawVisualizer.js"></script>
     <!-- this file includes functions for drawing the Chromance structure by drawing the 'segments' based on the node positions -->
-    <script src="js/nodeOverlay.js"></script>
-    <!-- this includes the functionality for managing nodes and their individual settings -->
-    <script>
-        // Add click event listeners to all nodes
-        window.onload = function () {
-            drawHexagon(); /* from drawLines.js - draw all lines for hexagon */
-            updateNodeStyles(); /* from nodeOverlay.js - set nodes to correct styling based on current state */
+    <script type="module" src="js/main.js"></script>
 
-            const nodes = document.querySelectorAll('.hex');
-            nodes.forEach(node => {
-                node.addEventListener('click', function () {
-                    handleNodeClick(node);  // Handle click for individual node
-                });
-            });
-            initGlobalSettings(); // initialize all global settings
-        };
-    </script>
 </body>
 
 </html>
