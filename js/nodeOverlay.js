@@ -3,19 +3,25 @@ let activeNodes = [9];  // Array to store active nodes; by default, node 9 is ac
 let globalSettings = {}; // Object to store global settings
 let nodeSpecificSettings = {}; // Object to store node-specific settings
 
-
 // Border nodes (bi-nodes), quad nodes, and tri nodes
 const borderNodes = [0, 3, 5, 13, 15, 18];
 const triNodes = [4, 6, 7, 11, 12, 14];
 const quadNodes = [1, 2, 8, 10, 16, 17];
+let modalInputs = {};
 
 function setupGlobalSettingsModal() {
     const editGlobalSettingsButton = document.getElementById('editGlobalSettingsButton');
     const globalSettingsModal = document.getElementById('globalSettingsModal');
+    const openGlobalSettingsButton = document.getElementById('openGlobalSettingsButton');
     const overlay = document.getElementById('overlay');
 
 
     editGlobalSettingsButton.addEventListener('click', () => {
+        openGlobalSettingsModal();
+        loadGlobalSettings(); // Load global settings into modal
+    });
+
+    openGlobalSettingsButton.addEventListener('click', () => {
         openGlobalSettingsModal();
         loadGlobalSettings(); // Load global settings into modal
     });
@@ -82,6 +88,22 @@ function initGlobalSettings() {
     deactivateAllNodesButton.addEventListener('click', () => {
         deactivateAllNodes();
     });
+
+    // Cache modal inputs
+    cacheModalInputs();
+
+    //Add listener to the modal close button
+    const closeModalButton = document.getElementById('closeModalButton');
+    closeModalButton.addEventListener('click', () => {
+         closeModal();
+    });
+    
+    // Add listener to the ESC key to close modal
+    document.addEventListener('keydown', function(event){
+        if (event.key === 'Escape') {
+             closeModal();
+        }
+    });
 }
 
 function deactivateAllNodes() {
@@ -102,6 +124,8 @@ function resetAllSettings() {
 
 function resetGlobalSettings() {
     globalSettings = {
+        effectBasis: 'ripple',
+        effectDuration: 3000,
         startingNodes: 'center',
         desiredBehavior: 'normal',
         rippleDirection: 'allDirections',
@@ -113,6 +137,7 @@ function resetGlobalSettings() {
         hueDeltaPeriod: 0,
         hueDeltaTick: 200,
         numberOfColors: 7,
+        numberOfRipples: 1
     };
 
     localStorage.setItem('globalSettings', JSON.stringify(globalSettings));
@@ -120,6 +145,8 @@ function resetGlobalSettings() {
 
 function saveGlobalSettings() {
     globalSettings = {
+        effectBasis: document.getElementById('effectBasis').value,
+        effectDuration: Number(document.getElementById('effectDuration').value),
         startingNodes: document.getElementById('startingNodes').value,
         desiredBehavior: document.getElementById('desiredBehavior').value,
         rippleDirection: document.getElementById('rippleDirection').value,
@@ -131,6 +158,7 @@ function saveGlobalSettings() {
         hueDeltaPeriod: Number(document.getElementById('hueDeltaPeriod').value),
         hueDeltaTick: Number(document.getElementById('hueDeltaTick').value),
         numberOfColors: Number(document.getElementById('numberOfColors').value),
+        numberOfRipples: document.getElementById('numberOfRipples').value,
     };
     localStorage.setItem('globalSettings', JSON.stringify(globalSettings));
     console.log("Global settings are", globalSettings);
@@ -140,6 +168,8 @@ function loadGlobalSettings() {
     const storedSettings = JSON.parse(localStorage.getItem('globalSettings'));
 
     if (storedSettings) {
+        document.getElementById('effectBasis').value = storedSettings.effectBasis;
+        document.getElementById('effectDuration').value = storedSettings.effectDuration;
         document.getElementById('startingNodes').value = storedSettings.startingNodes;
         document.getElementById('desiredBehavior').value = storedSettings.desiredBehavior;
         document.getElementById('rippleDirection').value = storedSettings.rippleDirection;
@@ -153,6 +183,7 @@ function loadGlobalSettings() {
         document.getElementById('hueDeltaPeriod').value = storedSettings.hueDeltaPeriod;
         document.getElementById('hueDeltaTick').value = storedSettings.hueDeltaTick;
         document.getElementById('numberOfColors').value = storedSettings.numberOfColors;
+        document.getElementById('numberOfRipples').value = storedSettings.numberOfRipples;
     }
     console.log("Loaded global settings are", storedSettings);
 }
@@ -203,8 +234,11 @@ function updateModal(node) {
             modalSettings.classList.remove('show');
         }
 
-        // Load settings from global or node-specific settings
-        loadNodeSettings(node);
+         // Load settings from global or node-specific settings
+        if (selectedNodes.length > 0){
+            loadNodeSettings(selectedNodes[0]);
+        }
+
     } else if (selectedIds.length > 1) { // More than 1 node is selected
         // Check if all selected nodes are active
         const allActive = selectedIds.every(id => activeNodes.includes(Number(id)));
@@ -226,169 +260,224 @@ function updateModal(node) {
                 modalSettings.classList.remove('show');
             }
         }
+        // Load settings from global or node-specific settings
+         if (selectedNodes.length > 0){
+             loadNodeSettings(selectedNodes[0]);
+         }
 
         // Disable all settings if more than one node is selected
-        disableModalSettings();
+        disableModalInputs();
     } else {
         // If no nodes are selected, reset the checkbox
         activateCheckbox.checked = false;
         activateCheckbox.indeterminate = false;
         // Disable all settings if no node is selected
-        disableModalSettings();
+        disableModalInputs();
         modalSettings.classList.remove('show');
+
+        // Close the modal if no nodes are selected
+        closeModal();
+
     }
+
+
+    if (selectedNodes.length > 0 && !document.getElementById('modal').classList.contains('show')) {
+        openModal();  // Open the modal if there are selected nodes
+    }
+
 }
 
 function loadNodeSettings(node) {
     const nodeId = node.dataset.id;
-    const modal = document.getElementById('modal');
-    const modalStartingNodes = document.getElementById('modalStartingNodes');
-    const modalDesiredBehavior = document.getElementById('modalDesiredBehavior');
-    const modalRippleDirection = document.getElementById('modalRippleDirection');
-    const modalRippleDelay = document.getElementById('modalRippleDelay');
-    const modalRippleLifeSpan = document.getElementById('modalRippleLifeSpan');
-    const modalRippleSpeed = document.getElementById('modalRippleSpeed');
-    const modalRippleSpeedDisplay = document.getElementById('modalRippleSpeedDisplay');
-    const modalDecayPerTick = document.getElementById('modalDecayPerTick');
-    const modalDecayPerTickDisplay = document.getElementById('modalDecayPerTickDisplay');
-    const modalStartingColor = document.getElementById('modalStartingColor');
-    const modalHueDeltaPeriod = document.getElementById('modalHueDeltaPeriod');
-    const modalHueDeltaTick = document.getElementById('modalHueDeltaTick');
-    const modalNumberOfColors = document.getElementById('modalNumberOfColors');
+    const selectedIds = selectedNodes.map(node => node.dataset.id);
+    console.log("loadNodeSettings called for node:", nodeId, "selectedNodes:", selectedIds);
 
     // Set the inputs based on global settings or node specific settings
-    if (nodeSpecificSettings[nodeId]) { // if node has some local settings
-        modalStartingNodes.value = nodeSpecificSettings[nodeId].startingNodes
-        modalDesiredBehavior.value = nodeSpecificSettings[nodeId].desiredBehavior
-        modalRippleDirection.value = nodeSpecificSettings[nodeId].rippleDirection
-        modalRippleDelay.value = nodeSpecificSettings[nodeId].rippleDelay
-        modalRippleLifeSpan.value = nodeSpecificSettings[nodeId].rippleLifeSpan
-        modalRippleSpeed.value = nodeSpecificSettings[nodeId].rippleSpeed
-        modalRippleSpeedDisplay.textContent = parseFloat(nodeSpecificSettings[nodeId].rippleSpeed).toFixed(2)
-        modalDecayPerTick.value = nodeSpecificSettings[nodeId].decayPerTick
-        modalDecayPerTickDisplay.textContent = parseFloat(nodeSpecificSettings[nodeId].decayPerTick).toFixed(3)
-        modalStartingColor.value = nodeSpecificSettings[nodeId].startingColor
-        modalHueDeltaPeriod.value = nodeSpecificSettings[nodeId].hueDeltaPeriod
-        modalHueDeltaTick.value = nodeSpecificSettings[nodeId].hueDeltaTick
-        modalNumberOfColors.value = nodeSpecificSettings[nodeId].numberOfColors;
-    } else { // if the node has no local settings
-        modalStartingNodes.value = globalSettings.startingNodes
-        modalDesiredBehavior.value = globalSettings.desiredBehavior
-        modalRippleDirection.value = globalSettings.rippleDirection
-        modalRippleDelay.value = globalSettings.rippleDelay
-        modalRippleLifeSpan.value = globalSettings.rippleLifeSpan
-        modalRippleSpeed.value = globalSettings.rippleSpeed
-        modalRippleSpeedDisplay.textContent = parseFloat(globalSettings.rippleSpeed).toFixed(2)
-        modalDecayPerTick.value = globalSettings.decayPerTick
-        modalDecayPerTickDisplay.textContent = parseFloat(globalSettings.decayPerTick).toFixed(3)
-        modalStartingColor.value = globalSettings.startingColor
-        modalHueDeltaPeriod.value = globalSettings.hueDeltaPeriod
-        modalHueDeltaTick.value = globalSettings.hueDeltaTick
-        modalNumberOfColors.value = globalSettings.numberOfColors
-    }
+    let startingNodesValue = nodeSpecificSettings[nodeId]?.startingNodes ?? globalSettings.startingNodes;
+    let desiredBehaviorValue = nodeSpecificSettings[nodeId]?.desiredBehavior ?? globalSettings.desiredBehavior;
+    let rippleDirectionValue = nodeSpecificSettings[nodeId]?.rippleDirection ?? globalSettings.rippleDirection;
+    let rippleDelayValue = nodeSpecificSettings[nodeId]?.rippleDelay ?? globalSettings.rippleDelay;
+    let rippleLifeSpanValue = nodeSpecificSettings[nodeId]?.rippleLifeSpan ?? globalSettings.rippleLifeSpan;
+    let rippleSpeedValue = nodeSpecificSettings[nodeId]?.rippleSpeed ?? globalSettings.rippleSpeed;
+    let decayPerTickValue = nodeSpecificSettings[nodeId]?.decayPerTick ?? globalSettings.decayPerTick;
+    let startingColorValue = nodeSpecificSettings[nodeId]?.startingColor ?? globalSettings.startingColor;
+    let hueDeltaPeriodValue = nodeSpecificSettings[nodeId]?.hueDeltaPeriod ?? globalSettings.hueDeltaPeriod;
+    let hueDeltaTickValue = nodeSpecificSettings[nodeId]?.hueDeltaTick ?? globalSettings.hueDeltaTick;
+    let numberOfColorsValue = nodeSpecificSettings[nodeId]?.numberOfColors ?? globalSettings.numberOfColors;
 
 
     // Set edit button checkbox state based on if there is node specific property
+    const modal = document.getElementById('modal');
     const editCheckboxes = modal.querySelectorAll('.edit-button-checkbox');
     editCheckboxes.forEach(checkbox => {
         const setting = checkbox.dataset.setting;
-        if (nodeSpecificSettings[nodeId] && nodeSpecificSettings[nodeId].hasOwnProperty(setting)) {
-            checkbox.checked = true;
-        } else {
-            checkbox.checked = false;
+        let allSame = true;
+        console.log("  Checking setting:", setting);
+        if (selectedIds.length === 1) {
+            if (nodeSpecificSettings[nodeId] && nodeSpecificSettings[nodeId].hasOwnProperty(setting)) {
+                checkbox.checked = true;
+                checkbox.indeterminate = false;
+                console.log("    Single node, setting exists, checkbox checked");
+                enableModalInput(setting, nodeId);
+            } else {
+                checkbox.checked = false;
+                checkbox.indeterminate = false;
+                console.log("    Single node, setting does not exist, checkbox unchecked");
+                disableModalInput(setting, nodeId);
+            }
+        } else if (selectedIds.length > 1) {
+             // Check if all selected nodes have the same setting
+             allSame = selectedIds.every(id => {
+                if (nodeSpecificSettings[id] && nodeSpecificSettings[id].hasOwnProperty(setting)) {
+                   const isSame = nodeSpecificSettings[selectedIds[0]] && nodeSpecificSettings[selectedIds[0]][setting] === nodeSpecificSettings[id][setting];
+                   console.log(`   Node ${id} has setting ${setting} and it's equal to ${isSame} `);
+                   return isSame;
+               } else {
+                  const hasSetting = !(nodeSpecificSettings[selectedIds[0]] && nodeSpecificSettings[selectedIds[0]].hasOwnProperty(setting));
+                  console.log(`   Node ${id} has no setting ${setting} and it's equal to ${hasSetting} `);
+                    return hasSetting;
+               }
+            });
+           if (allSame) {
+              checkbox.checked = selectedIds.every(id => {
+                if(nodeSpecificSettings[id] && nodeSpecificSettings[id].hasOwnProperty(setting)){
+                   return nodeSpecificSettings[selectedIds[0]][setting] === nodeSpecificSettings[id][setting];
+                 } else {
+                  return !(nodeSpecificSettings[id] && nodeSpecificSettings[id].hasOwnProperty(setting));
+                 }
+             })
+                checkbox.indeterminate = false;
+                console.log("   Multiple nodes, all have same setting, checkbox checked:", checkbox.checked);
+                   if (checkbox.checked) {
+                       enableModalInput(setting, nodeId);
+                   }
+           } else {
+                checkbox.checked = false;
+                checkbox.indeterminate = true;
+                console.log("   Multiple nodes, settings differ, checkbox indeterminate");
+                 if (setting === 'startingNodes') {
+                    startingNodesValue = 'N/A';
+                } else if (setting === 'desiredBehavior') {
+                    desiredBehaviorValue = 'N/A';
+                 } else if (setting === 'rippleDirection') {
+                    rippleDirectionValue = 'N/A';
+                 } else if (setting === 'rippleDelay') {
+                    rippleDelayValue = 'N/A';
+                  } else if (setting === 'rippleLifeSpan') {
+                     rippleLifeSpanValue = 'N/A';
+                  } else if (setting === 'rippleSpeed') {
+                    rippleSpeedValue = 'N/A';
+                  } else if (setting === 'decayPerTick') {
+                      decayPerTickValue = 'N/A';
+                 } else if (setting === 'startingColor') {
+                    startingColorValue = 'N/A';
+                   } else if (setting === 'hueDeltaPeriod') {
+                      hueDeltaPeriodValue = 'N/A';
+                    } else if (setting === 'hueDeltaTick') {
+                       hueDeltaTickValue = 'N/A';
+                   } else if (setting === 'numberOfColors') {
+                       numberOfColorsValue = 'N/A';
+                 }
+            }
         }
     });
+
+    setModalInputValue('startingNodes', startingNodesValue)
+    setModalInputValue('desiredBehavior', desiredBehaviorValue)
+    setModalInputValue('rippleDirection', rippleDirectionValue)
+    setModalInputValue('rippleDelay', rippleDelayValue)
+    setModalInputValue('rippleLifeSpan', rippleLifeSpanValue)
+    setModalInputValue('rippleSpeed', rippleSpeedValue)
+    setModalInputValue('decayPerTick', decayPerTickValue)
+    setModalInputValue('startingColor', startingColorValue)
+    setModalInputValue('hueDeltaPeriod', hueDeltaPeriodValue)
+    setModalInputValue('hueDeltaTick', hueDeltaTickValue)
+    setModalInputValue('numberOfColors', numberOfColorsValue)
+
 
     //Add listener to the edit checkbox buttons
     editCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function () {
             const setting = this.dataset.setting;
             if (this.checked) {
-                enableModalSetting(setting, nodeId);
+                enableModalInput(setting, nodeId);
             } else {
-                disableModalSetting(setting, nodeId);
+                disableModalInput(setting, nodeId);
             }
         });
     });
 
     // Display the modal
     modal.classList.add('show')
+    document.getElementById('overlay').classList.add('show');
 }
 
-function enableModalSetting(setting, nodeId) {
-    //  console.log("enabling modal setting " + setting)
+function cacheModalInputs() {
     const modal = document.getElementById('modal');
-    let inputElement = modal.querySelector(`#modal${setting.charAt(0).toUpperCase() + setting.slice(1)}`);
-    if (inputElement) {
-        inputElement.disabled = false;
-
-        // Store a node specific setting for this node, create settings object for node if it doesn't exist
-        if (!nodeSpecificSettings[nodeId]) {
-            nodeSpecificSettings[nodeId] = {};
-        }
-
-        // Set the current property from current value
-        nodeSpecificSettings[nodeId][setting] = inputElement.value;
-
-        inputElement.addEventListener('change', function () {
-            nodeSpecificSettings[nodeId][setting] = inputElement.value;
-            // Update range value
+    modalInputs = {
+        modalStartingNodes: modal.querySelector('#modalStartingNodes'),
+        modalDesiredBehavior: modal.querySelector('#modalDesiredBehavior'),
+        modalRippleDirection: modal.querySelector('#modalRippleDirection'),
+        modalRippleDelay: modal.querySelector('#modalRippleDelay'),
+        modalRippleLifeSpan: modal.querySelector('#modalRippleLifeSpan'),
+        modalRippleSpeed: modal.querySelector('#modalRippleSpeed'),
+        modalRippleSpeedDisplay: modal.querySelector('#modalRippleSpeedDisplay'),
+        modalDecayPerTick: modal.querySelector('#modalDecayPerTick'),
+        modalDecayPerTickDisplay: modal.querySelector('#modalDecayPerTickDisplay'),
+        modalStartingColor: modal.querySelector('#modalStartingColor'),
+        modalHueDeltaPeriod: modal.querySelector('#modalHueDeltaPeriod'),
+        modalHueDeltaTick: modal.querySelector('#modalHueDeltaTick'),
+        modalNumberOfColors: modal.querySelector('#modalNumberOfColors'),
+    };
+}
+function setModalInputValue(setting, value) {
+    if (modalInputs[`modal${setting.charAt(0).toUpperCase() + setting.slice(1)}`]) {
+           const inputElement = modalInputs[`modal${setting.charAt(0).toUpperCase() + setting.slice(1)}`];
+           inputElement.value = value;
+            // Update display if range
             if (setting === 'rippleSpeed') {
-                document.getElementById('modalRippleSpeedDisplay').textContent = parseFloat(inputElement.value).toFixed(2);
+                modalInputs.modalRippleSpeedDisplay.textContent = parseFloat(value).toFixed(2);
             }
             if (setting === 'decayPerTick') {
-                document.getElementById('modalDecayPerTickDisplay').textContent = parseFloat(inputElement.value).toFixed(3);
-            }
-        });
-
-
+                modalInputs.modalDecayPerTickDisplay.textContent = parseFloat(value).toFixed(3);
+           }
     }
 }
 
-function disableModalSetting(setting, nodeId) {
-    //  console.log("disabling modal setting " + setting)
-    const modal = document.getElementById('modal');
-    let inputElement = modal.querySelector(`#modal${setting.charAt(0).toUpperCase() + setting.slice(1)}`);
+function getModalInputValue(setting){
+        return modalInputs[`modal${setting.charAt(0).toUpperCase() + setting.slice(1)}`]?.value;
+}
+
+function enableModalInput(setting, nodeId) {
+    const inputElement = modalInputs[`modal${setting.charAt(0).toUpperCase() + setting.slice(1)}`];
+    if (inputElement) {
+        inputElement.disabled = false;
+
+        inputElement.addEventListener('change', function () {
+            // Update display if range
+            if (setting === 'rippleSpeed') {
+                modalInputs.modalRippleSpeedDisplay.textContent = parseFloat(getModalInputValue(setting)).toFixed(2);
+            }
+            if (setting === 'decayPerTick') {
+                modalInputs.modalDecayPerTickDisplay.textContent = parseFloat(getModalInputValue(setting)).toFixed(3);
+            }
+        });
+    }
+}
+
+function disableModalInput(setting, nodeId) {
+    const inputElement = modalInputs[`modal${setting.charAt(0).toUpperCase() + setting.slice(1)}`];
     if (inputElement) {
         inputElement.disabled = true;
 
         // remove the settings property from the node if it exists
         if (nodeSpecificSettings[nodeId] && nodeSpecificSettings[nodeId].hasOwnProperty(setting)) {
             delete nodeSpecificSettings[nodeId][setting];
-
-            // Set the input element to global default value
-            if (setting === 'startingNodes') {
-                inputElement.value = globalSettings.startingNodes;
-            } else if (setting === 'desiredBehavior') {
-                inputElement.value = globalSettings.desiredBehavior;
-            } else if (setting === 'rippleDirection') {
-                inputElement.value = globalSettings.rippleDirection;
-            } else if (setting === 'rippleDelay') {
-                inputElement.value = globalSettings.rippleDelay;
-            } else if (setting === 'rippleLifeSpan') {
-                inputElement.value = globalSettings.rippleLifeSpan;
-            } else if (setting === 'rippleSpeed') {
-                inputElement.value = globalSettings.rippleSpeed;
-                document.getElementById('modalRippleSpeedDisplay').textContent = parseFloat(globalSettings.rippleSpeed).toFixed(2)
-            } else if (setting === 'decayPerTick') {
-                inputElement.value = globalSettings.decayPerTick
-                document.getElementById('modalDecayPerTickDisplay').textContent = parseFloat(globalSettings.decayPerTick).toFixed(3)
-            } else if (setting === 'startingColor') {
-                inputElement.value = globalSettings.startingColor
-            } else if (setting === 'hueDeltaPeriod') {
-                inputElement.value = globalSettings.hueDeltaPeriod
-            } else if (setting === 'hueDeltaTick') {
-                inputElement.value = globalSettings.hueDeltaTick
-            } else if (setting === 'numberOfColors') {
-                inputElement.value = globalSettings.numberOfColors;
-            }
-
         }
-
     }
 }
 
-function disableModalSettings() {
+function disableModalInputs() {
     const modal = document.getElementById('modal');
     const inputs = modal.querySelectorAll('input:not(#activateNodeCheckbox):not(.edit-button-checkbox), select')
     inputs.forEach(input => {
@@ -421,25 +510,30 @@ function saveNodeSettings(node) {
 
     // Only save properties from the modal that are specific to the node
     const editCheckboxes = modal.querySelectorAll('.edit-button-checkbox');
+    let hasSettings = false;
     editCheckboxes.forEach(checkbox => {
         if (checkbox.checked) {
             const setting = checkbox.dataset.setting;
-            let inputElement = modal.querySelector(`#modal${setting.charAt(0).toUpperCase() + setting.slice(1)}`);
-            if (inputElement) {
-                // Store a node specific setting for this node, create settings object for node if it doesn't exist
-                if (!nodeSpecificSettings[nodeId]) {
-                    nodeSpecificSettings[nodeId] = {};
+              // Create node specific object if doesn't exist
+             if (!nodeSpecificSettings[nodeId]) {
+                   nodeSpecificSettings[nodeId] = {};
                 }
-                nodeSpecificSettings[nodeId][setting] = inputElement.value;
-            }
-
-        } else if (nodeSpecificSettings[nodeId]) {
-            const setting = checkbox.dataset.setting;
-            if (nodeSpecificSettings[nodeId].hasOwnProperty(setting)) {
+            nodeSpecificSettings[nodeId][setting] = getModalInputValue(setting);
+             hasSettings = true;
+        }  else if (nodeSpecificSettings[nodeId]) {
+                const setting = checkbox.dataset.setting;
+             if (nodeSpecificSettings[nodeId].hasOwnProperty(setting)) {
                 delete nodeSpecificSettings[nodeId][setting]
-            }
+             }
         }
     });
+    
+        // Remove empty object from nodeSpecificSettings if no properties were set
+     if (!hasSettings && nodeSpecificSettings[nodeId]){
+          delete nodeSpecificSettings[nodeId];
+     }
+
+
     // Update the styling of nodes based on their activation status
     updateNodeStyles();
 }
@@ -462,14 +556,15 @@ function discardNodeSettings(node) {
     }
 
 
-    // If there are node specific settings, delete them, to load defaults from global settings
+    // If there are node specific settings, load them, otherwise delete them to load defaults from global settings
     if (nodeSpecificSettings[nodeId]) {
+        loadNodeSettings(node)
+    } else {
         delete nodeSpecificSettings[nodeId];
+        // Load settings from global or node-specific settings
+      loadNodeSettings(node);
     }
 
-
-    // Load settings from global or node-specific settings
-    loadNodeSettings(node);
     //  Update the styling of nodes based on their activation status
     updateNodeStyles();
 
@@ -478,6 +573,7 @@ function discardNodeSettings(node) {
 // Function to open the modal window
 function openModal() {
     document.getElementById('modal').classList.add('show');
+    document.getElementById('overlay').classList.add('show');
 }
 
 // Function to close the modal window and deselect all nodes
@@ -485,7 +581,7 @@ function closeModal() {
     selectedNodes = [];  // Clear the selected nodes
     updateNodeStyles();
     document.getElementById('modal').classList.remove('show');
-    updateModal();  // Update modal to reflect no nodes selected
+    document.getElementById('overlay').classList.remove('show');
 }
 
 // Function to handle node click and toggle selection
@@ -501,14 +597,6 @@ function handleNodeClick(node) {
     }
 
     updateModal(node);  // Update modal to reflect selection
-
-    if (selectedNodes.length > 0 && !document.getElementById('modal').classList.contains('show')) {
-        openModal();  // Open the modal if there are selected nodes
-    }
-
-    if (selectedNodes.length == 0) {
-        closeModal();  // close the modal if all nodes were de-selected
-    }
 }
 
 // Function to select all nodes in a given category
@@ -577,6 +665,7 @@ saveNodeButton.addEventListener('click', function () {
     selectedNodes = [];  // Clear the selected nodes
     updateNodeStyles();
     document.getElementById('modal').classList.remove('show');
+    document.getElementById('overlay').classList.remove('show');
     updateModal();
 });
 
@@ -591,5 +680,6 @@ discardNodeButton.addEventListener('click', function () {
     selectedNodes = [];  // Clear the selected nodes
     updateNodeStyles();
     document.getElementById('modal').classList.remove('show');
+    document.getElementById('overlay').classList.remove('show');
     updateModal();
 });

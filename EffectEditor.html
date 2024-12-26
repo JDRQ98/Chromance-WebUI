@@ -13,6 +13,17 @@
         <h2>Global Ripple Attributes</h2>
         <button class="fire-ripple-button" id="fireRippleButton">Fire Ripple</button>
         <div class="setting">
+            <label for="effectBasis">Effect Basis:</label>
+            <select id="effectBasis">
+                <option value="ripple">Ripple</option>
+                <option value="segment">Segment</option>
+            </select>
+        </div>
+        <div class="setting">
+            <label for="effectDuration">Effect duration in ms [1 - 60000]:</label>
+            <input type="number" id="effectDuration" min="1" max="60000" value="3000">
+        </div>
+         <div class="setting">
             <label for="startingNodes">Enter the starting node(s):</label>
             <select id="startingNodes">
                 <option value="center">Center nodes</option>
@@ -64,9 +75,13 @@
             <label for="hueDeltaTick">Enter hue delta per tick [0 - 500]:</label>
             <input type="number" id="hueDeltaTick" min="0" max="500" value="200">
         </div>
-        <div class="setting">
+         <div class="setting">
             <label for="numberOfColors">Enter the desired number of colors [1 - 64]:</label>
             <input type="number" id="numberOfColors" min="1" max="64" value="7">
+        </div>
+        <div class="setting">
+            <label for="numberOfRipples">Enter the number of ripples per fire:</label>
+            <input type="text" id="numberOfRipples" value="1">
         </div>
         <div class="submit-buttons">
             <button id="submitButton">Submit</button>
@@ -146,17 +161,19 @@
         <button id="deactivateAllNodes">De-activate all nodes</button>
     </div>
     <div class="menu">
+        <button id="openGlobalSettingsButton">Open Global Settings</button>
         <button id="restoreDefaultsButton">Restore defaults</button>
         <button id="editGlobalSettingsButton">Edit Global Settings</button>
     </div>
-
-      
+    
+    <div class="overlay" id="overlay"></div>
     <div class="modal" id="modal">
         <h2>Node Properties
            <i class="info-icon">i
                 <span class="tooltiptext">Hint: Node settings will follow global settings by default, unless overwritten below by the user</span>
            </i>
         </h2>
+        <button class="close-modal-button" id="closeModalButton">×</button>
         <div id="selectedNodesDisplay" class="overlay-selected-nodes">No nodes selected</div>
           <div class="setting-container">
               <label for="activateNodeCheckbox">Activate Node(s):</label>
@@ -239,8 +256,8 @@
 
     
 
-    <script src="js/drawVisualizer.js"></script>
-    <script src="js/nodeOverlay.js"></script>
+    <script src="js/drawVisualizer.js"></script> <!-- this file includes functions for drawing the Chromance structure by drawing the 'segments' based on the node positions -->
+    <script src="js/nodeOverlay.js"></script> <!-- this includes the functionality for managing nodes and their individual settings -->
     <script>
         // Add click event listeners to all nodes
         window.onload = function () {
