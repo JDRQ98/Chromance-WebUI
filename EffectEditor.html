@@ -57,20 +57,19 @@
             <span id="decayPerTickDisplay">0.985</span>
         </div>
         <div class="setting">
-            <label for="startingColor">Starting Color:</label>
-            <input type="color" id="startingColor" value="#FF0000">
-        </div>
-        <div class="setting">
-            <label for="hueDeltaPeriod">Enter hue delta per period [0 - 60000]:</label>
-            <input type="number" id="hueDeltaPeriod" min="0" max="60000" value="0">
+            <label>Colors:</label>
+            <div id="globalColorContainer" class="color-container">
+                <input type="color" value="#FF0000" class="color-swatch">
+            </div>
+            <button id="addGlobalColorButton" class="add-color-button">+</button>
+            <button id="removeGlobalColorButton" class="remove-color-button">-</button>
+            <button id="globalRainbowButton">Rainbow</button>
+            <button id="globalRandomButton">Random</button>
+            <button id="globalSimilarButton">Similar</button>
         </div>
         <div class="setting">
             <label for="hueDeltaTick">Enter hue delta per tick [0 - 500]:</label>
             <input type="number" id="hueDeltaTick" min="0" max="500" value="200">
-        </div>
-        <div class="setting">
-            <label for="numberOfColors">Enter the desired number of colors [1 - 64]:</label>
-            <input type="number" id="numberOfColors" min="1" max="64" value="7">
         </div>
         <div class="setting">
             <label for="numberOfRipples">Enter the number of ripples per fire:</label>
@@ -214,24 +213,23 @@
                 <input type="checkbox" class="edit-button-checkbox" data-setting="decayPerTick">
             </div>
             <div class="setting-container">
-                <label for="modalStartingColor">Starting Color:</label>
-                <input type="color" id="modalStartingColor" value="#FF0000">
-                <input type="checkbox" class="edit-button-checkbox" data-setting="startingColor">
-            </div>
-            <div class="setting-container">
-                <label for="modalHueDeltaPeriod">Hue delta per period [0 - 60000]:</label>
-                <input type="number" id="modalHueDeltaPeriod" min="0" max="60000" value="0">
-                <input type="checkbox" class="edit-button-checkbox" data-setting="hueDeltaPeriod">
+                <label>Starting Color(s):</label>
+                <div class="color-button-container">
+                     <button id="addModalColorButton" class="add-color-button">+</button>
+                     <button id="removeModalColorButton" class="remove-color-button">-</button>
+                     <button id="modalRainbowButton">Rainbow</button>
+                     <button id="modalRandomButton">Random</button>
+                      <button id="modalSimilarButton">Similar</button>
+                 </div>
+                <div id="modalColorContainer" class="color-container">
+               </div>
+              
+               <input type="checkbox" class="edit-button-checkbox" data-setting="startingColor">
             </div>
             <div class="setting-container">
                 <label for="modalHueDeltaTick">Hue delta per tick [0 - 500]:</label>
                 <input type="number" id="modalHueDeltaTick" min="0" max="500" value="200">
                 <input type="checkbox" class="edit-button-checkbox" data-setting="hueDeltaTick">
-            </div>
-            <div class="setting-container">
-                <label for="modalNumberOfColors">Number of colors [1 - 64]:</label>
-                <input type="number" id="modalNumberOfColors" min="1" max="64" value="7">
-                <input type="checkbox" class="edit-button-checkbox" data-setting="numberOfColors">
             </div>
         </div>
         <div class="modal-buttons">

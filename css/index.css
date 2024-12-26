@@ -313,11 +313,10 @@ body {
 /* ---------- Setting Container Style ---------- */
 .setting-container {
     display: flex;
-    align-items: center;
+    align-items: baseline;
     justify-content: space-between;
     margin-bottom: 5px;
 }
-
 .setting-container label {
     margin-right: 10px;
 }
@@ -370,4 +369,57 @@ body {
 .modal .info-icon:hover .tooltiptext {
     visibility: visible;
     opacity: 1;
+}
+
+/* ---------- Color Styles ---------- */
+.color-container {
+    display: inline-grid;
+    grid-template-columns: repeat(auto-fill, minmax(30px, 1fr));
+    gap: 5px;
+    /* Gap between color swatches */
+    align-items: center;
+    width: 220px;
+    padding: 1px;
+    margin-bottom: 10px;
+    margin-top: 3px;
+    border-radius: 4px;
+}
+
+.color-container .color-swatch {
+    width: 25px;
+    height: 25px;
+    padding: 0 !important;
+    margin: 0;
+    border: 1px solid #ddd;
+}
+
+.color-button-container {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 0;
+    width: auto;
+    /* Let the container size itself to its content*/
+    justify-content: flex-start;
+}
+
+.add-color-button,
+.remove-color-button {
+    margin-left: 5px;
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+.remove-color-button {
+    margin-right: 10px;
+}
+.color-button-container button {
+     display: inline-block;
+    margin-top: 4px;
+}
+.color-button-container #addModalColorButton,
+.color-button-container #removeModalColorButton {
+    display: inline-flex;
 }

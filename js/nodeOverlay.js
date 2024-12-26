@@ -15,7 +15,6 @@ function setupGlobalSettingsModal() {
     const openGlobalSettingsButton = document.getElementById('openGlobalSettingsButton');
     const overlay = document.getElementById('overlay');
 
-
     editGlobalSettingsButton.addEventListener('click', () => {
         openGlobalSettingsModal();
         loadGlobalSettings(); // Load global settings into modal
@@ -25,7 +24,6 @@ function setupGlobalSettingsModal() {
         openGlobalSettingsModal();
         loadGlobalSettings(); // Load global settings into modal
     });
-
 
     function openGlobalSettingsModal() {
         globalSettingsModal.classList.add('show');
@@ -139,11 +137,9 @@ function resetGlobalSettings() {
         rippleLifeSpan: 3000,
         rippleSpeed: 0.5,
         decayPerTick: 0.985,
-        startingColor: '#FF0000',
-        hueDeltaPeriod: 0,
         hueDeltaTick: 200,
-        numberOfColors: 7,
-        numberOfRipples: 1
+        numberOfRipples: 1,
+        colors: ["#FF0000"] // Default color
     };
 
     localStorage.setItem('globalSettings', JSON.stringify(globalSettings));
@@ -159,11 +155,9 @@ function saveGlobalSettings() {
         rippleLifeSpan: Number(document.getElementById('rippleLifeSpan').value),
         rippleSpeed: Number(document.getElementById('rippleSpeed').value),
         decayPerTick: Number(document.getElementById('decayPerTick').value),
-        startingColor: document.getElementById('startingColor').value,
-        hueDeltaPeriod: Number(document.getElementById('hueDeltaPeriod').value),
         hueDeltaTick: Number(document.getElementById('hueDeltaTick').value),
-        numberOfColors: Number(document.getElementById('numberOfColors').value),
         numberOfRipples: document.getElementById('numberOfRipples').value,
+        colors: Array.from(document.querySelectorAll('#globalColorContainer input')).map(input => input.value),
     };
     localStorage.setItem('globalSettings', JSON.stringify(globalSettings));
     console.log("Global settings are", globalSettings);
@@ -183,11 +177,19 @@ function loadGlobalSettings() {
         document.getElementById('rippleSpeedDisplay').textContent = parseFloat(storedSettings.rippleSpeed).toFixed(2);
         document.getElementById('decayPerTick').value = storedSettings.decayPerTick;
         document.getElementById('decayPerTickDisplay').textContent = parseFloat(storedSettings.decayPerTick).toFixed(3);
-        document.getElementById('startingColor').value = storedSettings.startingColor;
-        document.getElementById('hueDeltaPeriod').value = storedSettings.hueDeltaPeriod;
         document.getElementById('hueDeltaTick').value = storedSettings.hueDeltaTick;
-        document.getElementById('numberOfColors').value = storedSettings.numberOfColors;
         document.getElementById('numberOfRipples').value = storedSettings.numberOfRipples;
+
+        // Load colors into swatches
+        const colorContainer = document.getElementById('globalColorContainer');
+        colorContainer.innerHTML = ''; // Clear existing swatches
+        storedSettings.colors.forEach(color => {
+            const colorInput = document.createElement('input');
+            colorInput.type = 'color';
+            colorInput.value = color;
+            colorInput.classList.add('color-swatch');
+            colorContainer.appendChild(colorInput);
+        });
     }
     console.log("Loaded global settings are", storedSettings);
 }
@@ -210,7 +212,6 @@ function updateNodeStyles() {
         }
     });
 }
-
 
 function updateModal(node) {
     const selectedIds = selectedNodes.map(node => node.dataset.id);
@@ -284,17 +285,14 @@ function updateModal(node) {
 
     }
 
-
     if (selectedNodes.length > 0 && !document.getElementById('modal').classList.contains('show')) {
         openModal();  // Open the modal if there are selected nodes
     }
-
 }
 
 function loadNodeSettings(node) {
     const nodeId = node.dataset.id;
     const selectedIds = selectedNodes.map(node => node.dataset.id);
-    console.log("loadNodeSettings called for node:", nodeId, "selectedNodes:", selectedIds);
 
     // Set the inputs based on global settings or node specific settings
     let desiredBehaviorValue = nodeSpecificSettings[nodeId]?.desiredBehavior ?? globalSettings.desiredBehavior;
@@ -303,11 +301,32 @@ function loadNodeSettings(node) {
     let rippleLifeSpanValue = nodeSpecificSettings[nodeId]?.rippleLifeSpan ?? globalSettings.rippleLifeSpan;
     let rippleSpeedValue = nodeSpecificSettings[nodeId]?.rippleSpeed ?? globalSettings.rippleSpeed;
     let decayPerTickValue = nodeSpecificSettings[nodeId]?.decayPerTick ?? globalSettings.decayPerTick;
-    let startingColorValue = nodeSpecificSettings[nodeId]?.startingColor ?? globalSettings.startingColor;
-    let hueDeltaPeriodValue = nodeSpecificSettings[nodeId]?.hueDeltaPeriod ?? globalSettings.hueDeltaPeriod;
     let hueDeltaTickValue = nodeSpecificSettings[nodeId]?.hueDeltaTick ?? globalSettings.hueDeltaTick;
-    let numberOfColorsValue = nodeSpecificSettings[nodeId]?.numberOfColors ?? globalSettings.numberOfColors;
 
+    // Load colors into swatches
+    const colorContainer = document.getElementById('modalColorContainer');
+    colorContainer.innerHTML = ''; // Clear existing swatches
+    let colorsValue = [];
+    if (nodeSpecificSettings[nodeId] && nodeSpecificSettings[nodeId].hasOwnProperty('startingColor')) {
+        colorsValue = nodeSpecificSettings[nodeId].startingColor
+    } else {
+        colorsValue = globalSettings.colors;
+    }
+
+    if (typeof colorsValue === 'string') {
+        colorsValue = [colorsValue];
+    }
+    if (!colorsValue) {
+        colorsValue = [];
+    }
+
+    colorsValue.forEach(color => {
+        const colorInput = document.createElement('input');
+        colorInput.type = 'color';
+        colorInput.value = color;
+        colorInput.classList.add('color-swatch');
+        colorContainer.appendChild(colorInput);
+    });
 
     // Set edit button checkbox state based on if there is node specific property
     const modal = document.getElementById('modal');
@@ -315,29 +334,22 @@ function loadNodeSettings(node) {
     editCheckboxes.forEach(checkbox => {
         const setting = checkbox.dataset.setting;
         let allSame = true;
-        console.log("  Checking setting:", setting);
         if (selectedIds.length === 1) {
             if (nodeSpecificSettings[nodeId] && nodeSpecificSettings[nodeId].hasOwnProperty(setting)) {
                 checkbox.checked = true;
                 checkbox.indeterminate = false;
-                console.log("    Single node, setting exists, checkbox checked");
-                enableModalInput(setting, nodeId);
             } else {
                 checkbox.checked = false;
                 checkbox.indeterminate = false;
-                console.log("    Single node, setting does not exist, checkbox unchecked");
-                disableModalInput(setting, nodeId);
             }
         } else if (selectedIds.length > 1) {
             // Check if all selected nodes have the same setting
             allSame = selectedIds.every(id => {
                 if (nodeSpecificSettings[id] && nodeSpecificSettings[id].hasOwnProperty(setting)) {
                     const isSame = nodeSpecificSettings[selectedIds[0]] && nodeSpecificSettings[selectedIds[0]][setting] === nodeSpecificSettings[id][setting];
-                    console.log(`   Node ${id} has setting ${setting} and it's equal to ${isSame} `);
                     return isSame;
                 } else {
                     const hasSetting = !(nodeSpecificSettings[selectedIds[0]] && nodeSpecificSettings[selectedIds[0]].hasOwnProperty(setting));
-                    console.log(`   Node ${id} has no setting ${setting} and it's equal to ${hasSetting} `);
                     return hasSetting;
                 }
             });
@@ -350,14 +362,9 @@ function loadNodeSettings(node) {
                     }
                 })
                 checkbox.indeterminate = false;
-                console.log("   Multiple nodes, all have same setting, checkbox checked:", checkbox.checked);
-                if (checkbox.checked) {
-                    enableModalInput(setting, nodeId);
-                }
             } else {
                 checkbox.checked = false;
                 checkbox.indeterminate = true;
-                console.log("   Multiple nodes, settings differ, checkbox indeterminate");
                 if (setting === 'desiredBehavior') {
                     desiredBehaviorValue = 'N/A';
                 } else if (setting === 'rippleDirection') {
@@ -370,30 +377,19 @@ function loadNodeSettings(node) {
                     rippleSpeedValue = 'N/A';
                 } else if (setting === 'decayPerTick') {
                     decayPerTickValue = 'N/A';
-                } else if (setting === 'startingColor') {
-                    startingColorValue = 'N/A';
-                } else if (setting === 'hueDeltaPeriod') {
-                    hueDeltaPeriodValue = 'N/A';
                 } else if (setting === 'hueDeltaTick') {
                     hueDeltaTickValue = 'N/A';
-                } else if (setting === 'numberOfColors') {
-                    numberOfColorsValue = 'N/A';
                 }
             }
         }
     });
-
     setModalInputValue('desiredBehavior', desiredBehaviorValue)
     setModalInputValue('rippleDirection', rippleDirectionValue)
     setModalInputValue('rippleDelay', rippleDelayValue)
     setModalInputValue('rippleLifeSpan', rippleLifeSpanValue)
     setModalInputValue('rippleSpeed', rippleSpeedValue)
     setModalInputValue('decayPerTick', decayPerTickValue)
-    setModalInputValue('startingColor', startingColorValue)
-    setModalInputValue('hueDeltaPeriod', hueDeltaPeriodValue)
     setModalInputValue('hueDeltaTick', hueDeltaTickValue)
-    setModalInputValue('numberOfColors', numberOfColorsValue)
-
 
     //Add listener to the edit checkbox buttons
     editCheckboxes.forEach(checkbox => {
@@ -423,10 +419,7 @@ function cacheModalInputs() {
         modalRippleSpeedDisplay: modal.querySelector('#modalRippleSpeedDisplay'),
         modalDecayPerTick: modal.querySelector('#modalDecayPerTick'),
         modalDecayPerTickDisplay: modal.querySelector('#modalDecayPerTickDisplay'),
-        modalStartingColor: modal.querySelector('#modalStartingColor'),
-        modalHueDeltaPeriod: modal.querySelector('#modalHueDeltaPeriod'),
         modalHueDeltaTick: modal.querySelector('#modalHueDeltaTick'),
-        modalNumberOfColors: modal.querySelector('#modalNumberOfColors'),
     };
 }
 function setModalInputValue(setting, value) {
@@ -442,7 +435,6 @@ function setModalInputValue(setting, value) {
         }
     }
 }
-
 function getModalInputValue(setting) {
     return modalInputs[`modal${setting.charAt(0).toUpperCase() + setting.slice(1)}`]?.value;
 }
@@ -451,16 +443,13 @@ function enableModalInput(setting, nodeId) {
     const inputElement = modalInputs[`modal${setting.charAt(0).toUpperCase() + setting.slice(1)}`];
     if (inputElement) {
         inputElement.disabled = false;
-
-        inputElement.addEventListener('change', function () {
-            // Update display if range
-            if (setting === 'rippleSpeed') {
-                modalInputs.modalRippleSpeedDisplay.textContent = parseFloat(getModalInputValue(setting)).toFixed(2);
-            }
-            if (setting === 'decayPerTick') {
-                modalInputs.modalDecayPerTickDisplay.textContent = parseFloat(getModalInputValue(setting)).toFixed(3);
-            }
-        });
+        // Update display if range
+        if (setting === 'rippleSpeed') {
+            modalInputs.modalRippleSpeedDisplay.textContent = parseFloat(getModalInputValue(setting)).toFixed(2);
+        }
+        if (setting === 'decayPerTick') {
+            modalInputs.modalDecayPerTickDisplay.textContent = parseFloat(getModalInputValue(setting)).toFixed(3);
+        }
     }
 }
 
@@ -517,7 +506,12 @@ function saveNodeSettings(node) {
             if (!nodeSpecificSettings[nodeId]) {
                 nodeSpecificSettings[nodeId] = {};
             }
-            nodeSpecificSettings[nodeId][setting] = getModalInputValue(setting);
+            if (setting === 'startingColor') {
+                nodeSpecificSettings[nodeId][setting] = Array.from(document.querySelectorAll('#modalColorContainer input')).map(input => input.value);
+            } else {
+                nodeSpecificSettings[nodeId][setting] = getModalInputValue(setting);
+            }
+
             hasSettings = true;
         } else if (nodeSpecificSettings[nodeId]) {
             const setting = checkbox.dataset.setting;
@@ -531,7 +525,6 @@ function saveNodeSettings(node) {
     if (!hasSettings && nodeSpecificSettings[nodeId]) {
         delete nodeSpecificSettings[nodeId];
     }
-
 
     // Update the styling of nodes based on their activation status
     updateNodeStyles();
@@ -553,7 +546,6 @@ function discardNodeSettings(node) {
         const nodeIdNumber = Number(nodeId); // Convert ID to number
         activeNodes = activeNodes.filter(activeNodeId => activeNodeId !== nodeIdNumber);
     }
-
 
     // If there are node specific settings, load them, otherwise delete them to load defaults from global settings
     if (nodeSpecificSettings[nodeId]) {
@@ -682,3 +674,231 @@ discardNodeButton.addEventListener('click', function () {
     document.getElementById('overlay').classList.remove('show');
     updateModal();
 });
+// Add logic for adding more global colors
+const addGlobalColorButton = document.getElementById('addGlobalColorButton');
+const globalColorContainer = document.getElementById('globalColorContainer');
+addGlobalColorButton.addEventListener('click', () => {
+    if (globalColorContainer.children.length < 25) {
+        const colorInput = document.createElement('input');
+        colorInput.type = 'color';
+        colorInput.value = '#ffffff'; // Default color
+        colorInput.classList.add('color-swatch');
+        globalColorContainer.appendChild(colorInput);
+    }
+});
+
+// Add logic for removing global colors
+const removeGlobalColorButton = document.getElementById('removeGlobalColorButton');
+removeGlobalColorButton.addEventListener('click', () => {
+    if (globalColorContainer.children.length > 1) {
+        globalColorContainer.removeChild(globalColorContainer.lastChild);
+    }
+});
+
+// Add logic for adding more modal colors
+const addModalColorButton = document.getElementById('addModalColorButton');
+const modalColorContainer = document.getElementById('modalColorContainer');
+addModalColorButton.addEventListener('click', () => {
+    if (modalColorContainer.children.length < 25) {
+        const colorInput = document.createElement('input');
+        colorInput.type = 'color';
+        colorInput.value = '#ffffff'; // Default color
+        colorInput.classList.add('color-swatch');
+        modalColorContainer.appendChild(colorInput);
+    }
+});
+
+// Add logic for removing modal colors
+const removeModalColorButton = document.getElementById('removeModalColorButton');
+removeModalColorButton.addEventListener('click', () => {
+    if (modalColorContainer.children.length > 1) {
+        modalColorContainer.removeChild(modalColorContainer.lastChild);
+    }
+});
+// Add logic for rainbow global colors button
+const globalRainbowButton = document.getElementById('globalRainbowButton');
+globalRainbowButton.addEventListener('click', () => {
+    const colorCount = document.querySelectorAll('#globalColorContainer input').length;
+    const rainbowColors = generateRainbowColors(colorCount);
+    const colorContainer = document.getElementById('globalColorContainer');
+    colorContainer.innerHTML = ''; // Clear existing swatches
+
+    rainbowColors.forEach(color => {
+        const colorInput = document.createElement('input');
+        colorInput.type = 'color';
+        colorInput.value = color;
+        colorInput.classList.add('color-swatch');
+        colorContainer.appendChild(colorInput);
+    });
+});
+// Add logic for rainbow modal colors button
+const modalRainbowButton = document.getElementById('modalRainbowButton');
+modalRainbowButton.addEventListener('click', () => {
+    const colorCount = document.querySelectorAll('#modalColorContainer input').length;
+    const rainbowColors = generateRainbowColors(colorCount);
+    const colorContainer = document.getElementById('modalColorContainer');
+    colorContainer.innerHTML = ''; // Clear existing swatches
+
+    rainbowColors.forEach(color => {
+        const colorInput = document.createElement('input');
+        colorInput.type = 'color';
+        colorInput.value = color;
+        colorInput.classList.add('color-swatch');
+        colorContainer.appendChild(colorInput);
+    });
+});
+// Add logic for random global colors button
+const globalRandomButton = document.getElementById('globalRandomButton');
+globalRandomButton.addEventListener('click', () => {
+    const colorCount = document.querySelectorAll('#globalColorContainer input').length;
+    const randomColors = generateRandomColors(colorCount);
+    const colorContainer = document.getElementById('globalColorContainer');
+    colorContainer.innerHTML = ''; // Clear existing swatches
+
+    randomColors.forEach(color => {
+        const colorInput = document.createElement('input');
+        colorInput.type = 'color';
+        colorInput.value = color;
+        colorInput.classList.add('color-swatch');
+        colorContainer.appendChild(colorInput);
+    });
+});
+
+// Add logic for random global colors button
+const modalRandomButton = document.getElementById('modalRandomButton');
+modalRandomButton.addEventListener('click', () => {
+    const colorCount = document.querySelectorAll('#modalColorContainer input').length;
+    const randomColors = generateRandomColors(colorCount);
+    const colorContainer = document.getElementById('modalColorContainer');
+    colorContainer.innerHTML = ''; // Clear existing swatches
+    randomColors.forEach(color => {
+        const colorInput = document.createElement('input');
+        colorInput.type = 'color';
+        colorInput.value = color;
+        colorInput.classList.add('color-swatch');
+        colorContainer.appendChild(colorInput);
+    });
+});
+// Add logic for similar global colors button
+const globalSimilarButton = document.getElementById('globalSimilarButton');
+globalSimilarButton.addEventListener('click', () => {
+    const colorCount = document.querySelectorAll('#globalColorContainer input').length;
+    const firstColor = document.querySelector('#globalColorContainer input')?.value;
+    const similarColors = generateSimilarColors(colorCount, firstColor);
+    const colorContainer = document.getElementById('globalColorContainer');
+    colorContainer.innerHTML = ''; // Clear existing swatches
+    similarColors.forEach(color => {
+        const colorInput = document.createElement('input');
+        colorInput.type = 'color';
+        colorInput.value = color;
+        colorInput.classList.add('color-swatch');
+        colorContainer.appendChild(colorInput);
+    });
+});
+// Add logic for similar global colors button
+const modalSimilarButton = document.getElementById('modalSimilarButton');
+modalSimilarButton.addEventListener('click', () => {
+    const colorCount = document.querySelectorAll('#modalColorContainer input').length;
+    const firstColor = document.querySelector('#modalColorContainer input')?.value;
+    const similarColors = generateSimilarColors(colorCount, firstColor);
+    const colorContainer = document.getElementById('modalColorContainer');
+    colorContainer.innerHTML = ''; // Clear existing swatches
+    similarColors.forEach(color => {
+        const colorInput = document.createElement('input');
+        colorInput.type = 'color';
+        colorInput.value = color;
+        colorInput.classList.add('color-swatch');
+        colorContainer.appendChild(colorInput);
+    });
+});
+
+// Utility function to generate rainbow colors
+function generateRainbowColors(numColors) {
+    const colors = [];
+    for (let i = 0; i < numColors; i++) {
+        const hue = (i * (360 / numColors)) % 360;
+        const color = hslToHex(hue, 100, 50);
+        colors.push(color);
+    }
+    return colors;
+}
+
+// Utility function to generate random colors
+function generateRandomColors(numColors) {
+    const colors = [];
+    for (let i = 0; i < numColors; i++) {
+        const color = getRandomHexColor();
+        colors.push(color);
+    }
+    return colors;
+}
+// Utility function to generate similar colors
+function generateSimilarColors(numColors, baseColor) {
+    const colors = [];
+    if (baseColor) {
+        const baseHsl = hexToHsl(baseColor)
+        colors.push(baseColor)
+        for (let i = 1; i < numColors; i++) {
+            const hue = (baseHsl.h + (Math.random() * 60 - 30)) % 360;
+            const saturation = Math.max(0, Math.min(100, baseHsl.s + (Math.random() * 20 - 10)));
+            const lightness = Math.max(0, Math.min(100, baseHsl.l + (Math.random() * 20 - 10)));
+            const color = hslToHex(hue, saturation, lightness);
+            colors.push(color);
+        }
+    }
+    return colors;
+}
+function getRandomHexColor() {
+    const randomColor = Math.floor(Math.random() * 16777215).toString(16);
+    return "#" + randomColor;
+}
+function hslToHex(h, s, l) {
+    h /= 360;
+    s /= 100;
+    l /= 100;
+    let r, g, b;
+    if (s === 0) {
+        r = g = b = l; // achromatic
+    } else {
+        const hue2rgb = (p, q, t) => {
+            if (t < 0) t += 1;
+            if (t > 1) t -= 1;
+            if (t < 1 / 6) return p + (q - p) * 6 * t;
+            if (t < 1 / 2) return q;
+            if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+            return p;
+        };
+        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        const p = 2 * l - q;
+        r = hue2rgb(p, q, h + 1 / 3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1 / 3);
+    }
+    const toHex = x => {
+        const hex = Math.round(x * 255).toString(16);
+        return hex.length === 1 ? '0' + hex : hex;
+    };
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+function hexToHsl(hex) {
+    let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    let r = parseInt(result[1], 16);
+    let g = parseInt(result[2], 16);
+    let b = parseInt(result[3], 16);
+    r /= 255, g /= 255, b /= 255;
+    let max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+    if (max === min) {
+        h = s = 0; // achromatic
+    } else {
+        let d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+    return { h: h * 360, s: s * 100, l: l * 100 };
+}
