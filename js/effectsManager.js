@@ -43,7 +43,6 @@ function updateCurrentEffect(globalSettings, nodeSpecificSettings, activeNodes) 
         activeNodes: deepClone(activeNodes),// Deep clone the active nodes
     };
     localStorage.setItem('effects', JSON.stringify(effects));
-    console.log("Updated effect with id", currentEffectId);
 }
 function updateEffectTitle(titleElement) {
     const effectDropdown = document.getElementById('effectDropdown');
@@ -53,6 +52,7 @@ function updateEffectTitle(titleElement) {
 }
 function populateEffectDropdown() {
     const effectDropdown = document.getElementById('effectDropdown');
+    const selectedEffectId = effectDropdown.value;
     effectDropdown.innerHTML = ''; // Clear existing options
     // Sort the keys of the object so that they appear in order on the dropdown
     const sortedKeys = Object.keys(effects).sort((a, b) => parseInt(a) - parseInt(b));
@@ -141,8 +141,10 @@ function initEffectsManager(globalSettings, nodeSpecificSettings, updateNodeStyl
         localStorage.setItem('effects', JSON.stringify(effects));
         //Remove the selected option from the dropdown
         effectDropdown.remove(effectDropdown.selectedIndex);
+
+        let remainingKeys = Object.keys(effects);
         //If there are no more effects, create a new default effect
-        if (Object.keys(effects).length === 0) {
+        if (remainingKeys.length === 0) {
             effects[1] = {
                 name: 'Default',
                 globalSettings: {
@@ -164,13 +166,15 @@ function initEffectsManager(globalSettings, nodeSpecificSettings, updateNodeStyl
             localStorage.setItem('effects', JSON.stringify(effects));
             currentEffectId = 1;
             nextEffectId = 2;
+            populateEffectDropdown();
         } else {
             // Select the first remaining option
-            const remainingKeys = Object.keys(effects);
+
             currentEffectId = remainingKeys[0];
             effectDropdown.value = currentEffectId;
+
         }
-        populateEffectDropdown();
+
         loadCurrentEffect(globalSettings, nodeSpecificSettings, updateNodeStyles, loadGlobalSettings, updateModal, resetAllSettings);
         updateEffectTitle(titleElement);
     });
@@ -201,13 +205,16 @@ function openEffectNameModal(globalSettings, nodeSpecificSettings, updateNodeSty
         const effectName = document.getElementById('effectNameInput').value;
         if (effectName.trim() !== '') {
             if (effectId) {
+                const effectDropdown = document.getElementById('effectDropdown');
+                const selectedOption = effectDropdown.options[effectDropdown.selectedIndex];
+                selectedOption.text = effectName;
                 effects[effectId].name = effectName; // Edit existing effect
                 localStorage.setItem('effects', JSON.stringify(effects));
-                populateEffectDropdown();
                 loadCurrentEffect(globalSettings, nodeSpecificSettings, updateNodeStyles, loadGlobalSettings, updateModal, resetAllSettings);
                 const titleElement = document.getElementById('effectTitle');
                 updateEffectTitle(titleElement);
                 closeEffectNameModal(modal);
+
             } else { // New Effect
                 effects[nextEffectId] = {
                     name: effectName,
@@ -231,6 +238,9 @@ function openEffectNameModal(globalSettings, nodeSpecificSettings, updateNodeSty
                 currentEffectId = nextEffectId;
                 nextEffectId++;
                 populateEffectDropdown();
+                const effectDropdown = document.getElementById('effectDropdown');
+                effectDropdown.value = currentEffectId;
+
                 loadCurrentEffect(globalSettings, nodeSpecificSettings, updateNodeStyles, loadGlobalSettings, updateModal, resetAllSettings);
                 const titleElement = document.getElementById('effectTitle');
                 updateEffectTitle(titleElement);
@@ -252,8 +262,10 @@ function openEffectNameModal(globalSettings, nodeSpecificSettings, updateNodeSty
         }
     });
     // Handle closing of the modal when clicking outside
-    document.getElementById('overlay').addEventListener('click', () => {
-        closeEffectNameModal(modal);
+    document.getElementById('overlay').addEventListener('click', (event) => {
+        if (event.target === event.currentTarget) {
+            closeEffectNameModal(modal);
+        }
     });
 }
 function closeEffectNameModal(modal) {
