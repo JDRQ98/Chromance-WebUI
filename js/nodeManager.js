@@ -1,6 +1,6 @@
 // nodeManager.js
 let selectedNodes = []; // Array to store selected nodes
-let activeNodes = [9]; // Array to store active nodes; by default, node 9 is active.
+let activeNodes = []; // Array to store active nodes; by default, node 9 is active.
 
 // Border nodes (bi-nodes), quad nodes, and tri nodes
 const borderNodes = [0, 3, 5, 13, 15, 18];
@@ -13,7 +13,7 @@ function updateNodeStyle(node, globalSettings, nodeSpecificSettings) {
     const hexWrap = node.closest('.hex-wrap');
     hexWrap.classList.remove('regularNode', 'SelectedNode', 'ActiveNode', 'ActiveandSelectedNode');
 
-        if (activeNodes.includes(nodeId) && selectedNodes.includes(node)) {
+    if (activeNodes.includes(nodeId) && selectedNodes.includes(node)) {
         hexWrap.classList.add('ActiveandSelectedNode');
     } else if (activeNodes.includes(nodeId)) {
         hexWrap.classList.add('ActiveNode');
@@ -23,7 +23,6 @@ function updateNodeStyle(node, globalSettings, nodeSpecificSettings) {
         hexWrap.classList.add('regularNode');
     }
 }
-
 
 // Function to update the styling of nodes based on their activation/selection status
 function updateNodeStyles(globalSettings, nodeSpecificSettings) {
@@ -40,28 +39,29 @@ function deactivateAllNodes(updateNodeStyles, updateModal, globalSettings, nodeS
     updateModal(nodeSpecificSettings, globalSettings);
 }
 
-function initNodeManager(updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, closeModal) {
+function initNodeManager(updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, closeModal, updateCurrentEffect) {
     const nodes = document.querySelectorAll('.hex');
     nodes.forEach(node => {
         node.addEventListener('click', function () {
-            handleNodeClick(node, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings);
+            handleNodeClick(node, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect);
         });
     });
     const deactivateAllNodesButton = document.getElementById('deactivateAllNodes');
     deactivateAllNodesButton.addEventListener('click', () => {
         deactivateAllNodes(updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings);
+        updateCurrentEffect(globalSettings, nodeSpecificSettings, activeNodes);
     });
 
-        // Event listeners for selecting node categories
-    document.getElementById('selectBiNodes').addEventListener('click', () => selectNodes(borderNodes, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings));
-    document.getElementById('selectTriNodes').addEventListener('click', () => selectNodes(triNodes, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings));
-    document.getElementById('selectQuadNodes').addEventListener('click', () => selectNodes(quadNodes, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings));
-    document.getElementById('deselectAll').addEventListener('click', () => closeModal(updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings));
-    document.getElementById('selectAllActive').addEventListener('click', () => selectNodes(activeNodes, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings));
+    // Event listeners for selecting node categories
+    document.getElementById('selectBiNodes').addEventListener('click', () => selectNodes(borderNodes, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect));
+    document.getElementById('selectTriNodes').addEventListener('click', () => selectNodes(triNodes, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect));
+    document.getElementById('selectQuadNodes').addEventListener('click', () => selectNodes(quadNodes, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect));
+    document.getElementById('deselectAll').addEventListener('click', () => closeModal(updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect));
+    document.getElementById('selectAllActive').addEventListener('click', () => selectNodes(activeNodes, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect));
 }
 
 // Function to handle node click and toggle selection
-function handleNodeClick(node, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings) {
+function handleNodeClick(node, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect) {
     if (selectedNodes.includes(node)) {
         selectedNodes = selectedNodes.filter(n => n !== node);
     } else {
@@ -69,17 +69,18 @@ function handleNodeClick(node, updateNodeStyles, updateModal, globalSettings, no
     }
     updateNodeStyle(node, globalSettings, nodeSpecificSettings);
     updateModal(nodeSpecificSettings, globalSettings, updateNodeStyles);
+    updateCurrentEffect(globalSettings, nodeSpecificSettings, activeNodes);
 }
 
 // Function to select all nodes in a given category
-function selectNodes(nodes, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings) {
+function selectNodes(nodes, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect) {
     nodes.forEach(id => {
         const node = document.querySelector(`.hex[data-id="${id}"]`);
-         handleNodeClick(node, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings);
+        handleNodeClick(node, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect);
     });
     updateModal(nodeSpecificSettings, globalSettings, updateNodeStyles);
     if (selectedNodes.length > 0 && !document.getElementById('modal').classList.contains('show')) {
-         openModal();
+        openModal();
     }
 }
 
@@ -89,7 +90,7 @@ export {
     updateNodeStyles,
     updateNodeStyle,
     initNodeManager,
-     handleNodeClick,
-     deactivateAllNodes,
-     selectNodes
+    handleNodeClick,
+    deactivateAllNodes,
+    selectNodes
 };

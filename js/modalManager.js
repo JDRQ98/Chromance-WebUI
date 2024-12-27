@@ -255,7 +255,7 @@ function disableModalInputs() {
         checkbox.checked = false;
     });
 }
-function saveNodeSettings(node, nodeSpecificSettings, globalSettings, updateNodeStyles) {
+function saveNodeSettings(node, nodeSpecificSettings, globalSettings, updateNodeStyles, updateCurrentEffect) {
     const nodeId = node.dataset.id;
     const modal = document.getElementById('modal');
     const activateCheckbox = document.getElementById('activateNodeCheckbox');
@@ -300,8 +300,9 @@ function saveNodeSettings(node, nodeSpecificSettings, globalSettings, updateNode
     }
     // Update the styling of nodes based on their activation status
     updateNodeStyles(globalSettings, nodeSpecificSettings);
+     updateCurrentEffect(globalSettings, nodeSpecificSettings, activeNodes);
 }
-function discardNodeSettings(node, nodeSpecificSettings, globalSettings, updateNodeStyles) {
+function discardNodeSettings(node, nodeSpecificSettings, globalSettings, updateNodeStyles, updateCurrentEffect) {
     const nodeId = node.dataset.id;
     const modal = document.getElementById('modal');
     const activateCheckbox = document.getElementById('activateNodeCheckbox');
@@ -327,6 +328,7 @@ function discardNodeSettings(node, nodeSpecificSettings, globalSettings, updateN
     }
     //  Update the styling of nodes based on their activation status
     updateNodeStyles(globalSettings, nodeSpecificSettings);
+      updateCurrentEffect(globalSettings, nodeSpecificSettings, activeNodes);
 }
 // Function to open the modal window
 function openModal() {
@@ -334,7 +336,7 @@ function openModal() {
     document.getElementById('overlay').classList.add('show');
 }
 // Function to close the modal window and deselect all nodes
-function closeModal(updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings) {
+function closeModal(updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect) {
     const selectedNodes = Array.from(document.querySelectorAll('.hex')).filter(node => node.closest('.hex-wrap').classList.contains('SelectedNode') || node.closest('.hex-wrap').classList.contains('ActiveandSelectedNode'));
     selectedNodes.forEach(node => {
         node.closest('.hex-wrap').classList.remove('SelectedNode');
@@ -346,19 +348,20 @@ function closeModal(updateNodeStyles, updateModal, globalSettings, nodeSpecificS
     document.getElementById('overlay').classList.remove('show');
     updateModal(nodeSpecificSettings, globalSettings, updateNodeStyles);
     updateNodeStyles(globalSettings, nodeSpecificSettings);
+    updateCurrentEffect(globalSettings, nodeSpecificSettings, activeNodes);
 }
-function initModalManager(nodeSpecificSettings, globalSettings, updateNodeStyles, updateModal) {
+function initModalManager(nodeSpecificSettings, globalSettings, updateNodeStyles, updateModal, updateCurrentEffect) {
     // Cache modal inputs
     cacheModalInputs();
     //Add listener to the modal close button
     const closeModalButton = document.getElementById('closeModalButton');
     closeModalButton.addEventListener('click', () => {
-        closeModal(updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings);
+        closeModal(updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect);
     });
     // Add listener to the ESC key to close modal
     document.addEventListener('keydown', function (event) {
         if (event.key === 'Escape') {
-            closeModal(updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings);
+            closeModal(updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect);
         }
     });
     // Toggle activation of selected nodes when checkbox is clicked
@@ -381,11 +384,11 @@ function initModalManager(nodeSpecificSettings, globalSettings, updateNodeStyles
         }
         // Update activeNodes immediately
         if (selectedNodes.length === 1) {
-            saveNodeSettings(selectedNodes[0], nodeSpecificSettings, globalSettings, updateNodeStyles);
+            saveNodeSettings(selectedNodes[0], nodeSpecificSettings, globalSettings, updateNodeStyles, updateCurrentEffect);
             updateNodeStyles(globalSettings, nodeSpecificSettings)
         } else if (selectedNodes.length > 1) {
             selectedNodes.forEach(node => {
-                saveNodeSettings(node, nodeSpecificSettings, globalSettings, updateNodeStyles);
+                saveNodeSettings(node, nodeSpecificSettings, globalSettings, updateNodeStyles, updateCurrentEffect);
             })
             updateNodeStyles(globalSettings, nodeSpecificSettings);
         }
@@ -395,24 +398,24 @@ function initModalManager(nodeSpecificSettings, globalSettings, updateNodeStyles
     saveNodeButton.addEventListener('click', function () {
         const selectedNodes = Array.from(document.querySelectorAll('.hex')).filter(node => node.closest('.hex-wrap').classList.contains('SelectedNode') || node.closest('.hex-wrap').classList.contains('ActiveandSelectedNode'));
         if (selectedNodes.length === 1) {
-            saveNodeSettings(selectedNodes[0], nodeSpecificSettings, globalSettings, updateNodeStyles);
+            saveNodeSettings(selectedNodes[0], nodeSpecificSettings, globalSettings, updateNodeStyles, updateCurrentEffect);
         } else {
             selectedNodes.forEach(node => {
-                saveNodeSettings(node, nodeSpecificSettings, globalSettings, updateNodeStyles);
+                saveNodeSettings(node, nodeSpecificSettings, globalSettings, updateNodeStyles, updateCurrentEffect);
             })
         }
-        closeModal(updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings);
+        closeModal(updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect);
     });
     discardNodeButton.addEventListener('click', function () {
         const selectedNodes = Array.from(document.querySelectorAll('.hex')).filter(node => node.closest('.hex-wrap').classList.contains('SelectedNode') || node.closest('.hex-wrap').classList.contains('ActiveandSelectedNode'));
         if (selectedNodes.length === 1) {
-            discardNodeSettings(selectedNodes[0], nodeSpecificSettings, globalSettings, updateNodeStyles);
+            discardNodeSettings(selectedNodes[0], nodeSpecificSettings, globalSettings, updateNodeStyles, updateCurrentEffect);
         } else {
             selectedNodes.forEach(node => {
-                discardNodeSettings(node, nodeSpecificSettings, globalSettings, updateNodeStyles);
+                discardNodeSettings(node, nodeSpecificSettings, globalSettings, updateNodeStyles, updateCurrentEffect);
             })
         }
-        closeModal(updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings);
+        closeModal(updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect);
     });
     // Add logic for adding more modal colors
     const addModalColorButton = document.getElementById('addModalColorButton');

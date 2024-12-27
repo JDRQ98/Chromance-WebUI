@@ -11,17 +11,12 @@
 <body>
     <h1 id="effectTitle">Effect editor: Default</h1>
     <div class="effect-selector">
-        <button class="effect-button" data-effect-id="1">Effect 1</button>
-        <button class="effect-button" data-effect-id="2">Effect 2</button>
-        <button class="effect-button" data-effect-id="3">Effect 3</button>
-        <button class="effect-button" data-effect-id="4">Effect 4</button>
-        <button class="effect-button" data-effect-id="5">Effect 5</button>
-        <button class="effect-button" data-effect-id="6">Effect 6</button>
-        <button class="effect-button" data-effect-id="7">Effect 7</button>
-        <button class="effect-button" data-effect-id="8">Effect 8</button>
-        <button class="effect-button" data-effect-id="9">Effect 9</button>
-        <button class="effect-button" data-effect-id="10">Effect 10</button>
-        <button id="saveChangesButton">Save Changes</button>
+        <div class="effect-selector-container">
+            <select id="effectDropdown"></select>
+            <button id="addEffectButton" title="Add Effect">➕</button>
+            <button id="editEffectButton" title="Edit Effect">✏️</button>
+            <button id="deleteEffectButton" title="Delete Effect">🗑️</button>
+        </div>
     </div>
     <div class="container" id="container">
         <!-- Nodes -->
@@ -127,11 +122,11 @@
                 <option value="outward">Outward</option>
             </select>
         </div>
-        <div class="setting">
+         <div class="setting">
             <label for="rippleDelay">Enter delay between ripples in ms [1 - 60000]:</label>
             <input type="number" id="rippleDelay" min="1" max="60000" value="3000">
         </div>
-        <div class="setting">
+         <div class="setting">
             <label for="rippleLifeSpan">Enter ripple life span in ms [1 - 60000]:</label>
             <input type="number" id="rippleLifeSpan" min="1" max="60000" value="3000">
         </div>
@@ -143,7 +138,7 @@
         <div class="setting">
             <label for="decayPerTick">Enter decay per tick [0.90 - 1]:</label>
             <input type="range" id="decayPerTick" min="0.90" max="1" step="0.001" value="0.985">
-            <span id="decayPerTickDisplay">0.985</span>
+             <span id="decayPerTickDisplay">0.985</span>
         </div>
         <div class="setting">
             <label>Colors:</label>
@@ -156,11 +151,11 @@
             <button id="globalRandomButton">Random</button>
             <button id="globalSimilarButton">Similar</button>
         </div>
-        <div class="setting">
+         <div class="setting">
             <label for="hueDeltaTick">Enter hue delta per tick [0 - 500]:</label>
-            <input type="number" id="hueDeltaTick" min="0" max="500" value="200">
+             <input type="number" id="hueDeltaTick" min="0" max="500" value="200">
         </div>
-        <div class="setting">
+           <div class="setting">
             <label for="numberOfRipples">Enter the max number of ripples per fire:</label>
             <input type="text" id="numberOfRipples" value="1">
         </div>
@@ -234,7 +229,6 @@
                 </div>
                 <div id="modalColorContainer" class="color-container">
                 </div>
-
                 <input type="checkbox" class="edit-button-checkbox" data-setting="startingColor">
             </div>
             <div class="setting-container">
@@ -248,10 +242,7 @@
             <button id="discardNodeButton">Discard</button>
         </div>
     </div>
-    <script src="js/drawVisualizer.js"></script>
-    <!-- this file includes functions for drawing the Chromance structure by drawing the 'segments' based on the node positions -->
     <script type="module" src="js/main.js"></script>
-
 </body>
 
 </html>

@@ -1,3 +1,4 @@
+// drawVisualizer.js
 // Function to calculate the distance between two points
 function distance(x1, y1, x2, y2) {
     return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
@@ -12,7 +13,7 @@ function angle(x1, y1, x2, y2) {
 function drawLine(nodeId1, nodeId2) {
     // Get the container and the nodes by their IDs
     const container = document.getElementById('container');
-     const nodeWrap1 = document.querySelector(`.hex-wrap [data-id="${nodeId1}"]`).closest('.hex-wrap');
+    const nodeWrap1 = document.querySelector(`.hex-wrap [data-id="${nodeId1}"]`).closest('.hex-wrap');
     const nodeWrap2 = document.querySelector(`.hex-wrap [data-id="${nodeId2}"]`).closest('.hex-wrap');
 
     // If either node doesn't exist, return
@@ -22,7 +23,7 @@ function drawLine(nodeId1, nodeId2) {
     }
 
     // Get the positions of the nodes from the wrapper
-      const x1 = parseFloat(nodeWrap1.style.left);
+    const x1 = parseFloat(nodeWrap1.style.left);
     const y1 = parseFloat(nodeWrap1.style.top);
     const x2 = parseFloat(nodeWrap2.style.left);
     const y2 = parseFloat(nodeWrap2.style.top);
@@ -49,6 +50,7 @@ function drawLine(nodeId1, nodeId2) {
     container.appendChild(line);
 }
 
+// Function to draw the hexagon lines
 function drawHexagon() {
     drawLine(0, 1);
     drawLine(17, 18);
@@ -81,3 +83,4 @@ function drawHexagon() {
     drawLine(2, 4);
     drawLine(2, 7);
 }
+export { drawHexagon }; // Export statement at the top level
