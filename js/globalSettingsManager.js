@@ -11,10 +11,6 @@ function setupGlobalSettingsModal(loadGlobalSettings, saveGlobalSettings) {
         openGlobalSettingsModal();
         loadGlobalSettings(globalSettings); // Load global settings into modal
     });
-    openGlobalSettingsButton.addEventListener('click', () => {
-        openGlobalSettingsModal();
-        loadGlobalSettings(globalSettings); // Load global settings into modal
-    });
 
     function openGlobalSettingsModal() {
         globalSettingsModal.classList.add('show');
