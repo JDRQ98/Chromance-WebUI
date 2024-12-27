@@ -12,8 +12,10 @@ const quadNodes = [1, 2, 8, 10, 16, 17];
 function updateNodeStyle(node, globalSettings, nodeSpecificSettings) {
     const nodeId = Number(node.dataset.id);
     const hexWrap = node.closest('.hex-wrap');
+    // Remove all style classes
     hexWrap.classList.remove('regularNode', 'SelectedNode', 'ActiveNode', 'ActiveandSelectedNode');
 
+    // Add the class according to the node's status
     if (activeNodes.includes(nodeId) && selectedNodes.includes(node)) {
         hexWrap.classList.add('ActiveandSelectedNode');
     } else if (activeNodes.includes(nodeId)) {
@@ -27,7 +29,9 @@ function updateNodeStyle(node, globalSettings, nodeSpecificSettings) {
 
 // Function to update the styling of nodes based on their activation/selection status
 function updateNodeStyles(globalSettings, nodeSpecificSettings) {
-    document.querySelectorAll('.hex').forEach(node => {
+    // Cache the node elements for efficiency
+    const nodes = document.querySelectorAll('.hex');
+    nodes.forEach(node => {
         updateNodeStyle(node, globalSettings, nodeSpecificSettings);
     });
 }
@@ -52,11 +56,15 @@ function deactivateAllNodes(updateNodeStyles, updateModal, globalSettings, nodeS
 }
 
 function initNodeManager(updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, closeModal, updateCurrentEffect) {
-    const nodes = document.querySelectorAll('.hex');
-    nodes.forEach(node => {
-        node.addEventListener('click', function () {
-            handleNodeClick(node, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect);
-        });
+    // Get the container element that wraps the hex nodes
+    const container = document.getElementById('container');
+
+    // Use event delegation for node clicks
+    container.addEventListener('click', (event) => {
+        // Check if the clicked element is a hex node
+        if (event.target.classList.contains('hex')) {
+            handleNodeClick(event.target, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect);
+        }
     });
     const deactivateAllNodesButton = document.getElementById('deactivateAllNodes');
     deactivateAllNodesButton.addEventListener('click', () => {

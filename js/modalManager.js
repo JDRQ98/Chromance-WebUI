@@ -3,21 +3,23 @@ import { generateRainbowColors, generateRandomColors, generateSimilarColors } fr
 import { setSelectedNodes, getActiveNodes } from './nodeManager.js';
 
 let modalInputs = {};
+// Function to update the modal based on the currently selected nodes
 function updateModal(selectedNodes, activeNodes, nodeSpecificSettings, globalSettings, updateNodeStyles) {
     const selectedIds = selectedNodes.map(node => node.dataset.id);
     const display = document.getElementById('selectedNodesDisplay');
+    const modal = document.getElementById('modal');
+    const activateCheckbox = document.getElementById('activateNodeCheckbox');
+    const modalSettings = document.querySelector('.modal-settings');
+
+    //Update node display
     if (selectedIds.length > 0) {
         display.textContent = 'Selected Nodes: ' + selectedIds.join(', ');
     } else {
         display.textContent = 'No nodes selected';
     }
-    // Get the modal
-    const modal = document.getElementById('modal');
-    const activateCheckbox = document.getElementById('activateNodeCheckbox');
-    const modalSettings = document.querySelector('.modal-settings');
-    if (selectedIds.length === 1) { // Only 1 node is selected
+    // Check the state of the nodes for activation
+    if (selectedIds.length === 1) {
         const selectedNodeId = selectedIds[0];
-        // Check if the selected node is contained within activeNodes
         if (activeNodes.includes(Number(selectedNodeId))) {
             activateCheckbox.checked = true;
             activateCheckbox.indeterminate = false;
@@ -27,56 +29,49 @@ function updateModal(selectedNodes, activeNodes, nodeSpecificSettings, globalSet
             activateCheckbox.indeterminate = false;
             modalSettings.classList.remove('show');
         }
-        // Load settings from global or node-specific settings
         if (selectedNodes.length > 0) {
             loadNodeSettings(selectedNodes[0], nodeSpecificSettings, globalSettings);
         }
-    } else if (selectedIds.length > 1) { // More than 1 node is selected
-        // Check if all selected nodes are active
+    } else if (selectedIds.length > 1) {
         const allActive = selectedIds.every(id => activeNodes.includes(Number(id)));
         if (allActive) {
             activateCheckbox.checked = true;
             activateCheckbox.indeterminate = false;
             modalSettings.classList.add('show');
         } else {
-            // Check if none are active
             const noneActive = selectedIds.every(id => !activeNodes.includes(Number(id)));
             if (noneActive) {
                 activateCheckbox.checked = false;
                 activateCheckbox.indeterminate = false;
                 modalSettings.classList.remove('show');
             } else {
-                // Some are active and some are not, set to indeterminate
                 activateCheckbox.checked = false;
                 activateCheckbox.indeterminate = true;
                 modalSettings.classList.remove('show');
             }
         }
-        // Load settings from global or node-specific settings
         if (selectedNodes.length > 0) {
             loadNodeSettings(selectedNodes[0], nodeSpecificSettings, globalSettings);
         }
-        // Disable all settings if more than one node is selected
         disableModalInputs();
     } else {
-        // If no nodes are selected, reset the checkbox
         activateCheckbox.checked = false;
         activateCheckbox.indeterminate = false;
-        // Disable all settings if no node is selected
         disableModalInputs();
-        document.getElementById('modal').classList.remove('show');
+        modal.classList.remove('show');
         document.getElementById('overlay').classList.remove('show');
-        // Do NOT Close the modal here - leads to recursion bug
     }
-    if (selectedNodes.length > 0 && !document.getElementById('modal').classList.contains('show')) {
-        openModal();  // Open the modal if there are selected nodes
+    if (selectedIds.length > 0 && !modal.classList.contains('show')) {
+        openModal();
     }
 }
+// Function to load node specific settings into the modal
 function loadNodeSettings(node, nodeSpecificSettings, globalSettings) {
     const nodeId = node.dataset.id;
     const selectedNodes = Array.from(document.querySelectorAll('.hex')).filter(node => node.closest('.hex-wrap').classList.contains('SelectedNode') || node.closest('.hex-wrap').classList.contains('ActiveandSelectedNode'));
     const selectedIds = selectedNodes.map(node => node.dataset.id);
-    // Set the inputs based on global settings or node specific settings
+
+    // Set values from global or node settings
     let desiredBehaviorValue = nodeSpecificSettings[nodeId]?.desiredBehavior ?? globalSettings.desiredBehavior;
     let rippleDirectionValue = nodeSpecificSettings[nodeId]?.rippleDirection ?? globalSettings.rippleDirection;
     let rippleDelayValue = nodeSpecificSettings[nodeId]?.rippleDelay ?? globalSettings.rippleDelay;
@@ -87,6 +82,7 @@ function loadNodeSettings(node, nodeSpecificSettings, globalSettings) {
     // Load colors into swatches
     const colorContainer = document.getElementById('modalColorContainer');
     colorContainer.innerHTML = ''; // Clear existing swatches
+
     let colorsValue = [];
     if (nodeSpecificSettings[nodeId] && nodeSpecificSettings[nodeId].hasOwnProperty('startingColor')) {
         colorsValue = nodeSpecificSettings[nodeId].startingColor
@@ -106,7 +102,7 @@ function loadNodeSettings(node, nodeSpecificSettings, globalSettings) {
         colorInput.classList.add('color-swatch');
         colorContainer.appendChild(colorInput);
     });
-    // Set edit button checkbox state based on if there is node specific property
+    // Set edit checkbox states based on node specific settings
     const modal = document.getElementById('modal');
     const editCheckboxes = modal.querySelectorAll('.edit-button-checkbox');
     editCheckboxes.forEach(checkbox => {
@@ -121,7 +117,6 @@ function loadNodeSettings(node, nodeSpecificSettings, globalSettings) {
                 checkbox.indeterminate = false;
             }
         } else if (selectedIds.length > 1) {
-            // Check if all selected nodes have the same setting
             allSame = selectedIds.every(id => {
                 if (nodeSpecificSettings[id] && nodeSpecificSettings[id].hasOwnProperty(setting)) {
                     return nodeSpecificSettings[selectedIds[0]] && nodeSpecificSettings[selectedIds[0]][setting] === nodeSpecificSettings[id][setting];
@@ -166,7 +161,7 @@ function loadNodeSettings(node, nodeSpecificSettings, globalSettings) {
     setModalInputValue('rippleSpeed', rippleSpeedValue)
     setModalInputValue('decayPerTick', decayPerTickValue)
     setModalInputValue('hueDeltaTick', hueDeltaTickValue)
-    //Add listener to the edit checkbox buttons
+    //Add event listener to edit checkbox buttons
     editCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function () {
             const setting = this.dataset.setting;
@@ -177,10 +172,10 @@ function loadNodeSettings(node, nodeSpecificSettings, globalSettings) {
             }
         });
     });
-    // Display the modal
     modal.classList.add('show')
     document.getElementById('overlay').classList.add('show');
 }
+// Cache the modal input elements
 function cacheModalInputs() {
     const modal = document.getElementById('modal');
     modalInputs = {
@@ -194,7 +189,7 @@ function cacheModalInputs() {
         modalDecayPerTickDisplay: modal.querySelector('#modalDecayPerTickDisplay'),
         modalHueDeltaTick: modal.querySelector('#modalHueDeltaTick'),
     };
-    //Add input listeners to the range elements so that the spans are correctly updated.
+    // Add input listeners to the range elements to update the span elements
     modalInputs.modalRippleSpeed.addEventListener('input', () => {
         modalInputs.modalRippleSpeedDisplay.textContent = parseFloat(modalInputs.modalRippleSpeed.value).toFixed(2);
     });
@@ -202,6 +197,7 @@ function cacheModalInputs() {
         modalInputs.modalDecayPerTickDisplay.textContent = parseFloat(modalInputs.modalDecayPerTick.value).toFixed(3);
     });
 }
+// Helper function to set values in modal input elements
 function setModalInputValue(setting, value) {
     if (modalInputs[`modal${setting.charAt(0).toUpperCase() + setting.slice(1)}`]) {
         const inputElement = modalInputs[`modal${setting.charAt(0).toUpperCase() + setting.slice(1)}`];
@@ -215,14 +211,15 @@ function setModalInputValue(setting, value) {
         }
     }
 }
+//Helper function to get values from modal input elements
 function getModalInputValue(setting) {
     return modalInputs[`modal${setting.charAt(0).toUpperCase() + setting.slice(1)}`]?.value;
 }
+// Helper function to enable modal input elements
 function enableModalInput(setting, nodeId) {
     const inputElement = modalInputs[`modal${setting.charAt(0).toUpperCase() + setting.slice(1)}`];
     if (inputElement) {
         inputElement.disabled = false;
-        // Update display if range
         if (setting === 'rippleSpeed') {
             modalInputs.modalRippleSpeedDisplay.textContent = parseFloat(getModalInputValue(setting)).toFixed(2);
         }
@@ -231,16 +228,17 @@ function enableModalInput(setting, nodeId) {
         }
     }
 }
+// Helper function to disable modal input elements
 function disableModalInput(setting, nodeId) {
     const inputElement = modalInputs[`modal${setting.charAt(0).toUpperCase() + setting.slice(1)}`];
     if (inputElement) {
         inputElement.disabled = true;
-        // remove the settings property from the node if it exists
         if (nodeSpecificSettings[nodeId] && nodeSpecificSettings[nodeId].hasOwnProperty(setting)) {
             delete nodeSpecificSettings[nodeId][setting];
         }
     }
 }
+// Helper function to disable all modal input elements
 function disableModalInputs() {
     const modal = document.getElementById('modal');
     const inputs = modal.querySelectorAll('input:not(#activateNodeCheckbox):not(.edit-button-checkbox), select')
@@ -252,30 +250,26 @@ function disableModalInputs() {
         checkbox.checked = false;
     });
 }
+// Function to save node settings
 function saveNodeSettings(selectedNodes, activeNodes, nodeSpecificSettings, globalSettings, updateNodeStyles, updateCurrentEffect, setActiveNodes) {
-   // Update activeNodes immediately
     let newActiveNodes = [...activeNodes];
-     selectedNodes.forEach(node =>{
+    selectedNodes.forEach(node => {
         const nodeId = node.dataset.id;
         const activateCheckbox = document.getElementById('activateNodeCheckbox');
         const nodeIdNumber = Number(nodeId);
         if (activateCheckbox.checked) {
-            // Add all selected nodes to activeNodes (ensure no duplicates)
             if (!newActiveNodes.includes(nodeIdNumber)) {
-                 newActiveNodes.push(nodeIdNumber);
+                newActiveNodes.push(nodeIdNumber);
             }
         } else {
-            // Remove all selected nodes from activeNodes
             newActiveNodes = newActiveNodes.filter(activeNodeId => activeNodeId !== nodeIdNumber);
         }
-        // Only save properties from the modal that are specific to the node
-         const modal = document.getElementById('modal');
+        const modal = document.getElementById('modal');
         const editCheckboxes = modal.querySelectorAll('.edit-button-checkbox');
         let hasSettings = false;
         editCheckboxes.forEach(checkbox => {
             if (checkbox.checked) {
                 const setting = checkbox.dataset.setting;
-                // Create node specific object if doesn't exist
                 if (!nodeSpecificSettings[nodeId]) {
                     nodeSpecificSettings[nodeId] = {};
                 }
@@ -292,52 +286,45 @@ function saveNodeSettings(selectedNodes, activeNodes, nodeSpecificSettings, glob
                 }
             }
         });
-        // Remove empty object from nodeSpecificSettings if no properties were set
         if (!hasSettings && nodeSpecificSettings[nodeId]) {
             delete nodeSpecificSettings[nodeId];
         }
     });
     setActiveNodes(newActiveNodes);
-    // Update the styling of nodes based on their activation status
     updateNodeStyles(globalSettings, nodeSpecificSettings);
     updateCurrentEffect(globalSettings, nodeSpecificSettings, newActiveNodes);
 }
+// Function to discard node settings
 function discardNodeSettings(selectedNodes, activeNodes, nodeSpecificSettings, globalSettings, updateNodeStyles, updateCurrentEffect, setActiveNodes) {
-  let newActiveNodes = [...activeNodes];
-   selectedNodes.forEach(node => {
-    const nodeId = node.dataset.id;
-      const activateCheckbox = document.getElementById('activateNodeCheckbox');
-    // Update activeNodes immediately
-     const nodeIdNumber = Number(nodeId);
-    if (activateCheckbox.checked) {
-        // Add all selected nodes to activeNodes (ensure no duplicates)
-        if (!newActiveNodes.includes(nodeIdNumber)) {
-             newActiveNodes.push(nodeIdNumber);
+    let newActiveNodes = [...activeNodes];
+    selectedNodes.forEach(node => {
+        const nodeId = node.dataset.id;
+        const activateCheckbox = document.getElementById('activateNodeCheckbox');
+        const nodeIdNumber = Number(nodeId);
+        if (activateCheckbox.checked) {
+            if (!newActiveNodes.includes(nodeIdNumber)) {
+                newActiveNodes.push(nodeIdNumber);
+            }
+        } else {
+            newActiveNodes = newActiveNodes.filter(activeNodeId => activeNodeId !== nodeIdNumber);
         }
-    } else {
-        // Remove all selected nodes from activeNodes
-        newActiveNodes = newActiveNodes.filter(activeNodeId => activeNodeId !== nodeIdNumber);
-    }
-       // If there are node specific settings, load them, otherwise delete them to load defaults from global settings
         if (nodeSpecificSettings[nodeId]) {
             loadNodeSettings(node, nodeSpecificSettings, globalSettings)
         } else {
             delete nodeSpecificSettings[nodeId];
-            // Load settings from global or node-specific settings
             loadNodeSettings(node, nodeSpecificSettings, globalSettings);
         }
-  });
-   setActiveNodes(newActiveNodes);
-   //  Update the styling of nodes based on their activation status
+    });
+    setActiveNodes(newActiveNodes);
     updateNodeStyles(globalSettings, nodeSpecificSettings);
     updateCurrentEffect(globalSettings, nodeSpecificSettings, newActiveNodes);
 }
-// Function to open the modal window
+// Function to open the modal
 function openModal() {
     document.getElementById('modal').classList.add('show');
     document.getElementById('overlay').classList.add('show');
 }
-// Function to close the modal window and deselect all nodes
+// Function to close the modal
 function closeModal(selectedNodes, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect, setActiveNodes) {
     document.getElementById('modal').classList.remove('show');
     document.getElementById('overlay').classList.remove('show');
@@ -347,23 +334,24 @@ function closeModal(selectedNodes, updateNodeStyles, updateModal, globalSettings
     updateNodeStyles(globalSettings, nodeSpecificSettings);
     updateCurrentEffect(globalSettings, nodeSpecificSettings, getActiveNodes(), setActiveNodes);
 }
+// Function to initialize the modal manager
 function initModalManager(activeNodes, nodeSpecificSettings, globalSettings, updateNodeStyles, updateModal, updateCurrentEffect, setActiveNodes, getActiveNodes) {
     // Cache modal inputs
     cacheModalInputs();
-    //Add listener to the modal close button
+    // Add listener to the close modal button
     const closeModalButton = document.getElementById('closeModalButton');
     closeModalButton.addEventListener('click', () => {
         const selectedNodes = Array.from(document.querySelectorAll('.hex')).filter(node => node.closest('.hex-wrap').classList.contains('SelectedNode') || node.closest('.hex-wrap').classList.contains('ActiveandSelectedNode'));
         closeModal(selectedNodes, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect, setActiveNodes);
     });
-    // Add listener to the ESC key to close modal
+    // Add listener for closing the modal with ESC key
     document.addEventListener('keydown', function (event) {
         if (event.key === 'Escape') {
             const selectedNodes = Array.from(document.querySelectorAll('.hex')).filter(node => node.closest('.hex-wrap').classList.contains('SelectedNode') || node.closest('.hex-wrap').classList.contains('ActiveandSelectedNode'));
             closeModal(selectedNodes, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect, setActiveNodes);
         }
     });
-    // Toggle activation of selected nodes when checkbox is clicked
+    // Add listener to the activate node checkbox
     document.getElementById('activateNodeCheckbox').addEventListener('change', function () {
         const modalSettings = document.querySelector('.modal-settings');
         const selectedNodes = Array.from(document.querySelectorAll('.hex')).filter(node => node.closest('.hex-wrap').classList.contains('SelectedNode') || node.closest('.hex-wrap').classList.contains('ActiveandSelectedNode'));
@@ -381,7 +369,6 @@ function initModalManager(activeNodes, nodeSpecificSettings, globalSettings, upd
                 modalSettings.classList.remove('show');
             }
         }
-        // Update activeNodes immediately
         saveNodeSettings(selectedNodes, activeNodes, nodeSpecificSettings, globalSettings, updateNodeStyles, updateCurrentEffect, setActiveNodes);
 
     });
@@ -431,7 +418,7 @@ function initModalManager(activeNodes, nodeSpecificSettings, globalSettings, upd
             colorContainer.appendChild(colorInput);
         });
     });
-    // Add logic for random global colors button
+    // Add logic for random modal colors button
     const modalRandomButton = document.getElementById('modalRandomButton');
     modalRandomButton.addEventListener('click', () => {
         const colorCount = document.querySelectorAll('#modalColorContainer input').length;
@@ -446,7 +433,7 @@ function initModalManager(activeNodes, nodeSpecificSettings, globalSettings, upd
             colorContainer.appendChild(colorInput);
         });
     });
-    // Add logic for similar global colors button
+    // Add logic for similar modal colors button
     const modalSimilarButton = document.getElementById('modalSimilarButton');
     modalSimilarButton.addEventListener('click', () => {
         const colorCount = document.querySelectorAll('#modalColorContainer input').length;

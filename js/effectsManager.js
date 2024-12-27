@@ -36,8 +36,16 @@ function loadCurrentEffect(globalSettings, nodeSpecificSettings, updateNodeStyle
     updateModal([], importedActiveNodes, nodeSpecificSettings, globalSettings, updateNodeStyles);
 }
 function updateCurrentEffect(globalSettings, nodeSpecificSettings, activeNodes) {
+    const effectDropdown = document.getElementById('effectDropdown');
+    const selectedOption = effectDropdown.options[effectDropdown.selectedIndex];
+    let effectName = 'Default';
+    if (effects[currentEffectId]) {
+        effectName = effects[currentEffectId].name;
+    } else if (selectedOption) {
+        effectName = selectedOption.text;
+    }
     effects[currentEffectId] = {
-        name: document.getElementById('effectDropdown').options[document.getElementById('effectDropdown').selectedIndex].text,
+        name: effectName,
         globalSettings: deepClone(globalSettings), // Deep clone the settings
         nodeSpecificSettings: deepClone(nodeSpecificSettings),
         activeNodes: deepClone(activeNodes),// Deep clone the active nodes
@@ -105,8 +113,14 @@ function initEffectsManager(globalSettings, nodeSpecificSettings, updateNodeStyl
         nextEffectId = 2; // Set the next effect ID to 2 if the default is set.
     }
     // Load settings for the current effect
+    // Load the currentEffectId from localStorage
+    const storedCurrentEffectId = localStorage.getItem('currentEffectId');
+    if (storedCurrentEffectId) {
+        currentEffectId = parseInt(storedCurrentEffectId, 10);
+    }
     populateEffectDropdown();
     loadCurrentEffect(globalSettings, nodeSpecificSettings, updateNodeStyles, loadGlobalSettings, updateModal, resetAllSettings);
+    updateCurrentEffect(globalSettings, nodeSpecificSettings, importedActiveNodes);
     const titleElement = document.getElementById('effectTitle');
     updateEffectTitle(titleElement);
     // Update global settings when selecting an effect from the dropdown

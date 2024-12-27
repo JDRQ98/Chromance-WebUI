@@ -7,9 +7,8 @@ let globalSettings = {}; // Object to store global settings
 function setupGlobalSettingsModal(loadGlobalSettings, saveGlobalSettings) {
     const editGlobalSettingsButton = document.getElementById('editGlobalSettingsButton');
     const globalSettingsModal = document.getElementById('globalSettingsModal');
-    const openGlobalSettingsButton = document.getElementById('openGlobalSettingsButton');
-    const overlay = document.getElementById('overlay');
-
+    const overlay = document.getElementById('overlay'); //Cache the overlay
+    // Event listener to open the modal
     editGlobalSettingsButton.addEventListener('click', () => {
         openGlobalSettingsModal();
         loadGlobalSettings(globalSettings); // Load global settings into modal
@@ -31,6 +30,7 @@ function setupGlobalSettingsModal(loadGlobalSettings, saveGlobalSettings) {
         }
     });
 }
+// Function to reset all global settings to default
 function resetGlobalSettings(globalSettings) {
     globalSettings.effectBasis = 'ripple';
     globalSettings.effectDuration = 3000;
@@ -45,12 +45,14 @@ function resetGlobalSettings(globalSettings) {
     globalSettings.colors = ["#FF0000"]; // Default color
 }
 
+// Function to save global settings for the current effect
 function saveGlobalSettings(globalSettings) {
     const effects = JSON.parse(localStorage.getItem('effects') || '{}');
     if (!effects[currentEffectId]) {
         console.error('Current effect not found in local storage');
         return;
     }
+    // Get all input values
     globalSettings.effectBasis = document.getElementById('effectBasis').value;
     globalSettings.effectDuration = Number(document.getElementById('effectDuration').value);
     globalSettings.desiredBehavior = document.getElementById('desiredBehavior').value;
@@ -66,6 +68,7 @@ function saveGlobalSettings(globalSettings) {
     localStorage.setItem('effects', JSON.stringify(effects));
     console.log("Global settings for effect", currentEffectId, "are", globalSettings);
 }
+// Function to load global settings for the current effect
 function loadGlobalSettings(globalSettings) {
     const effects = JSON.parse(localStorage.getItem('effects') || '{}');
     if (!effects[currentEffectId]) {
@@ -73,7 +76,7 @@ function loadGlobalSettings(globalSettings) {
         return;
     }
     const storedSettings = effects[currentEffectId].globalSettings;
-
+    // Update input values if settings exist
     if (storedSettings) {
         document.getElementById('effectBasis').value = storedSettings.effectBasis;
         document.getElementById('effectDuration').value = storedSettings.effectDuration;
@@ -100,12 +103,14 @@ function loadGlobalSettings(globalSettings) {
     }
     console.log("Loaded global settings for effect", currentEffectId, "are", storedSettings);
 }
+// Function to initialize the global settings manager
 function initGlobalSettingsManager(globalSettings, resetAllSettings, updateNodeStyles, loadGlobalSettings) {
+    // Cache frequently accessed DOM elements
     const rippleSpeedInput = document.getElementById('rippleSpeed');
     const rippleSpeedDisplay = document.getElementById('rippleSpeedDisplay');
     const decayPerTickInput = document.getElementById('decayPerTick');
     const decayPerTickDisplay = document.getElementById('decayPerTickDisplay');
-
+    // Event listeners for the range elements
     rippleSpeedInput.addEventListener('input', () => {
         rippleSpeedDisplay.textContent = parseFloat(rippleSpeedInput.value).toFixed(2);
     });
@@ -121,21 +126,25 @@ function initGlobalSettingsManager(globalSettings, resetAllSettings, updateNodeS
     } else {
         Object.assign(globalSettings, effects[1].globalSettings);
     }
+    // Event listener for restore defaults
     const restoreDefaultsButton = document.getElementById('restoreDefaultsButton');
     restoreDefaultsButton.addEventListener('click', () => {
         resetAllSettings(globalSettings);
     });
+    // Event listener for fire ripple button
     const fireRippleButton = document.getElementById('fireRippleButton');
     fireRippleButton.addEventListener('click', () => {
         console.log("Fire ripple button clicked");
         //Add the logic for firing the ripple, using all the properties from the interface
     });
+    // Event listener for the submit button
     const submitButton = document.getElementById('submitButton');
     submitButton.addEventListener('click', () => {
         console.log("Submit button clicked");
         saveGlobalSettings(globalSettings);
         closeGlobalSettingsModal();
     });
+    // Event listener for discard button
     const discardButton = document.getElementById('discardButton');
     discardButton.addEventListener('click', () => {
         console.log("Discard button clicked");
