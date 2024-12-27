@@ -1,6 +1,9 @@
 // globalSettingsManager.js
 import { generateRainbowColors, generateRandomColors, generateSimilarColors } from './colorUtils.js';
+import { currentEffectId } from './effectsManager.js';
+
 let globalSettings = {}; // Object to store global settings
+
 function setupGlobalSettingsModal(loadGlobalSettings, saveGlobalSettings) {
     const editGlobalSettingsButton = document.getElementById('editGlobalSettingsButton');
     const globalSettingsModal = document.getElementById('globalSettingsModal');
@@ -40,10 +43,14 @@ function resetGlobalSettings(globalSettings) {
     globalSettings.hueDeltaTick = 200;
     globalSettings.numberOfRipples = 1;
     globalSettings.colors = ["#FF0000"]; // Default color
-    localStorage.setItem('globalSettings', JSON.stringify(globalSettings));
 }
 
 function saveGlobalSettings(globalSettings) {
+    const effects = JSON.parse(localStorage.getItem('effects') || '{}');
+    if (!effects[currentEffectId]) {
+        console.error('Current effect not found in local storage');
+        return;
+    }
     globalSettings.effectBasis = document.getElementById('effectBasis').value;
     globalSettings.effectDuration = Number(document.getElementById('effectDuration').value);
     globalSettings.desiredBehavior = document.getElementById('desiredBehavior').value;
@@ -55,12 +62,18 @@ function saveGlobalSettings(globalSettings) {
     globalSettings.hueDeltaTick = Number(document.getElementById('hueDeltaTick').value);
     globalSettings.numberOfRipples = document.getElementById('numberOfRipples').value;
     globalSettings.colors = Array.from(document.querySelectorAll('#globalColorContainer input')).map(input => input.value);
-
-    localStorage.setItem('globalSettings', JSON.stringify(globalSettings));
-    console.log("Global settings are", globalSettings);
+    effects[currentEffectId].globalSettings = globalSettings;
+    localStorage.setItem('effects', JSON.stringify(effects));
+    console.log("Global settings for effect", currentEffectId, "are", globalSettings);
 }
 function loadGlobalSettings(globalSettings) {
-    const storedSettings = JSON.parse(localStorage.getItem('globalSettings'));
+    const effects = JSON.parse(localStorage.getItem('effects') || '{}');
+    if (!effects[currentEffectId]) {
+        console.error('Current effect not found in local storage');
+        return;
+    }
+    const storedSettings = effects[currentEffectId].globalSettings;
+
     if (storedSettings) {
         document.getElementById('effectBasis').value = storedSettings.effectBasis;
         document.getElementById('effectDuration').value = storedSettings.effectDuration;
@@ -85,7 +98,7 @@ function loadGlobalSettings(globalSettings) {
             colorContainer.appendChild(colorInput);
         });
     }
-    console.log("Loaded global settings are", storedSettings);
+    console.log("Loaded global settings for effect", currentEffectId, "are", storedSettings);
 }
 function initGlobalSettingsManager(globalSettings, resetAllSettings, updateNodeStyles, loadGlobalSettings) {
     const rippleSpeedInput = document.getElementById('rippleSpeed');
@@ -102,10 +115,11 @@ function initGlobalSettingsManager(globalSettings, resetAllSettings, updateNodeS
     });
     setupGlobalSettingsModal(loadGlobalSettings, saveGlobalSettings);
     // Load settings to localStorage if they are not present
-    if (localStorage.getItem('globalSettings') === null) {
+    const effects = JSON.parse(localStorage.getItem('effects') || '{}');
+    if (!effects[1] || !effects[1].globalSettings) {
         resetGlobalSettings(globalSettings);
     } else {
-        Object.assign(globalSettings, JSON.parse(localStorage.getItem('globalSettings')));
+        Object.assign(globalSettings, effects[1].globalSettings);
     }
     const restoreDefaultsButton = document.getElementById('restoreDefaultsButton');
     restoreDefaultsButton.addEventListener('click', () => {

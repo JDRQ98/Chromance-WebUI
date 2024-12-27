@@ -16,7 +16,7 @@ function loadCurrentEffect(globalSettings, nodeSpecificSettings, updateNodeStyle
 
     if (effects[selectedEffectId]) {
         currentEffectId = selectedEffectId;
-        // Deep clone the settings to avoid modifying the original objects
+        // Directly assign to globalSettings and nodeSpecificSettings
         Object.assign(globalSettings, deepClone(effects[selectedEffectId].globalSettings));
         Object.assign(nodeSpecificSettings, deepClone(effects[selectedEffectId].nodeSpecificSettings));
         //Load active nodes
@@ -30,7 +30,7 @@ function loadCurrentEffect(globalSettings, nodeSpecificSettings, updateNodeStyle
         resetAllSettings(globalSettings, nodeSpecificSettings);
         importedActiveNodes.length = 0;
     }
-    loadGlobalSettings(globalSettings);
+    loadGlobalSettings(globalSettings); // Load the global settings to the modal
     updateNodeStyles(globalSettings, nodeSpecificSettings);
     // Pass an empty array for selectedNodes during initial load
     updateModal([], importedActiveNodes, nodeSpecificSettings, globalSettings, updateNodeStyles);
