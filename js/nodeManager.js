@@ -1,3 +1,4 @@
+// File: /js/nodeManager.js
 // nodeManager.js
 let selectedNodes = []; // Array to store selected nodes
 let activeNodes = []; // Array to store active nodes; by default, node 9 is active.
@@ -31,12 +32,20 @@ function updateNodeStyles(globalSettings, nodeSpecificSettings) {
     });
 }
 
+function setActiveNodes(newActiveNodes) {
+    activeNodes = newActiveNodes;
+}
 
-function deactivateAllNodes(updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings) {
+function getActiveNodes() {
+    return activeNodes;
+}
+
+function deactivateAllNodes(updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect) {
     activeNodes = [];
     selectedNodes = [];
     updateNodeStyles(globalSettings, nodeSpecificSettings);
-    updateModal(nodeSpecificSettings, globalSettings);
+    updateModal([], activeNodes, nodeSpecificSettings, globalSettings, updateNodeStyles);
+    updateCurrentEffect(globalSettings, nodeSpecificSettings, activeNodes);
 }
 
 function initNodeManager(updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, closeModal, updateCurrentEffect) {
@@ -48,15 +57,17 @@ function initNodeManager(updateNodeStyles, updateModal, globalSettings, nodeSpec
     });
     const deactivateAllNodesButton = document.getElementById('deactivateAllNodes');
     deactivateAllNodesButton.addEventListener('click', () => {
-        deactivateAllNodes(updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings);
-        updateCurrentEffect(globalSettings, nodeSpecificSettings, activeNodes);
+        deactivateAllNodes(updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect);
     });
 
     // Event listeners for selecting node categories
     document.getElementById('selectBiNodes').addEventListener('click', () => selectNodes(borderNodes, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect));
     document.getElementById('selectTriNodes').addEventListener('click', () => selectNodes(triNodes, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect));
     document.getElementById('selectQuadNodes').addEventListener('click', () => selectNodes(quadNodes, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect));
-    document.getElementById('deselectAll').addEventListener('click', () => closeModal(updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect));
+    document.getElementById('deselectAll').addEventListener('click', () => {
+        const selectedNodes = Array.from(document.querySelectorAll('.hex')).filter(node => node.closest('.hex-wrap').classList.contains('SelectedNode') || node.closest('.hex-wrap').classList.contains('ActiveandSelectedNode'));
+        closeModal(selectedNodes, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect);
+    });
     document.getElementById('selectAllActive').addEventListener('click', () => selectNodes(activeNodes, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect));
 }
 
@@ -68,7 +79,7 @@ function handleNodeClick(node, updateNodeStyles, updateModal, globalSettings, no
         selectedNodes.push(node);
     }
     updateNodeStyle(node, globalSettings, nodeSpecificSettings);
-    updateModal(nodeSpecificSettings, globalSettings, updateNodeStyles);
+    updateModal(selectedNodes, activeNodes, nodeSpecificSettings, globalSettings, updateNodeStyles);
     updateCurrentEffect(globalSettings, nodeSpecificSettings, activeNodes);
 }
 
@@ -78,7 +89,7 @@ function selectNodes(nodes, updateNodeStyles, updateModal, globalSettings, nodeS
         const node = document.querySelector(`.hex[data-id="${id}"]`);
         handleNodeClick(node, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect);
     });
-    updateModal(nodeSpecificSettings, globalSettings, updateNodeStyles);
+    updateModal(selectedNodes, activeNodes, nodeSpecificSettings, globalSettings, updateNodeStyles);
     if (selectedNodes.length > 0 && !document.getElementById('modal').classList.contains('show')) {
         openModal();
     }
@@ -92,5 +103,7 @@ export {
     initNodeManager,
     handleNodeClick,
     deactivateAllNodes,
-    selectNodes
+    selectNodes,
+    setActiveNodes,
+    getActiveNodes
 };

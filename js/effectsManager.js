@@ -1,5 +1,7 @@
+// File: /js/effectsManager.js
 // effectsManager.js
 import { activeNodes as importedActiveNodes } from './nodeManager.js';
+import { selectedNodes as importedSelectedNodes } from './nodeManager.js';
 let currentEffectId = 1; // Variable to track the current effect ID
 let effects = {}; // Variable to store saved effects
 let nextEffectId = 1;
@@ -30,7 +32,8 @@ function loadCurrentEffect(globalSettings, nodeSpecificSettings, updateNodeStyle
     }
     loadGlobalSettings(globalSettings);
     updateNodeStyles(globalSettings, nodeSpecificSettings);
-    updateModal(nodeSpecificSettings, globalSettings);
+    // Pass an empty array for selectedNodes during initial load
+    updateModal([], importedActiveNodes, nodeSpecificSettings, globalSettings, updateNodeStyles);
 }
 function updateCurrentEffect(globalSettings, nodeSpecificSettings, activeNodes) {
     effects[currentEffectId] = {
