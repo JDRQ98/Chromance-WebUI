@@ -39,6 +39,9 @@ function setActiveNodes(newActiveNodes) {
 function getActiveNodes() {
     return activeNodes;
 }
+function setSelectedNodes(newSelectedNodes) {
+    selectedNodes = newSelectedNodes;
+}
 
 function deactivateAllNodes(updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect) {
     activeNodes = [];
@@ -73,6 +76,7 @@ function initNodeManager(updateNodeStyles, updateModal, globalSettings, nodeSpec
 
 // Function to handle node click and toggle selection
 function handleNodeClick(node, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect) {
+    const nodeId = Number(node.dataset.id);
     if (selectedNodes.includes(node)) {
         selectedNodes = selectedNodes.filter(n => n !== node);
     } else {
@@ -94,7 +98,16 @@ function selectNodes(nodes, updateNodeStyles, updateModal, globalSettings, nodeS
         openModal();
     }
 }
-
+// Function to close the modal window and deselect all nodes
+function closeModal(selectedNodes, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect) {
+    selectedNodes.forEach(node => {
+        if (selectedNodes.includes(node)) {
+            selectedNodes = selectedNodes.filter(n => n !== node);
+            updateNodeStyle(node, globalSettings, nodeSpecificSettings);
+        }
+    });
+    updateModal([], activeNodes, nodeSpecificSettings, globalSettings, updateNodeStyles);
+}
 export {
     selectedNodes,
     activeNodes,
@@ -105,5 +118,6 @@ export {
     deactivateAllNodes,
     selectNodes,
     setActiveNodes,
-    getActiveNodes
+    getActiveNodes,
+    setSelectedNodes
 };

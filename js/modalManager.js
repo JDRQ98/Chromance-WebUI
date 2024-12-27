@@ -1,5 +1,6 @@
 // File: /js/modalManager.js
 import { generateRainbowColors, generateRandomColors, generateSimilarColors } from './colorUtils.js';
+import { setSelectedNodes, getActiveNodes } from './nodeManager.js';
 
 let modalInputs = {};
 function updateModal(selectedNodes, activeNodes, nodeSpecificSettings, globalSettings, updateNodeStyles) {
@@ -338,17 +339,13 @@ function openModal() {
 }
 // Function to close the modal window and deselect all nodes
 function closeModal(selectedNodes, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect, setActiveNodes) {
-    selectedNodes.forEach(node => {
-        node.closest('.hex-wrap').classList.remove('SelectedNode');
-        node.closest('.hex-wrap').classList.remove('ActiveandSelectedNode');
-        node.closest('.hex-wrap').classList.add('regularNode');
-    });
     document.getElementById('modal').classList.remove('show');
     document.getElementById('overlay').classList.remove('show');
-    updateModal([], [], nodeSpecificSettings, globalSettings, updateNodeStyles);
+    const newSelectedNodes = [];
+    setSelectedNodes(newSelectedNodes);
+    updateModal([], getActiveNodes(), nodeSpecificSettings, globalSettings, updateNodeStyles);
     updateNodeStyles(globalSettings, nodeSpecificSettings);
-    updateCurrentEffect(globalSettings, nodeSpecificSettings, [], setActiveNodes);
-     setActiveNodes([]);
+    updateCurrentEffect(globalSettings, nodeSpecificSettings, getActiveNodes(), setActiveNodes);
 }
 function initModalManager(activeNodes, nodeSpecificSettings, globalSettings, updateNodeStyles, updateModal, updateCurrentEffect, setActiveNodes, getActiveNodes) {
     // Cache modal inputs
@@ -363,7 +360,7 @@ function initModalManager(activeNodes, nodeSpecificSettings, globalSettings, upd
     document.addEventListener('keydown', function (event) {
         if (event.key === 'Escape') {
             const selectedNodes = Array.from(document.querySelectorAll('.hex')).filter(node => node.closest('.hex-wrap').classList.contains('SelectedNode') || node.closest('.hex-wrap').classList.contains('ActiveandSelectedNode'));
-              closeModal(selectedNodes, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect, setActiveNodes);
+            closeModal(selectedNodes, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect, setActiveNodes);
         }
     });
     // Toggle activation of selected nodes when checkbox is clicked
@@ -391,14 +388,14 @@ function initModalManager(activeNodes, nodeSpecificSettings, globalSettings, upd
     const saveNodeButton = document.getElementById('saveNodeButton');
     const discardNodeButton = document.getElementById('discardNodeButton');
     saveNodeButton.addEventListener('click', function () {
-       const selectedNodes = Array.from(document.querySelectorAll('.hex')).filter(node => node.closest('.hex-wrap').classList.contains('SelectedNode') || node.closest('.hex-wrap').classList.contains('ActiveandSelectedNode'));
-          saveNodeSettings(selectedNodes, getActiveNodes(), nodeSpecificSettings, globalSettings, updateNodeStyles, updateCurrentEffect, setActiveNodes);
-          closeModal(selectedNodes, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect, setActiveNodes);
+        const selectedNodes = Array.from(document.querySelectorAll('.hex')).filter(node => node.closest('.hex-wrap').classList.contains('SelectedNode') || node.closest('.hex-wrap').classList.contains('ActiveandSelectedNode'));
+        saveNodeSettings(selectedNodes, getActiveNodes(), nodeSpecificSettings, globalSettings, updateNodeStyles, updateCurrentEffect, setActiveNodes);
+        closeModal(selectedNodes, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect, setActiveNodes);
     });
     discardNodeButton.addEventListener('click', function () {
         const selectedNodes = Array.from(document.querySelectorAll('.hex')).filter(node => node.closest('.hex-wrap').classList.contains('SelectedNode') || node.closest('.hex-wrap').classList.contains('ActiveandSelectedNode'));
-         discardNodeSettings(selectedNodes, getActiveNodes(), nodeSpecificSettings, globalSettings, updateNodeStyles, updateCurrentEffect, setActiveNodes);
-         closeModal(selectedNodes, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect, setActiveNodes);
+        discardNodeSettings(selectedNodes, getActiveNodes(), nodeSpecificSettings, globalSettings, updateNodeStyles, updateCurrentEffect, setActiveNodes);
+        closeModal(selectedNodes, updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect, setActiveNodes);
     });
     // Add logic for adding more modal colors
     const addModalColorButton = document.getElementById('addModalColorButton');
