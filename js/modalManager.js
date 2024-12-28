@@ -100,6 +100,20 @@ function loadNodeSettings(node, nodeSpecificSettings, globalSettings) {
         colorInput.type = 'color';
         colorInput.value = color;
         colorInput.classList.add('color-swatch');
+        // Disable the color swatches when the checkbox is not checked
+        const colorEditCheckbox = Array.from(document.getElementById('modal').querySelectorAll('.edit-button-checkbox')).find(checkbox => checkbox.dataset.setting === 'startingColor');
+        if (colorEditCheckbox && !colorEditCheckbox.checked) {
+            colorInput.disabled = true;
+        }
+        //Add the event listener
+        colorInput.addEventListener('click', function (event) {
+            const colorEditCheckbox = Array.from(document.getElementById('modal').querySelectorAll('.edit-button-checkbox')).find(checkbox => checkbox.dataset.setting === 'startingColor');
+            if (colorEditCheckbox && !colorEditCheckbox.checked) {
+                event.preventDefault();
+                return;
+            }
+            this.showPicker();
+        });
         colorContainer.appendChild(colorInput);
     });
     // Set edit checkbox states based on node specific settings
@@ -112,6 +126,8 @@ function loadNodeSettings(node, nodeSpecificSettings, globalSettings) {
             if (nodeSpecificSettings[nodeId] && nodeSpecificSettings[nodeId].hasOwnProperty(setting)) {
                 checkbox.checked = true;
                 checkbox.indeterminate = false;
+                // Enable the input if the checkbox is checked
+                enableModalInput(setting, nodeId)
             } else {
                 checkbox.checked = false;
                 checkbox.indeterminate = false;
@@ -133,6 +149,10 @@ function loadNodeSettings(node, nodeSpecificSettings, globalSettings) {
                     }
                 })
                 checkbox.indeterminate = false;
+                // Enable the input if the checkbox is checked
+                if (checkbox.checked) {
+                    enableModalInput(setting, nodeId);
+                }
             } else {
                 checkbox.checked = false;
                 checkbox.indeterminate = true;
@@ -185,6 +205,11 @@ function loadNodeSettings(node, nodeSpecificSettings, globalSettings) {
                 colorButtons.forEach(button => {
                     button.disabled = !this.checked
                 })
+                // Disable color inputs when the checkbox is unchecked
+                const colorInputs = document.querySelectorAll('#modalColorContainer input');
+                colorInputs.forEach(input => {
+                    input.disabled = !this.checked;
+                });
             }
         });
     });
@@ -270,6 +295,11 @@ function disableModalInputs() {
     colorButtons.forEach(button => {
         button.disabled = true
     })
+    // Disable color inputs
+    const colorInputs = document.querySelectorAll('#modalColorContainer input');
+    colorInputs.forEach(input => {
+        input.disabled = true;
+    });
 }
 // Function to save node settings
 function saveNodeSettings(selectedNodes, activeNodes, nodeSpecificSettings, globalSettings, updateNodeStyles, updateCurrentEffect, setActiveNodes) {
@@ -414,8 +444,18 @@ function initModalManager(activeNodes, nodeSpecificSettings, globalSettings, upd
             colorInput.type = 'color';
             colorInput.value = '#ffffff'; // Default color
             colorInput.classList.add('color-swatch');
+            // Disable the color swatches when the checkbox is not checked
+            const colorEditCheckbox = Array.from(document.getElementById('modal').querySelectorAll('.edit-button-checkbox')).find(checkbox => checkbox.dataset.setting === 'startingColor');
+            if (colorEditCheckbox && !colorEditCheckbox.checked) {
+                colorInput.disabled = true;
+            }
             // Add the event listener here
-            colorInput.addEventListener('click', function () {
+            colorInput.addEventListener('click', function (event) {
+                const colorEditCheckbox = Array.from(document.getElementById('modal').querySelectorAll('.edit-button-checkbox')).find(checkbox => checkbox.dataset.setting === 'startingColor');
+                if (colorEditCheckbox && !colorEditCheckbox.checked) {
+                    event.preventDefault();
+                    return;
+                }
                 this.showPicker();
             });
             modalColorContainer.appendChild(colorInput);
@@ -440,8 +480,18 @@ function initModalManager(activeNodes, nodeSpecificSettings, globalSettings, upd
             colorInput.type = 'color';
             colorInput.value = color;
             colorInput.classList.add('color-swatch');
+            // Disable the color swatches when the checkbox is not checked
+            const colorEditCheckbox = Array.from(document.getElementById('modal').querySelectorAll('.edit-button-checkbox')).find(checkbox => checkbox.dataset.setting === 'startingColor');
+            if (colorEditCheckbox && !colorEditCheckbox.checked) {
+                colorInput.disabled = true;
+            }
             // Add the event listener here
-            colorInput.addEventListener('click', function () {
+            colorInput.addEventListener('click', function (event) {
+                const colorEditCheckbox = Array.from(document.getElementById('modal').querySelectorAll('.edit-button-checkbox')).find(checkbox => checkbox.dataset.setting === 'startingColor');
+                if (colorEditCheckbox && !colorEditCheckbox.checked) {
+                    event.preventDefault();
+                    return;
+                }
                 this.showPicker();
             });
             colorContainer.appendChild(colorInput);
@@ -459,8 +509,18 @@ function initModalManager(activeNodes, nodeSpecificSettings, globalSettings, upd
             colorInput.type = 'color';
             colorInput.value = color;
             colorInput.classList.add('color-swatch');
+            // Disable the color swatches when the checkbox is not checked
+            const colorEditCheckbox = Array.from(document.getElementById('modal').querySelectorAll('.edit-button-checkbox')).find(checkbox => checkbox.dataset.setting === 'startingColor');
+            if (colorEditCheckbox && !colorEditCheckbox.checked) {
+                colorInput.disabled = true;
+            }
             // Add the event listener here
-            colorInput.addEventListener('click', function () {
+            colorInput.addEventListener('click', function (event) {
+                const colorEditCheckbox = Array.from(document.getElementById('modal').querySelectorAll('.edit-button-checkbox')).find(checkbox => checkbox.dataset.setting === 'startingColor');
+                if (colorEditCheckbox && !colorEditCheckbox.checked) {
+                    event.preventDefault();
+                    return;
+                }
                 this.showPicker();
             });
             colorContainer.appendChild(colorInput);
@@ -479,8 +539,18 @@ function initModalManager(activeNodes, nodeSpecificSettings, globalSettings, upd
             colorInput.type = 'color';
             colorInput.value = color;
             colorInput.classList.add('color-swatch');
+            // Disable the color swatches when the checkbox is not checked
+            const colorEditCheckbox = Array.from(document.getElementById('modal').querySelectorAll('.edit-button-checkbox')).find(checkbox => checkbox.dataset.setting === 'startingColor');
+            if (colorEditCheckbox && !colorEditCheckbox.checked) {
+                colorInput.disabled = true;
+            }
             // Add the event listener here
-            colorInput.addEventListener('click', function () {
+            colorInput.addEventListener('click', function (event) {
+                const colorEditCheckbox = Array.from(document.getElementById('modal').querySelectorAll('.edit-button-checkbox')).find(checkbox => checkbox.dataset.setting === 'startingColor');
+                if (colorEditCheckbox && !colorEditCheckbox.checked) {
+                    event.preventDefault();
+                    return;
+                }
                 this.showPicker();
             });
             colorContainer.appendChild(colorInput);
