@@ -3,6 +3,7 @@
 import { activeNodes as importedActiveNodes } from './nodeManager.js';
 import { selectedNodes as importedSelectedNodes } from './nodeManager.js';
 import { openGlobalSettingsModal, closeGlobalSettingsModal } from './globalSettingsManager.js';
+import { generateRainbowColors } from './colorUtils.js';
 
 let currentEffectId = 1; // Variable to track the current effect ID
 let effects = {}; // Variable to store saved effects
@@ -106,7 +107,7 @@ function initEffectsManager(globalSettings, nodeSpecificSettings, updateNodeStyl
                 decayPerTick: 0.985,
                 hueDeltaTick: 200,
                 numberOfRipples: 1,
-                colors: ["#FF0000"], // Default color
+                colors: generateRainbowColors(7), // Default to 7 rainbow colors
             },
             nodeSpecificSettings: {},
             activeNodes: [9]
@@ -177,7 +178,7 @@ function initEffectsManager(globalSettings, nodeSpecificSettings, updateNodeStyl
                     decayPerTick: 0.985,
                     hueDeltaTick: 200,
                     numberOfRipples: 1,
-                    colors: ["#FF0000"], // Default color
+                    colors: generateRainbowColors(7), // Default to 7 rainbow colors
                 },
                 nodeSpecificSettings: {},
                 activeNodes: [9]
@@ -248,7 +249,7 @@ function openEffectNameModal(globalSettings, nodeSpecificSettings, updateNodeSty
                         decayPerTick: 0.985,
                         hueDeltaTick: 200,
                         numberOfRipples: 1,
-                        colors: ["#FF0000"], // Default color
+                        colors: generateRainbowColors(7), // Default to 7 rainbow colors
                     },
                     nodeSpecificSettings: {},
                     activeNodes: [9] //default active node

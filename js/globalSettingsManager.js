@@ -45,11 +45,11 @@ function resetGlobalSettings(globalSettings) {
     globalSettings.decayPerTick = 0.985;
     globalSettings.hueDeltaTick = 200;
     globalSettings.numberOfRipples = 1;
-    globalSettings.colors = ["#FF0000"]; // Default color
+    globalSettings.colors = generateRainbowColors(7); // Default to 7 rainbow colors
 }
 
 // Function to save global settings for the current effect
-function saveGlobalSettings(globalSettings) {
+function saveGlobalSettings(globalSettings, updateNodeStyles) {
     const effects = JSON.parse(localStorage.getItem('effects') || '{}');
     if (!effects[currentEffectId]) {
         console.error('Current effect not found in local storage');
@@ -81,6 +81,8 @@ function saveGlobalSettings(globalSettings) {
     }
     localStorage.setItem('effects', JSON.stringify(effects));
     console.log("Global settings for effect", currentEffectId, "are", globalSettings);
+    // Update node styles
+    updateNodeStyles(globalSettings, effects[currentEffectId].nodeSpecificSettings);
 }
 // Function to load global settings for the current effect
 function loadGlobalSettings(globalSettings) {
@@ -157,7 +159,7 @@ function initGlobalSettingsManager(globalSettings, resetAllSettings, updateNodeS
     const submitButton = document.getElementById('submitButton');
     submitButton.addEventListener('click', () => {
         console.log("Submit button clicked");
-        saveGlobalSettings(globalSettings);
+        saveGlobalSettings(globalSettings, updateNodeStyles); // Pass updateNodeStyles
         closeGlobalSettingsModal();
     });
     // Event listener for discard button

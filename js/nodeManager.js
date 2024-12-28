@@ -20,11 +20,53 @@ function updateNodeStyle(node, globalSettings, nodeSpecificSettings) {
         hexWrap.classList.add('ActiveandSelectedNode');
     } else if (activeNodes.includes(nodeId)) {
         hexWrap.classList.add('ActiveNode');
+        // Apply the color animation to the active node
+        applyColorAnimation(hexWrap, nodeId, globalSettings, nodeSpecificSettings);
     } else if (selectedNodes.includes(node)) {
         hexWrap.classList.add('SelectedNode');
     } else {
         hexWrap.classList.add('regularNode');
     }
+}
+// Function to apply the color animation to an active node
+function applyColorAnimation(hexWrap, nodeId, globalSettings, nodeSpecificSettings) {
+    let colors;
+    let duration;
+
+    if (nodeSpecificSettings[nodeId] && nodeSpecificSettings[nodeId].startingColor) {
+        colors = nodeSpecificSettings[nodeId].startingColor;
+    } else {
+        colors = globalSettings.colors;
+    }
+    if (nodeSpecificSettings[nodeId] && nodeSpecificSettings[nodeId].rippleDelay) {
+        duration = nodeSpecificSettings[nodeId].rippleDelay;
+    } else {
+        duration = globalSettings.rippleDelay;
+    }
+    // Ensure colors is an array
+    if (!Array.isArray(colors)) {
+        colors = [colors];
+    }
+    // Ensure duration is a number
+    if (typeof duration !== 'number') {
+        duration = Number(duration);
+    }
+
+    //Set a default color if no colors are present
+    if (colors.length === 0) {
+        colors = ['#FF0000']
+    }
+    // Set the CSS variables for the animation
+    colors.forEach((color, index) => {
+        hexWrap.style.setProperty(`--active-node-color-${index}`, color);
+    });
+    // If there are less than 6 colors, repeat the colors to fill the gaps
+    for (let i = colors.length; i < 6; i++) {
+        hexWrap.style.setProperty(`--active-node-color-${i}`, colors[i % colors.length]);
+    }
+    // Set the duration
+    hexWrap.style.setProperty('--pulse-duration', `${duration / 1000}s`);
+
 }
 
 // Function to update the styling of nodes based on their activation/selection status
