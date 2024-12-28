@@ -9,13 +9,14 @@ import { drawHexagon } from './drawVisualizer.js' //Import the drawHexagon funct
 
 let nodeSpecificSettings = {}; // Object to store node-specific settings
 
-function resetAllSettings(globalSettings) {
+function resetAllSettings(globalSettings, loadGlobalSettings) {
     resetGlobalSettings(globalSettings);
     nodeSpecificSettings = {};
     deactivateAllNodes(updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect);
     setActiveNodes([9]) // Set node 9 as active
     updateModal([], [9], nodeSpecificSettings, globalSettings, updateNodeStyles);
     updateNodeStyles(globalSettings, nodeSpecificSettings);
+    loadGlobalSettings(globalSettings); // Load the reset settings into the modal
 }
 function initializeApp() {
     // Set the position of the nodes

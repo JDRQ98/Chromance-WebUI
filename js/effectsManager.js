@@ -2,6 +2,8 @@
 // effectsManager.js
 import { activeNodes as importedActiveNodes } from './nodeManager.js';
 import { selectedNodes as importedSelectedNodes } from './nodeManager.js';
+import { openGlobalSettingsModal, closeGlobalSettingsModal } from './globalSettingsManager.js';
+
 let currentEffectId = 1; // Variable to track the current effect ID
 let effects = {}; // Variable to store saved effects
 let nextEffectId = 1;
@@ -140,10 +142,13 @@ function initEffectsManager(globalSettings, nodeSpecificSettings, updateNodeStyl
     // Edit effect logic
     const editEffectButton = document.getElementById('editEffectButton');
     editEffectButton.addEventListener('click', () => {
-        const selectedEffectId = document.getElementById('effectDropdown').value;
-        const selectedOption = document.getElementById('effectDropdown').options[document.getElementById('effectDropdown').selectedIndex];
-        const selectedEffectName = selectedOption.text;
-        openEffectNameModal(globalSettings, nodeSpecificSettings, updateNodeStyles, loadGlobalSettings, updateModal, resetAllSettings, selectedEffectName, selectedEffectId);
+        const globalSettingsModal = document.getElementById('globalSettingsModal');
+        if (!globalSettingsModal.classList.contains('show')) {
+            openGlobalSettingsModal();
+            loadGlobalSettings(globalSettings);
+        } else {
+            closeGlobalSettingsModal();
+        }
     });
     // Delete effect logic
     const deleteEffectButton = document.getElementById('deleteEffectButton');
@@ -199,7 +204,7 @@ function openEffectNameModal(globalSettings, nodeSpecificSettings, updateNodeSty
     modal.classList.add('modal', 'effect-name-modal');
     modal.innerHTML = `
         <h2>${initialName ? 'Edit Effect Name' : 'New Effect Name'}</h2>
-        <input type="text" id="effectNameInput" placeholder="Enter effect name" value="${initialName}">
+        <input type="text" id="newEffectNameInput" placeholder="Enter effect name" value="${initialName}">
         <div class="modal-buttons">
             <button id="saveEffectNameButton">Save</button>
             <button id="cancelEffectNameButton">Cancel</button>
@@ -207,7 +212,7 @@ function openEffectNameModal(globalSettings, nodeSpecificSettings, updateNodeSty
     `;
     document.body.appendChild(modal);
     document.getElementById('overlay').classList.add('show');
-    const effectNameInput = document.getElementById('effectNameInput');
+    const effectNameInput = document.getElementById('newEffectNameInput');
     effectNameInput.focus(); // Focus on the input
 
     //Disable the buttons
@@ -216,7 +221,7 @@ function openEffectNameModal(globalSettings, nodeSpecificSettings, updateNodeSty
     document.getElementById('deleteEffectButton').disabled = true;
     // Handle closing of the modal and saving the new effect
     document.getElementById('saveEffectNameButton').addEventListener('click', () => {
-        const effectName = document.getElementById('effectNameInput').value;
+        const effectName = document.getElementById('newEffectNameInput').value;
         if (effectName.trim() !== '') {
             if (effectId) {
                 const effectDropdown = document.getElementById('effectDropdown');

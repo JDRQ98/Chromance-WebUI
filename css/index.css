@@ -471,7 +471,8 @@ aside {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 00px;
+    margin-left: 20px;
+    margin-bottom: 10px;
 }
 
 .effect-selector-container {

@@ -4,30 +4,33 @@ import { currentEffectId } from './effectsManager.js';
 
 let globalSettings = {}; // Object to store global settings
 
-function setupGlobalSettingsModal(loadGlobalSettings, saveGlobalSettings) {
-    const editGlobalSettingsButton = document.getElementById('editGlobalSettingsButton');
+function openGlobalSettingsModal() {
     const globalSettingsModal = document.getElementById('globalSettingsModal');
-    const overlay = document.getElementById('overlay'); //Cache the overlay
-    // Event listener to open the modal
-    editGlobalSettingsButton.addEventListener('click', () => {
-        openGlobalSettingsModal();
-        loadGlobalSettings(globalSettings); // Load global settings into modal
-    });
+    const overlay = document.getElementById('overlay');
+    globalSettingsModal.classList.add('show');
+    overlay.classList.add('show');
+}
+function closeGlobalSettingsModal() {
+    const globalSettingsModal = document.getElementById('globalSettingsModal');
+    const overlay = document.getElementById('overlay');
+    globalSettingsModal.classList.remove('show');
+    overlay.classList.remove('show');
+}
 
-    function openGlobalSettingsModal() {
-        globalSettingsModal.classList.add('show');
-        overlay.classList.add('show');
-    }
+function setupGlobalSettingsModal(loadGlobalSettings, saveGlobalSettings, resetAllSettings) {
+    const editEffectButton = document.getElementById('editEffectButton');
 
-    window.closeGlobalSettingsModal = function () {
-        globalSettingsModal.classList.remove('show');
-        overlay.classList.remove('show');
-    }
     // Add listener to the ESC key to close global modal
     document.addEventListener('keydown', function (event) {
         if (event.key === 'Escape' && document.getElementById('globalSettingsModal').classList.contains('show')) {
             closeGlobalSettingsModal();
         }
+    });
+    // Restore defaults logic
+    const restoreDefaultsButton = document.getElementById('restoreDefaultsButton');
+    restoreDefaultsButton.addEventListener('click', () => {
+        resetAllSettings(globalSettings, loadGlobalSettings);
+        closeGlobalSettingsModal();
     });
 }
 // Function to reset all global settings to default
@@ -65,6 +68,17 @@ function saveGlobalSettings(globalSettings) {
     globalSettings.numberOfRipples = document.getElementById('numberOfRipples').value;
     globalSettings.colors = Array.from(document.querySelectorAll('#globalColorContainer input')).map(input => input.value);
     effects[currentEffectId].globalSettings = globalSettings;
+    // Get the effect name input
+    const effectNameInput = document.getElementById('effectNameInput');
+    if (effectNameInput) {
+        effects[currentEffectId].name = effectNameInput.value;
+        const effectDropdown = document.getElementById('effectDropdown');
+        const selectedOption = effectDropdown.options[effectDropdown.selectedIndex];
+        if (selectedOption) {
+            selectedOption.text = effectNameInput.value; //Update the dropdown text
+        }
+        document.getElementById('effectTitle').textContent = `Effect editor: ${effectNameInput.value}`
+    }
     localStorage.setItem('effects', JSON.stringify(effects));
     console.log("Global settings for effect", currentEffectId, "are", globalSettings);
 }
@@ -101,6 +115,12 @@ function loadGlobalSettings(globalSettings) {
             colorContainer.appendChild(colorInput);
         });
     }
+    // Load effect name
+    const effectNameInput = document.getElementById('effectNameInput');
+    if (effectNameInput && effects[currentEffectId].name) {
+        effectNameInput.value = effects[currentEffectId].name;
+    }
+
     console.log("Loaded global settings for effect", currentEffectId, "are", storedSettings);
 }
 // Function to initialize the global settings manager
@@ -118,7 +138,7 @@ function initGlobalSettingsManager(globalSettings, resetAllSettings, updateNodeS
     decayPerTickInput.addEventListener('input', () => {
         decayPerTickDisplay.textContent = parseFloat(decayPerTickInput.value).toFixed(3);
     });
-    setupGlobalSettingsModal(loadGlobalSettings, saveGlobalSettings);
+    setupGlobalSettingsModal(loadGlobalSettings, saveGlobalSettings, resetAllSettings);
     // Load settings to localStorage if they are not present
     const effects = JSON.parse(localStorage.getItem('effects') || '{}');
     if (!effects[1] || !effects[1].globalSettings) {
@@ -126,11 +146,7 @@ function initGlobalSettingsManager(globalSettings, resetAllSettings, updateNodeS
     } else {
         Object.assign(globalSettings, effects[1].globalSettings);
     }
-    // Event listener for restore defaults
-    const restoreDefaultsButton = document.getElementById('restoreDefaultsButton');
-    restoreDefaultsButton.addEventListener('click', () => {
-        resetAllSettings(globalSettings);
-    });
+
     // Event listener for fire ripple button
     const fireRippleButton = document.getElementById('fireRippleButton');
     fireRippleButton.addEventListener('click', () => {
@@ -217,4 +233,4 @@ function initGlobalSettingsManager(globalSettings, resetAllSettings, updateNodeS
         });
     });
 }
-export { initGlobalSettingsManager, globalSettings, resetGlobalSettings, loadGlobalSettings };
+export { initGlobalSettingsManager, globalSettings, resetGlobalSettings, loadGlobalSettings, openGlobalSettingsModal, closeGlobalSettingsModal };

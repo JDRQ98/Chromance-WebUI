@@ -83,8 +83,6 @@
         </div>
         <aside>
             <nav class="menu">
-                <button id="restoreDefaultsButton">Restore defaults</button>
-                <button id="editGlobalSettingsButton">Edit Global Settings</button>
             </nav>
             <nav class="controls">
                 <button id="selectBiNodes">Select Bi-Nodes</button>
@@ -99,6 +97,7 @@
         </aside>
         <div class="global-settings-modal" id="globalSettingsModal">
             <h2>Global Ripple Attributes</h2>
+            <input type="text" id="effectNameInput" placeholder="Enter effect name" style="margin-bottom: 10px;">
             <button class="fire-ripple-button" id="fireRippleButton">Fire Ripple</button>
             <div class="setting">
                 <label for="effectBasis">Effect Basis:</label>
@@ -164,6 +163,7 @@
                 <input type="text" id="numberOfRipples" value="1">
             </div>
             <div class="submit-buttons">
+                <button id="restoreDefaultsButton">Restore defaults</button>
                 <button id="submitButton">Submit</button>
                 <button id="discardButton">Discard changes</button>
             </div>
