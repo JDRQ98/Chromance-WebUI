@@ -443,6 +443,12 @@ aside {
     justify-content: flex-start;
 }
 
+.color-button-container button:disabled {
+    background-color: #ddd; /* Gray out */
+    color: #999;
+    cursor: auto; /* Indicate not clickable */
+}
+
 .add-color-button,
 .remove-color-button {
     margin-left: 5px;
