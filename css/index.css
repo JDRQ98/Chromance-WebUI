@@ -507,6 +507,7 @@ aside {
     background-color: #ffa500;
     /* Orange */
     color: #fff;
+    margin-right: 20px;
 }
 
 .effect-selector button[title="Add Effect"] {

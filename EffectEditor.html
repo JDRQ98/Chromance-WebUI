@@ -14,8 +14,8 @@
         <div class="effect-selector">
             <div class="effect-selector-container">
                 <select id="effectDropdown"></select>
-                <button id="addEffectButton" title="Add Effect" aria-label="Add Effect">➕</button>
                 <button id="editEffectButton" title="Edit Effect" aria-label="Edit Effect">✏️</button>
+                <button id="addEffectButton" title="Add Effect" aria-label="Add Effect">➕</button>
                 <button id="deleteEffectButton" title="Delete Effect" aria-label="Delete Effect">🗑️</button>
             </div>
         </div>
@@ -96,8 +96,11 @@
             </nav>
         </aside>
         <div class="global-settings-modal" id="globalSettingsModal">
-            <h2>Global Ripple Attributes</h2>
-            <input type="text" id="effectNameInput" placeholder="Enter effect name" style="margin-bottom: 10px;">
+            <h2>Global Effect settings</h2>
+            <div class="setting">
+                <label for="effectDuration">Effect name:</label>
+                <input type="text" id="effectNameInput" placeholder="Enter effect name" style="margin-bottom: 10px;">
+            </div>
             <button class="fire-ripple-button" id="fireRippleButton">Fire Ripple</button>
             <div class="setting">
                 <label for="effectBasis">Effect Basis:</label>
