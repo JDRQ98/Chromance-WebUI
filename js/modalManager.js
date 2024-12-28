@@ -161,6 +161,15 @@ function loadNodeSettings(node, nodeSpecificSettings, globalSettings) {
     setModalInputValue('rippleSpeed', rippleSpeedValue)
     setModalInputValue('decayPerTick', decayPerTickValue)
     setModalInputValue('hueDeltaTick', hueDeltaTickValue)
+    // Disable/enable color buttons based on checkbox state
+    const colorEditCheckbox = Array.from(editCheckboxes).find(checkbox => checkbox.dataset.setting === 'startingColor');
+    if (colorEditCheckbox) {
+        const colorButtons = document.querySelectorAll('.color-button-container button')
+        colorButtons.forEach(button => {
+            button.disabled = !colorEditCheckbox.checked
+        })
+    }
+
     //Add event listener to edit checkbox buttons
     editCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function () {
@@ -169,6 +178,13 @@ function loadNodeSettings(node, nodeSpecificSettings, globalSettings) {
                 enableModalInput(setting, nodeId);
             } else {
                 disableModalInput(setting, nodeId);
+            }
+            // Disable/enable color buttons based on checkbox state
+            if (setting === 'startingColor') {
+                const colorButtons = document.querySelectorAll('.color-button-container button')
+                colorButtons.forEach(button => {
+                    button.disabled = !this.checked
+                })
             }
         });
     });
@@ -249,6 +265,11 @@ function disableModalInputs() {
     editCheckboxes.forEach(checkbox => {
         checkbox.checked = false;
     });
+    // Disable color buttons
+    const colorButtons = document.querySelectorAll('.color-button-container button')
+    colorButtons.forEach(button => {
+        button.disabled = true
+    })
 }
 // Function to save node settings
 function saveNodeSettings(selectedNodes, activeNodes, nodeSpecificSettings, globalSettings, updateNodeStyles, updateCurrentEffect, setActiveNodes) {
@@ -393,6 +414,10 @@ function initModalManager(activeNodes, nodeSpecificSettings, globalSettings, upd
             colorInput.type = 'color';
             colorInput.value = '#ffffff'; // Default color
             colorInput.classList.add('color-swatch');
+            // Add the event listener here
+            colorInput.addEventListener('click', function () {
+                this.showPicker();
+            });
             modalColorContainer.appendChild(colorInput);
         }
     });
@@ -415,6 +440,10 @@ function initModalManager(activeNodes, nodeSpecificSettings, globalSettings, upd
             colorInput.type = 'color';
             colorInput.value = color;
             colorInput.classList.add('color-swatch');
+            // Add the event listener here
+            colorInput.addEventListener('click', function () {
+                this.showPicker();
+            });
             colorContainer.appendChild(colorInput);
         });
     });
@@ -430,6 +459,10 @@ function initModalManager(activeNodes, nodeSpecificSettings, globalSettings, upd
             colorInput.type = 'color';
             colorInput.value = color;
             colorInput.classList.add('color-swatch');
+            // Add the event listener here
+            colorInput.addEventListener('click', function () {
+                this.showPicker();
+            });
             colorContainer.appendChild(colorInput);
         });
     });
@@ -446,6 +479,10 @@ function initModalManager(activeNodes, nodeSpecificSettings, globalSettings, upd
             colorInput.type = 'color';
             colorInput.value = color;
             colorInput.classList.add('color-swatch');
+            // Add the event listener here
+            colorInput.addEventListener('click', function () {
+                this.showPicker();
+            });
             colorContainer.appendChild(colorInput);
         });
     });
