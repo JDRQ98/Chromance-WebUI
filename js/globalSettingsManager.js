@@ -1,6 +1,7 @@
 // globalSettingsManager.js
 import { generateRainbowColors, generateRandomColors, generateSimilarColors } from './colorUtils.js';
 import { currentEffectId } from './effectsManager.js';
+import { effects } from './effectsManager.js' //Import the effects object
 
 let globalSettings = {}; // Object to store global settings
 
@@ -54,7 +55,7 @@ function resetGlobalSettings(globalSettings) {
 
 // Function to save global settings for the current effect
 function saveGlobalSettings(globalSettings, updateNodeStyles) {
-    const effects = JSON.parse(localStorage.getItem('effects') || '{}');
+
     if (!effects[currentEffectId]) {
         console.error('Current effect not found in local storage');
         return;
@@ -90,7 +91,7 @@ function saveGlobalSettings(globalSettings, updateNodeStyles) {
 }
 // Function to load global settings for the current effect
 function loadGlobalSettings(globalSettings) {
-    const effects = JSON.parse(localStorage.getItem('effects') || '{}');
+
     if (!effects[currentEffectId]) {
         console.error('Current effect not found in local storage');
         return;

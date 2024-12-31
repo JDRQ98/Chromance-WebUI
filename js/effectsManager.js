@@ -297,4 +297,4 @@ function closeEffectNameModal(modal) {
     document.getElementById('deleteEffectButton').disabled = false;
 }
 
-export { initEffectsManager, loadCurrentEffect, updateCurrentEffect, currentEffectId };
+export { initEffectsManager, loadCurrentEffect, updateCurrentEffect, currentEffectId, effects };
