@@ -25,6 +25,10 @@ function setupGlobalSettingsModal(loadGlobalSettings, saveGlobalSettings, resetA
         if (event.key === 'Escape' && document.getElementById('globalSettingsModal').classList.contains('show')) {
             closeGlobalSettingsModal();
         }
+        // Add listener to the enter key to submit global modal
+        if (event.key === 'Enter' && document.getElementById('globalSettingsModal').classList.contains('show')) {
+            document.getElementById('submitButton').click();
+        }
     });
     // Restore defaults logic
     const restoreDefaultsButton = document.getElementById('restoreDefaultsButton');
