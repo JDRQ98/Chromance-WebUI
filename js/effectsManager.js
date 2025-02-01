@@ -1,9 +1,7 @@
 // File: /js/effectsManager.js
-// effectsManager.js
-import { activeNodes as importedActiveNodes } from './nodeManager.js';
-import { selectedNodes as importedSelectedNodes } from './nodeManager.js';
 import { openGlobalSettingsModal, closeGlobalSettingsModal } from './globalSettingsManager.js';
 import { generateRainbowColors } from './colorUtils.js';
+import { getActiveNodes } from './nodeManager.js';
 
 let currentEffectId = 1; // Variable to track the current effect ID
 let effects = {}; // Variable to store saved effects
@@ -13,7 +11,7 @@ function deepClone(obj) {
     return JSON.parse(JSON.stringify(obj));
 }
 
-function loadCurrentEffect(globalSettings, nodeSpecificSettings, updateNodeStyles, loadGlobalSettings, updateModal, resetAllSettings) {
+function loadCurrentEffect(globalSettings, nodeSpecificSettings, updateNodeStyles, loadGlobalSettings, updateModal, resetAllSettings, setActiveNodes) {
     const effectDropdown = document.getElementById('effectDropdown');
     const selectedEffectId = effectDropdown.value;
 
@@ -24,19 +22,19 @@ function loadCurrentEffect(globalSettings, nodeSpecificSettings, updateNodeStyle
         Object.assign(nodeSpecificSettings, deepClone(effects[selectedEffectId].nodeSpecificSettings));
         //Load active nodes
         if (effects[selectedEffectId].activeNodes) {
-            importedActiveNodes.length = 0;
-            effects[selectedEffectId].activeNodes.forEach(nodeId => importedActiveNodes.push(nodeId));
+             const activeNodes =  effects[selectedEffectId].activeNodes;
+               setActiveNodes(activeNodes)
         } else {
-            importedActiveNodes.length = 0;
+            setActiveNodes([])
         }
     } else {
         resetAllSettings(globalSettings, nodeSpecificSettings);
-        importedActiveNodes.length = 0;
+         setActiveNodes([])
     }
     loadGlobalSettings(globalSettings); // Load the global settings to the modal
     updateNodeStyles(globalSettings, nodeSpecificSettings);
     // Pass an empty array for selectedNodes during initial load
-    updateModal([], importedActiveNodes, nodeSpecificSettings, globalSettings, updateNodeStyles);
+    updateModal([], getActiveNodes(), nodeSpecificSettings, globalSettings, updateNodeStyles);
 }
 function updateCurrentEffect(globalSettings, nodeSpecificSettings, activeNodes) {
     const effectDropdown = document.getElementById('effectDropdown');
@@ -83,7 +81,7 @@ function populateEffectDropdown() {
     }
     effectDropdown.value = currentEffectId;
 }
-function initEffectsManager(globalSettings, nodeSpecificSettings, updateNodeStyles, loadGlobalSettings, updateModal, resetAllSettings) {
+function initEffectsManager(globalSettings, nodeSpecificSettings, updateNodeStyles, loadGlobalSettings, updateModal, resetAllSettings, setActiveNodes) {
     // Load effects from localStorage
     const storedEffects = localStorage.getItem('effects');
     if (storedEffects) {
@@ -122,22 +120,22 @@ function initEffectsManager(globalSettings, nodeSpecificSettings, updateNodeStyl
         currentEffectId = parseInt(storedCurrentEffectId, 10);
     }
     populateEffectDropdown();
-    loadCurrentEffect(globalSettings, nodeSpecificSettings, updateNodeStyles, loadGlobalSettings, updateModal, resetAllSettings);
-    updateCurrentEffect(globalSettings, nodeSpecificSettings, importedActiveNodes);
+    loadCurrentEffect(globalSettings, nodeSpecificSettings, updateNodeStyles, loadGlobalSettings, updateModal, resetAllSettings, setActiveNodes);
+    updateCurrentEffect(globalSettings, nodeSpecificSettings, getActiveNodes());
     const titleElement = document.getElementById('effectTitle');
     updateEffectTitle(titleElement);
     // Update global settings when selecting an effect from the dropdown
     const effectDropdown = document.getElementById('effectDropdown');
     effectDropdown.addEventListener('change', function () {
-        updateCurrentEffect(globalSettings, nodeSpecificSettings, importedActiveNodes);
-        loadCurrentEffect(globalSettings, nodeSpecificSettings, updateNodeStyles, loadGlobalSettings, updateModal, resetAllSettings);
+        updateCurrentEffect(globalSettings, nodeSpecificSettings, getActiveNodes());
+        loadCurrentEffect(globalSettings, nodeSpecificSettings, updateNodeStyles, loadGlobalSettings, updateModal, resetAllSettings, setActiveNodes);
         updateEffectTitle(titleElement);
     });
 
     // Add effect logic
     const addEffectButton = document.getElementById('addEffectButton');
     addEffectButton.addEventListener('click', () => {
-        openEffectNameModal(globalSettings, nodeSpecificSettings, updateNodeStyles, loadGlobalSettings, updateModal, resetAllSettings, `Effect ${nextEffectId}`);
+        openEffectNameModal(globalSettings, nodeSpecificSettings, updateNodeStyles, loadGlobalSettings, updateModal, resetAllSettings, setActiveNodes,`Effect ${nextEffectId}`);
     });
 
     // Edit effect logic
@@ -195,12 +193,12 @@ function initEffectsManager(globalSettings, nodeSpecificSettings, updateNodeStyl
 
         }
 
-        loadCurrentEffect(globalSettings, nodeSpecificSettings, updateNodeStyles, loadGlobalSettings, updateModal, resetAllSettings);
+        loadCurrentEffect(globalSettings, nodeSpecificSettings, updateNodeStyles, loadGlobalSettings, updateModal, resetAllSettings, setActiveNodes);
         updateEffectTitle(titleElement);
     });
 }
 // Function to open the modal to name or edit the effect
-function openEffectNameModal(globalSettings, nodeSpecificSettings, updateNodeStyles, loadGlobalSettings, updateModal, resetAllSettings, initialName = '', effectId = null) {
+function openEffectNameModal(globalSettings, nodeSpecificSettings, updateNodeStyles, loadGlobalSettings, updateModal, resetAllSettings, setActiveNodes, initialName = '', effectId = null) {
     const modal = document.createElement('div');
     modal.classList.add('modal', 'effect-name-modal');
     modal.innerHTML = `
@@ -230,7 +228,7 @@ function openEffectNameModal(globalSettings, nodeSpecificSettings, updateNodeSty
                 selectedOption.text = effectName;
                 effects[effectId].name = effectName; // Edit existing effect
                 localStorage.setItem('effects', JSON.stringify(effects));
-                loadCurrentEffect(globalSettings, nodeSpecificSettings, updateNodeStyles, loadGlobalSettings, updateModal, resetAllSettings);
+                loadCurrentEffect(globalSettings, nodeSpecificSettings, updateNodeStyles, loadGlobalSettings, updateModal, resetAllSettings, setActiveNodes);
                 const titleElement = document.getElementById('effectTitle');
                 updateEffectTitle(titleElement);
                 closeEffectNameModal(modal);
@@ -261,7 +259,7 @@ function openEffectNameModal(globalSettings, nodeSpecificSettings, updateNodeSty
                 const effectDropdown = document.getElementById('effectDropdown');
                 effectDropdown.value = currentEffectId;
 
-                loadCurrentEffect(globalSettings, nodeSpecificSettings, updateNodeStyles, loadGlobalSettings, updateModal, resetAllSettings);
+                loadCurrentEffect(globalSettings, nodeSpecificSettings, updateNodeStyles, loadGlobalSettings, updateModal, resetAllSettings, setActiveNodes);
                 const titleElement = document.getElementById('effectTitle');
                 updateEffectTitle(titleElement);
                 closeEffectNameModal(modal);
