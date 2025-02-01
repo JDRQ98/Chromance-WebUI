@@ -27,8 +27,11 @@ body {
 /* ---------- Container Styles ---------- */
 .container {
     position: relative;
-    width: 800px;
-    height: 800px;
+    align-items: center;
+    width: 100vw; /* Use 160% of viewport width */
+    max-width: 500px; /* Increased max-width */
+    height: 80vh; /* Use 160% of viewport height */
+    max-height: 250px; /* Increased max-height */
     display: block;
 }
 
@@ -136,28 +139,41 @@ body {
 
 /* ---------- Modal Styles ---------- */
 .modal {
-    position: absolute;
-    top: 10%;
-    right: -650px;
+    position: fixed; /* Changed from absolute to fixed */
+    bottom: -100vh;
+    left: 5%;
     display: none;
-    width: 450px;
-    max-height: 550px;
-    background-color: #fff;
+    width: 90%; /* Use a percentage of the viewport width for responsiveness */
+    max-width: 450px; /* Keep max width as needed */
+    max-height: 60vh; /* Reduced max-height to leave more space for nodes */
+    background-color: rgba(255, 255, 255, 0.85); /*Semi-transparent white background*/
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 0 10px var(--shadow-color);
-    transition: right 0.6s ease-in-out;
+    transition: bottom 0.6s ease-in-out;
     z-index: 1000;
-    overflow-y: auto;
+    overflow-y: auto; /* Make modal scrollable vertically if content overflows */
     display: flex;
-    /* Make modal a flex container */
     flex-direction: column;
-    /* Arrange items in a column */
+    box-sizing: border-box;
 }
 
 .modal.show {
-    right: 0;
-    display: block;
+    bottom: 5%;
+    display: flex;
+}
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4); /* Semi-transparent black overlay */
+    z-index: 999; /* Ensure it's above the nodes but below the modal */
+    display: none; /* Initially hidden */
+    transition: opacity 0.3s ease;
+}
+.overlay.show {
 }
 
 .modal button {
@@ -185,8 +201,9 @@ body {
 .modal-buttons {
     display: flex;
     gap: 10px;
-    justify-content: flex-end;
-    margin-top: 20px;
+    justify-content: center;
+    margin-top: 0px;
+    margin-bottom: 10px;
 }
 
 .modal-buttons button {
@@ -198,7 +215,7 @@ body {
 
 /* ---------- Control Styles ---------- */
 .controls {
-    margin-top: 50px;
+    margin-top: 90px;
     margin-bottom: 10px;
     display: flex;
     justify-content: center;
@@ -236,18 +253,22 @@ body {
 /* ---------- Global Settings Modal Styles ---------- */
 .global-settings-modal {
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    top: 5%; /* Positioned a bit from the top */
+    left: 5%;
+    transform: none; /* Remove the translation */
     padding: 20px;
     border: 1px solid var(--border-color);
     border-radius: var(--button-radius);
-    width: 600px;
+    width: 90%; /* Use 90% of the viewport width */
+    max-width: 600px; /* Keep max-width for larger screens */
+    max-height: 90vh; /* Use a maximum of 90% of the viewport height */
     display: flex;
     flex-direction: column;
     background-color: #fff;
     z-index: 1001;
     display: none;
+    overflow-y: auto; /* Make it scrollable if needed */
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
 }
 
 .global-settings-modal.show {
@@ -374,6 +395,8 @@ aside {
 .modal h2 {
     position: relative;
     display: inline-block;
+    margin-bottom: 0px;
+    margin-top: 0px;
 }
 
 .modal .info-icon {
@@ -479,7 +502,7 @@ aside {
     align-items: center;
     gap: 10px;
     margin-left: 20px;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
 }
 
 .effect-selector-container {

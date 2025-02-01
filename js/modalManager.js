@@ -15,9 +15,19 @@ class Modal {
         this.cacheModalInputs();
         this.activeNodes = [];
         this.selectedNodes = [];
+        this.initialSettings = {
+          activeNodes: [],
+           nodeSpecificSettings: {}
+        };
         this.activateCheckbox.addEventListener('change', () => this.handleActivateCheckboxChange());
         window.modal = this;
         console.log('Modal constructor called') // ADDED LOG
+        // Add listener for closing the modal with overlay
+        this.overlayElement.addEventListener('click', (event) => {
+            if (event.target === this.overlayElement) {
+                this.closeModal(setActiveNodes, updateNodeStyles, updateCurrentEffect);
+            }
+        });
     }
     cacheModalInputs() {
         this.modalInputs = {
@@ -56,13 +66,14 @@ class Modal {
         }
     }
     openModal() {
-        this.modalElement.classList.add('show');
+       this.takeSnapshot();
+       this.modalElement.classList.add('show');
         this.overlayElement.classList.add('show');
     }
-     closeModal(setActiveNodes, updateNodeStyles, updateCurrentEffect) {
+    closeModal(setActiveNodes, updateNodeStyles, updateCurrentEffect) {
         this.modalElement.classList.remove('show');
         this.overlayElement.classList.remove('show');
-       window.nodeManager.deselectAllNodes();//Call node manager's method to deselect all
+        window.nodeManager.deselectAllNodes();//Call node manager's method to deselect all
         this.selectedNodes = []; // Clear selected nodes array
         setActiveNodes(getActiveNodes());
         updateNodeStyles(this.globalSettings, this.nodeSpecificSettings);
@@ -127,6 +138,12 @@ class Modal {
         if (selectedIds.length > 0 && !this.modalElement.classList.contains('show')) {
             this.openModal();
         }
+    }
+    // Function to load node specific settings into the modal
+      takeSnapshot() {
+        this.initialSettings.activeNodes = [...this.activeNodes]; // Take a snapshot of active nodes
+         this.initialSettings.nodeSpecificSettings = JSON.parse(JSON.stringify(this.nodeSpecificSettings)); // Deep clone node settings
+         console.log('Taking a snapshot with these settings',this.initialSettings)
     }
     // Function to load node specific settings into the modal
     loadNodeSettings(node) {
@@ -383,31 +400,16 @@ class Modal {
         updateCurrentEffect(this.globalSettings, this.nodeSpecificSettings, newActiveNodes);
           window.nodeManager.deselectAllNodes();// Deselect all nodes using the node manager
     }
-    // Function to discard node settings
+   // Function to discard node settings
     discardNodeSettings(setActiveNodes, updateNodeStyles, updateCurrentEffect) {
-        let newActiveNodes = [...this.activeNodes];
-        this.selectedNodes.forEach(node => {
-            const nodeId = node.dataset.id;
-            const activateCheckbox = this.activateCheckbox;
-            const nodeIdNumber = Number(nodeId);
-            if (activateCheckbox.checked) {
-                if (!newActiveNodes.includes(nodeIdNumber)) {
-                    newActiveNodes.push(nodeIdNumber);
-                }
-            } else {
-                newActiveNodes = newActiveNodes.filter(activeNodeId => activeNodeId !== nodeIdNumber);
-            }
-            if (this.nodeSpecificSettings[nodeId]) {
-                this.loadNodeSettings(node);
-            } else {
-                delete this.nodeSpecificSettings[nodeId];
-                this.loadNodeSettings(node);
-            }
-        });
-        setActiveNodes(newActiveNodes);
-        updateNodeStyles(this.globalSettings, this.nodeSpecificSettings);
-        updateCurrentEffect(this.globalSettings, this.nodeSpecificSettings, newActiveNodes);
-        window.nodeManager.deselectAllNodes();// Deselect all nodes using the node manager
+         console.log('Restoring settings to:', this.initialSettings)
+        // Restore active nodes
+          setActiveNodes(this.initialSettings.activeNodes);
+        // Restore node specific settings
+         this.nodeSpecificSettings = JSON.parse(JSON.stringify(this.initialSettings.nodeSpecificSettings));
+         updateNodeStyles(this.globalSettings, this.nodeSpecificSettings);
+         updateCurrentEffect(this.globalSettings, this.nodeSpecificSettings, this.initialSettings.activeNodes);
+         window.nodeManager.deselectAllNodes();// Deselect all nodes using the node manager
     }
 }
 
@@ -423,10 +425,7 @@ function initModalManager(nodeSpecificSettings, globalSettings, updateNodeStyles
 
     modal = new Modal(modalElement, overlayElement, selectedNodesDisplay, activateCheckbox, modalSettings, globalSettings, nodeSpecificSettings);
     // Add listener to the close modal button
-    const closeModalButton = document.getElementById('closeModalButton');
-    closeModalButton.addEventListener('click', () => {
-        modal.closeModal(setActiveNodes, updateNodeStyles, updateCurrentEffect);
-    });
+
     // Add listener for closing the modal with ESC key
     document.addEventListener('keydown', function (event) {
         if (event.key === 'Escape') {
@@ -440,8 +439,8 @@ function initModalManager(nodeSpecificSettings, globalSettings, updateNodeStyles
         modal.closeModal(setActiveNodes, updateNodeStyles, updateCurrentEffect);
     });
     discardNodeButton.addEventListener('click', function () {
-        modal.discardNodeSettings(setActiveNodes, updateNodeStyles, updateCurrentEffect);
-        modal.closeModal(setActiveNodes, updateNodeStyles, updateCurrentEffect);
+         modal.discardNodeSettings(setActiveNodes, updateNodeStyles, updateCurrentEffect);
+          modal.closeModal(setActiveNodes, updateNodeStyles, updateCurrentEffect);
     });
     // Add logic for adding more modal colors
     const addModalColorButton = document.getElementById('addModalColorButton');
