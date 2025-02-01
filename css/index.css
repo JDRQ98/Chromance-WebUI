@@ -109,7 +109,6 @@ body {
     50% {
         filter: drop-shadow(0 0 10px var(--active-node-color-3)) drop-shadow(0 0 20px var(--active-node-color-3)) drop-shadow(0 0 30px var(--active-node-color-3));
     }
-
     66% {
          filter: drop-shadow(0 0 5px var(--active-node-color-4)) drop-shadow(0 0 15px var(--active-node-color-4)) drop-shadow(0 0 20px var(--active-node-color-4));
     }
@@ -117,7 +116,6 @@ body {
     83% {
         filter: drop-shadow(0 0 5px var(--active-node-color-5)) drop-shadow(0 0 15px var(--active-node-color-5)) drop-shadow(0 0 20px var(--active-node-color-5));
     }
-
     100% {
           filter: drop-shadow(0 0 5px var(--active-node-color-0)) drop-shadow(0 0 15px var(--active-node-color-0)) drop-shadow(0 0 20px var(--active-node-color-0));
     }
@@ -139,20 +137,20 @@ body {
 
 /* ---------- Modal Styles ---------- */
 .modal {
-    position: fixed; /* Changed from absolute to fixed */
+    position: fixed;
     bottom: -100vh;
     left: 5%;
     display: none;
-    width: 90%; /* Use a percentage of the viewport width for responsiveness */
-    max-width: 450px; /* Keep max width as needed */
-    max-height: 60vh; /* Reduced max-height to leave more space for nodes */
-    background-color: rgba(255, 255, 255, 0.85); /*Semi-transparent white background*/
+    width: 90%;
+    max-width: 450px;
+    max-height: 80vh;
+    background-color: rgba(255, 255, 255, 0.85);
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 0 10px var(--shadow-color);
     transition: bottom 0.6s ease-in-out;
     z-index: 1000;
-    overflow-y: auto; /* Make modal scrollable vertically if content overflows */
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
@@ -168,16 +166,15 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.4); /* Semi-transparent black overlay */
-    z-index: 999; /* Ensure it's above the nodes but below the modal */
-    display: none; /* Initially hidden */
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 999;
+    display: none;
     transition: opacity 0.3s ease;
 }
 .overlay.show {
 }
 
 .modal button {
-    margin-top: 10px;
     padding: 5px 10px;
     background-color: var(--primary-color);
     color: #fff;
@@ -207,10 +204,93 @@ body {
 }
 
 .modal-buttons button {
-    padding: 10px 20px;
+   padding: 10px 20px;
     cursor: pointer;
     border-radius: 5px;
     border: 1px solid var(--border-color);
+}
+.modal-buttons button[title="Edit Node"] {
+    background-color: #ffa500;
+}
+
+#discardNodeButton {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+/* --- Switch Style --- */
+.switch-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+  margin-left: 10px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+    border-radius: 34px;
+  pointer-events: auto; /* Allow pointer events on slider */
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: var(--secondary-color);
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px var(--secondary-color);
+}
+
+input:checked + .slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+.switch-container label {
+    margin-right: 10px;
 }
 
 /* ---------- Control Styles ---------- */
@@ -219,9 +299,7 @@ body {
     margin-bottom: 10px;
     display: flex;
     justify-content: center;
-    /* Changed to center the controls */
     gap: 10px;
-    /*Added gap between elements */
     width: auto;
 }
 
@@ -253,22 +331,22 @@ body {
 /* ---------- Global Settings Modal Styles ---------- */
 .global-settings-modal {
     position: fixed;
-    top: 5%; /* Positioned a bit from the top */
+    top: 5%;
     left: 5%;
-    transform: none; /* Remove the translation */
+    transform: none;
     padding: 20px;
     border: 1px solid var(--border-color);
     border-radius: var(--button-radius);
-    width: 90%; /* Use 90% of the viewport width */
-    max-width: 600px; /* Keep max-width for larger screens */
-    max-height: 90vh; /* Use a maximum of 90% of the viewport height */
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
     display: flex;
     flex-direction: column;
     background-color: #fff;
     z-index: 1001;
     display: none;
-    overflow-y: auto; /* Make it scrollable if needed */
-    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+    overflow-y: auto;
+    box-sizing: border-box;
 }
 
 .global-settings-modal.show {
@@ -304,10 +382,8 @@ body {
 /* ---------- Menu Styles ---------- */
 .menu {
     margin-top: 10px;
-    /* Reduced the margin */
     display: flex;
     justify-content: center;
-    /* Centered menus */
     gap: 20px;
     align-items: center;
 }
@@ -335,7 +411,7 @@ aside {
 
 /* ---------- Fire Ripple Button Style ---------- */
 .fire-ripple-button {
-    padding: 10px 20px;
+     padding: 10px 20px;
     cursor: pointer;
     border-radius: var(--button-radius);
     border: 1px solid var(--border-color);
@@ -436,6 +512,7 @@ aside {
     opacity: 1;
 }
 
+
 /* ---------- Color Styles ---------- */
 .color-container {
     display: inline-grid;
@@ -518,7 +595,9 @@ aside {
     min-width: 150px;
 }
 
-.effect-selector button {
+.effect-selector button,
+.global-settings-modal .submit-buttons button,
+.modal-buttons button{
     padding: 8px;
     cursor: pointer;
     border-radius: var(--button-radius);
@@ -562,7 +641,9 @@ aside {
     color: #fff;
 }
 
-.effect-selector button:hover {
+.effect-selector button:active,
+.global-settings-modal .submit-buttons button:active,
+.modal-buttons button[title="Edit Node"]:active{
     background-color: #bfbfbf;
 }
 

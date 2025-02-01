@@ -62,10 +62,10 @@
             <div class="hex-wrap">
                 <div title="node 12" class="hex" data-id="12"></div>
             </div>
-             <div class="hex-wrap">
+            <div class="hex-wrap">
                 <div title="node 13" class="hex" data-id="13"></div>
             </div>
-             <div class="hex-wrap">
+            <div class="hex-wrap">
                 <div title="node 14" class="hex" data-id="14"></div>
             </div>
             <div class="hex-wrap">
@@ -169,8 +169,8 @@
             </div>
             <div class="submit-buttons">
                 <button id="restoreDefaultsButton">Restore defaults</button>
-                <button id="submitButton">Submit</button>
-                <button id="discardButton">Discard changes</button>
+                <button id="submitButton">💾</button>
+                <button id="discardButton">🗑️</button>
             </div>
         </div>
         <div class="overlay" id="overlay"></div>
@@ -182,14 +182,15 @@
                         below by the user</span>
                 </i>
             </h2>
-            <div class="modal-buttons">
-                <button id="saveNodeButton">Save</button>
-                <button id="discardNodeButton">Discard</button>
-            </div>
             <div id="selectedNodesDisplay" class="overlay-selected-nodes">No nodes selected</div>
             <div class="setting-container">
-                <label for="activateNodeCheckbox">Activate Node(s):</label>
-                <input type="checkbox" id="activateNodeCheckbox">
+                <div class="switch-container">
+                    <label for="activateNodeCheckbox">Activate Node(s):</label>
+                    <div class="switch">
+                        <input type="checkbox" id="activateNodeCheckbox">
+                        <span class="slider round"></span>
+                    </div>
+                </div>
             </div>
             <div class="modal-settings">
                 <div class="setting-container">
@@ -249,6 +250,11 @@
                     <input type="number" id="modalHueDeltaTick" min="0" max="500" value="200">
                     <input type="checkbox" class="edit-button-checkbox" data-setting="hueDeltaTick">
                 </div>
+            </div>
+            <div class="modal-buttons">
+                <button id="saveNodeButton">💾</button>
+                <button id="editNodeButton" title="Edit Node" aria-label="Edit Node">✏️</button>
+                <button id="discardNodeButton">🗑️</button>
             </div>
         </div>
     </main>
