@@ -126,8 +126,11 @@ function sendConfigurationToMicrocontroller() {
     // Convert the data to JSON.
     const jsonData = JSON.stringify(data);
 
+    // Log the JSON data to the console
+    console.log("Sending this JSON to the microcontroller:", jsonData);
+
     // Send the POST request to the microcontroller.  Replace with the correct URL for your microcontroller.
-    fetch('http://your-microcontroller-ip/config', {
+    fetch('http://hexagono.local/updateInternalVariables', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
