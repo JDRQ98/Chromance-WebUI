@@ -10,7 +10,10 @@
 
 <body>
     <header>
-        <h1 id="effectTitle">Effect editor: Default</h1>
+        <div class="header-top">
+            <button id="backButton" class="back-button" title="Back to Profile Manager" aria-label="Back to Profile Manager">← Back</button>
+            <h1 id="effectTitle">Effect editor: Default</h1>
+        </div>
         <div class="effect-selector">
             <div class="effect-selector-container">
                 <select id="effectDropdown"></select>
@@ -260,6 +263,7 @@
         </div>
     </main>
     <script type="module" src="js/main.js"></script>
+    <script type="module" src="js/landing.js"></script>
 </body>
 
 </html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chromance Profile Manager</title>
+    <link rel="stylesheet" href="css/landing.css">
+</head>
+
+<body>
+    <header>
+        <h1>Chromance Profile Manager</h1>
+        <p>Select and manage your lighting profiles</p>
+    </header>
+
+    <main>
+        <!-- Loading State -->
+        <div id="loadingState" class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading profiles...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="error-state" style="display: none;">
+            <div class="error-icon">⚠️</div>
+            <h3>Unable to load profiles</h3>
+            <p id="errorMessage">Please check your connection to the microcontroller.</p>
+            <button id="retryButton" class="retry-button">Retry</button>
+        </div>
+
+        <!-- Profiles Grid -->
+        <div id="profilesContainer" class="profiles-container" style="display: none;">
+            <div class="profiles-header">
+                <h2>Available Profiles</h2>
+                <button id="refreshButton" class="refresh-button" title="Refresh profiles">🔄</button>
+            </div>
+            <div id="profilesGrid" class="profiles-grid">
+                <!-- Profile cards will be dynamically inserted here -->
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <div class="empty-icon">📱</div>
+            <h3>No profiles found</h3>
+            <p>No profiles are currently available on the microcontroller.</p>
+            <button id="refreshEmptyButton" class="retry-button">Refresh</button>
+        </div>
+    </main>
+
+    <!-- Profile Card Template -->
+    <template id="profileCardTemplate">
+        <div class="profile-card" data-profile-index="">
+            <div class="profile-header">
+                <h3 class="profile-name"></h3>
+                <div class="profile-status">
+                    <span class="status-indicator"></span>
+                    <span class="status-text"></span>
+                </div>
+            </div>
+            
+            <div class="profile-visualization">
+                <div class="hex-grid">
+                    <!-- 19 hexagon nodes will be dynamically inserted here -->
+                </div>
+            </div>
+            
+            <div class="profile-colors">
+                <div class="color-preview">
+                    <!-- Color swatches will be dynamically inserted here -->
+                </div>
+            </div>
+            
+            <div class="profile-actions">
+                <button class="action-button select-button" title="Select this profile">
+                    <span class="button-icon">▶️</span>
+                    <span class="button-text">Select</span>
+                </button>
+                <button class="action-button edit-button" title="Edit this profile">
+                    <span class="button-icon">✏️</span>
+                    <span class="button-text">Edit</span>
+                </button>
+            </div>
+        </div>
+    </template>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmationModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3 id="modalTitle">Confirm Action</h3>
+            <p id="modalMessage">Are you sure you want to perform this action?</p>
+            <div class="modal-actions">
+                <button id="modalCancel" class="modal-button cancel-button">Cancel</button>
+                <button id="modalConfirm" class="modal-button confirm-button">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div id="overlay" class="overlay" style="display: none;"></div>
+
+    <script type="module" src="js/landing.js"></script>
+</body>
+
+</html>
