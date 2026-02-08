@@ -21,7 +21,20 @@
         </div>
     </header>
     <main>
-        <div class="container" id="container">
+        <!-- Canvas Visualizer Container -->
+        <div class="visualizer-wrapper" id="visualizerWrapper">
+            <div class="visualizer-container" id="visualizer-container">
+                <!-- Canvas will be dynamically inserted here by canvasVisualizer.js -->
+            </div>
+            <div class="visualizer-controls">
+                <button id="previewToggle" class="preview-toggle" title="Toggle Preview">
+                    <span class="preview-icon">▶</span>
+                    <span class="preview-label">Preview</span>
+                </button>
+            </div>
+        </div>
+        <!-- Legacy DOM-based container (hidden when canvas is active) -->
+        <div class="container legacy-container" id="container">
             <!-- Nodes -->
             <div class="hex-wrap">
                 <div title="node 0" class="hex" data-id="0"></div>
@@ -95,6 +108,27 @@
                 <button id="deactivateAllNodes">De-activate all nodes</button>
                 <button id="applyChanges">Apply Changes</button>  <!-- NEW BUTTON -->
             </nav>
+            <!-- Sequence Panel -->
+            <div class="sequence-panel" id="sequencePanel">
+                <h3>Sequences</h3>
+                <div class="sequence-selector">
+                    <select id="sequenceDropdown"></select>
+                    <button id="addSequenceButton" title="Add Sequence">+</button>
+                    <button id="editSequenceButton" title="Edit Sequence">✏️</button>
+                    <button id="deleteSequenceButton" title="Delete Sequence">🗑️</button>
+                </div>
+                <div class="playback-controls">
+                    <button id="prevStepButton" title="Previous Step">⏮️</button>
+                    <button id="playSequenceButton" title="Play">▶️</button>
+                    <button id="pauseSequenceButton" title="Pause">⏸️</button>
+                    <button id="stopSequenceButton" title="Stop">⏹️</button>
+                    <button id="nextStepButton" title="Next Step">⏭️</button>
+                </div>
+                <div class="playback-progress">
+                    <span id="currentStepDisplay">Step: --</span>
+                    <progress id="stepProgress" value="0" max="100"></progress>
+                </div>
+            </div>
         </aside>
         <div class="global-settings-modal" id="globalSettingsModal">
             <h2>Global Effect settings</h2>
