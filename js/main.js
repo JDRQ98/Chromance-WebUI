@@ -10,6 +10,8 @@ import { initEffectsManager, getCurrentEffectId, getEffects } from './managers/e
 import { initGlobalSettingsManager, getGlobalSettings, loadGlobalSettings, resetGlobalSettings } from './managers/globalSettingsManager.js';
 import { generateRainbowColors, generateRandomColors, generateSimilarColors } from './colorUtils.js';
 import { drawHexagon } from './drawVisualizer.js';
+import { canvasVisualizer } from './core/canvasVisualizer.js';
+import { rippleSimulator } from './core/rippleSimulator.js';
 
 function calculateNodePositions() {
     const container = document.getElementById('container');
@@ -65,8 +67,37 @@ function initializeApp() {
     // Update node styles
     updateNodeStyles();
 
-    // Draw hexagon visualizer
-    drawHexagon();
+    // Initialize canvas visualizer
+    const canvasReady = canvasVisualizer.init('visualizer-container');
+    if (canvasReady) {
+        canvasVisualizer.startAnimationLoop();
+        console.log('Canvas visualizer initialized');
+    } else {
+        console.warn('Canvas visualizer failed to init, falling back to legacy DOM');
+        // Show legacy container as fallback
+        const legacyContainer = document.getElementById('container');
+        if (legacyContainer) {
+            legacyContainer.classList.add('show');
+        }
+        drawHexagon();
+    }
+
+    // Wire up preview button
+    const previewBtn = document.getElementById('previewToggle');
+    if (previewBtn) {
+        previewBtn.addEventListener('click', () => {
+            const isActive = previewBtn.classList.toggle('active');
+            if (isActive) {
+                previewBtn.querySelector('.preview-icon').textContent = '⏸';
+                previewBtn.querySelector('.preview-label').textContent = 'Stop';
+                eventBus.emit('preview:start');
+            } else {
+                previewBtn.querySelector('.preview-icon').textContent = '▶';
+                previewBtn.querySelector('.preview-label').textContent = 'Preview';
+                eventBus.emit('preview:stop');
+            }
+        });
+    }
 
     // Connect WebSocket
     wsClient.connect();
