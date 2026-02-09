@@ -46,7 +46,7 @@ Create a new main landing page that displays all profiles from the microcontroll
 
 ## Phase 7: Profile Editor Integration
 - [x] Modify `ProfileEditor.html` to accept profile data from landing page
-- [x] Update profile editor to save to `hexagono.local/UpdateProfile`
+- [x] Update profile editor to save to `hexagono.local/updateProfile`
 - [x] Implement profile creation workflow
 - [ ] Add profile deletion functionality
 

@@ -20,6 +20,16 @@ class ProfileManager {
             this.loadProfiles();
         });
 
+        // Create profile button
+        document.getElementById('createProfileButton').addEventListener('click', () => {
+            this.createNewProfile();
+        });
+
+        // Restore defaults button
+        document.getElementById('restoreDefaultsButton').addEventListener('click', () => {
+            this.showRestoreDefaultsModal();
+        });
+
         // Retry buttons
         document.getElementById('retryButton').addEventListener('click', () => {
             this.loadProfiles();
@@ -41,6 +51,15 @@ class ProfileManager {
         // Overlay click to close modal
         document.getElementById('overlay').addEventListener('click', () => {
             this.hideModal();
+        });
+
+        // Restore defaults modal event listeners
+        document.getElementById('restoreCancel').addEventListener('click', () => {
+            this.hideRestoreDefaultsModal();
+        });
+
+        document.getElementById('restoreConfirm').addEventListener('click', () => {
+            this.confirmRestoreDefaults();
         });
     }
 
@@ -156,8 +175,8 @@ class ProfileManager {
             // Set profile name
             cardElement.querySelector('.profile-name').textContent = profile.ProfileName || `Profile ${index}`;
             
-            // Set active status
-            const isActive = profile.Active === true;
+            // Set active status - handle both boolean and numeric values
+            const isActive = profile.Active === true || profile.Active === 1;
             const statusIndicator = cardElement.querySelector('.status-indicator');
             const statusText = cardElement.querySelector('.status-text');
             
@@ -165,7 +184,7 @@ class ProfileManager {
                 statusIndicator.classList.add('active');
                 statusText.textContent = 'Active';
                 cardElement.classList.add('active');
-                this.currentProfileIndex = index;
+                // Don't set currentProfileIndex here since multiple profiles can be active
             } else {
                 statusIndicator.classList.remove('active');
                 statusText.textContent = 'Inactive';
@@ -178,9 +197,13 @@ class ProfileManager {
             this.createColorPreview(cardElement.querySelector('.color-preview'), profile.Colors || []);
             
             // Add event listeners
-            cardElement.querySelector('.select-button').addEventListener('click', () => {
-                this.selectProfile(index);
+            const activateButton = cardElement.querySelector('.select-button');
+            activateButton.addEventListener('click', () => {
+                this.toggleProfileActivation(index);
             });
+            
+            // Update button text and class based on active state
+            this.updateActivateButton(activateButton, isActive);
             
             cardElement.querySelector('.edit-button').addEventListener('click', () => {
                 this.editProfile(index);
@@ -193,12 +216,17 @@ class ProfileManager {
     createHexGrid(container, activeNodes) {
         container.innerHTML = '';
         
-        // Create 19 hexagon nodes (6x7 grid with specific positions)
+        // Create 19 hexagon nodes (1 2 3 2 3 2 3 2 1 arrangement)
         const nodePositions = [
-            [2, 0], [1, 1], [3, 1], [0, 2], [2, 2], [4, 2],
-            [1, 3], [3, 3], [0, 4], [2, 4], [4, 4],
-            [1, 5], [3, 5], [0, 6], [2, 6], [4, 6],
-            [1, 7], [3, 7], [2, 8]
+            [2, 0], // Row 0: 1 node (node 0)
+            [1, 1], [3, 1], // Row 1: 2 nodes (nodes 1, 2)
+            [0, 2], [2, 2], [4, 2], // Row 2: 3 nodes (nodes 3, 4, 5)
+            [1, 3], [3, 3], // Row 3: 2 nodes (nodes 6, 7)
+            [0, 4], [2, 4], [4, 4], // Row 4: 3 nodes (nodes 8, 9, 10)
+            [1, 5], [3, 5], // Row 5: 2 nodes (nodes 11, 12)
+            [0, 6], [2, 6], [4, 6], // Row 6: 3 nodes (nodes 13, 14, 15)
+            [1, 7], [3, 7], // Row 7: 2 nodes (nodes 16, 17)
+            [2, 8] // Row 8: 1 node (node 18)
         ];
 
         nodePositions.forEach(([row, col], index) => {
@@ -238,28 +266,75 @@ class ProfileManager {
         });
     }
 
-    async selectProfile(profileIndex) {
-        if (profileIndex === this.currentProfileIndex) {
-            this.showNotification('This profile is already active', 'info');
-            return;
+    updateActivateButton(button, isActive) {
+        const icon = button.querySelector('.button-icon');
+        const text = button.querySelector('.button-text');
+        
+        if (isActive) {
+            button.title = 'Deactivate this profile';
+            icon.textContent = '⏸️';
+            text.textContent = 'Deactivate';
+            button.classList.remove('select-button');
+            button.classList.add('deactivate-button');
+        } else {
+            button.title = 'Activate this profile';
+            icon.textContent = '▶️';
+            text.textContent = 'Activate';
+            button.classList.remove('deactivate-button');
+            button.classList.add('select-button');
         }
+    }
 
+    updateProfileCard(profileIndex) {
+        const profile = this.profiles[profileIndex];
+        const cardElement = document.querySelector(`[data-profile-index="${profileIndex}"]`);
+        
+        if (!cardElement) return;
+        
+        const isActive = profile.Active === true || profile.Active === 1;
+        const statusIndicator = cardElement.querySelector('.status-indicator');
+        const statusText = cardElement.querySelector('.status-text');
+        const activateButton = cardElement.querySelector('.select-button, .deactivate-button');
+        
+        // Update status indicator
+        if (isActive) {
+            statusIndicator.classList.add('active');
+            statusText.textContent = 'Active';
+            cardElement.classList.add('active');
+        } else {
+            statusIndicator.classList.remove('active');
+            statusText.textContent = 'Inactive';
+            cardElement.classList.remove('active');
+        }
+        
+        // Update button
+        this.updateActivateButton(activateButton, isActive);
+    }
+
+    async toggleProfileActivation(profileIndex) {
+        const profile = this.profiles[profileIndex];
+        const isCurrentlyActive = profile.Active === true || profile.Active === 1;
+        
         // Check if we're in demo mode
         if (this.isDemoMode()) {
-            this.currentProfileIndex = profileIndex;
-            this.updateActiveProfileDisplay();
-            this.showNotification('Demo profile selected (no actual change sent to microcontroller)', 'info');
+            // Toggle the active state in demo mode
+            profile.Active = isCurrentlyActive ? 0 : 1;
+            this.updateProfileCard(profileIndex);
+            this.showNotification(`Demo profile ${isCurrentlyActive ? 'deactivated' : 'activated'}`, 'info');
             return;
         }
 
         try {
-            const response = await fetch(`${this.baseUrl}/selectProfile`, {
+            const response = await fetch(`${this.baseUrl}/updateProfile`, {
                 method: 'POST',
                 mode: 'cors',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ ProfileIndex: profileIndex })
+                body: JSON.stringify({ 
+                    ProfileIndex: profileIndex,
+                    Active: isCurrentlyActive ? 0 : 1
+                })
             });
 
             if (!response.ok) {
@@ -267,16 +342,16 @@ class ProfileManager {
             }
 
             // Update local state
-            this.currentProfileIndex = profileIndex;
-            this.updateActiveProfileDisplay();
-            this.showNotification('Profile selected successfully', 'success');
+            profile.Active = isCurrentlyActive ? 0 : 1;
+            this.updateProfileCard(profileIndex);
+            this.showNotification(`Profile ${isCurrentlyActive ? 'deactivated' : 'activated'} successfully`, 'success');
             
         } catch (error) {
-            console.error('Error selecting profile:', error);
+            console.error('Error toggling profile activation:', error);
             if (error.name === 'TypeError' && error.message.includes('fetch')) {
                 this.showNotification('CORS error: Cannot connect to microcontroller', 'error');
             } else {
-                this.showNotification('Failed to select profile', 'error');
+                this.showNotification('Failed to toggle profile activation', 'error');
             }
         }
     }
@@ -293,6 +368,35 @@ class ProfileManager {
         // Store the profile index in localStorage for the editor to use
         localStorage.setItem('editingProfileIndex', profileIndex);
         localStorage.setItem('profileData', JSON.stringify(this.profiles[profileIndex]));
+        
+        // Navigate to the profile editor
+        window.location.href = 'ProfileEditor.html';
+    }
+
+    createNewProfile() {
+        // Find the next available profile index
+        const nextIndex = this.profiles.length;
+        
+        // Create a new profile template
+        const newProfile = {
+            ProfileIndex: nextIndex,
+            ProfileName: `New Profile ${nextIndex + 1}`,
+            Active: 0, // Start as inactive
+            ActiveNodes: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0], // Default to node 9 active
+            Behavior: 1,
+            Direction: 0,
+            RippleLifeSpan: 3000,
+            DelayBetweenRipples_ms: 1000,
+            RippleSpeed: 1.0,
+            RainbowDeltaPerTick: 100,
+            NumberOfColors: 3,
+            Colors: ["#FF0000", "#00FF00", "#0000FF"]
+        };
+        
+        // Store the new profile data for the editor
+        localStorage.setItem('editingProfileIndex', nextIndex);
+        localStorage.setItem('profileData', JSON.stringify(newProfile));
+        localStorage.setItem('isNewProfile', 'true'); // Flag to indicate this is a new profile
         
         // Navigate to the profile editor
         window.location.href = 'ProfileEditor.html';
@@ -526,6 +630,46 @@ class ProfileManager {
                 }
             }, 300);
         }, 3000);
+    }
+
+    showRestoreDefaultsModal() {
+        document.getElementById('restoreDefaultsModal').style.display = 'flex';
+        document.getElementById('overlay').style.display = 'block';
+    }
+
+    hideRestoreDefaultsModal() {
+        document.getElementById('restoreDefaultsModal').style.display = 'none';
+        document.getElementById('overlay').style.display = 'none';
+    }
+
+    async confirmRestoreDefaults() {
+        this.hideRestoreDefaultsModal();
+        this.showLoadingState();
+        
+        try {
+            const response = await fetch(`${this.baseUrl}/clearEEPROM`, {
+                method: 'POST',
+                mode: 'cors',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            this.showNotification('Default profiles restored successfully!', 'success');
+            
+            // Reload profiles after a short delay
+            setTimeout(() => {
+                this.loadProfiles();
+            }, 1500);
+            
+        } catch (error) {
+            console.error('Error restoring defaults:', error);
+            this.showErrorState(`Failed to restore defaults: ${error.message}`);
+        }
     }
 }
 

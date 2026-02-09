@@ -3,30 +3,21 @@ import { generateRainbowColors, generateRandomColors, generateSimilarColors } fr
 import { getActiveNodes } from './nodeManager.js';
 
 class Modal {
-    constructor(modalElement, overlayElement, selectedNodesDisplay, activateCheckbox, modalSettings, globalSettings, nodeSpecificSettings) {
+    constructor(modalElement, overlayElement, selectedNodesDisplay, modalSettings, profileSettings) {
         this.modalElement = modalElement;
         this.overlayElement = overlayElement;
         this.selectedNodesDisplay = selectedNodesDisplay;
-        this.activateCheckbox = activateCheckbox;
         this.modalSettings = modalSettings
-        this.editNodeButton = this.modalElement.querySelector('#editNodeButton');
-        this.globalSettings = globalSettings;
-        this.nodeSpecificSettings = nodeSpecificSettings;
+        this.editNodeButton = document.getElementById('editNodeButton'); // Get from document since it's now in the main container
+        this.profileSettings = profileSettings;
         this.modalInputs = {};
         this.cacheModalInputs();
         this.activeNodes = [];
         this.selectedNodes = [];
         this.initialSettings = {
             activeNodes: [],
-            nodeSpecificSettings: {}
+            profileSettings: {}
         };
-        this.activateCheckbox.addEventListener('change', () => this.handleActivateCheckboxChange());
-        const slider = this.modalElement.querySelector('.slider')
-        if (slider) {
-            slider.addEventListener('click', () => {
-                this.activateCheckbox.click();
-            });
-        }
         window.modal = this;
         console.log('Modal constructor called') // ADDED LOG
         // Add listener for closing the modal with overlay
@@ -55,221 +46,82 @@ class Modal {
         this.modalInputs.modalDecayPerTick.addEventListener('input', () => {
             this.modalInputs.modalDecayPerTickDisplay.textContent = parseFloat(this.modalInputs.modalDecayPerTick.value).toFixed(3);
         });
-        // Add click event listener to the edit node button
-        this.editNodeButton.addEventListener('click', () => {
-            if (!this.modalSettings.classList.contains('show')) {
-                this.modalSettings.classList.add('show');
-            } else {
-                this.modalSettings.classList.remove('show');
-            }
-        });
-    }
-    handleActivateCheckboxChange() {
-        const selectedIds = this.selectedNodes.map(node => node.dataset.id);
-        /* This functionality to hide/show the rest of the settings has been transferred to the 'Edit node button'
-        if (selectedIds.length === 1) {
-            if (this.activateCheckbox.checked) {
-                this.modalSettings.classList.add('show');
-            } else {
-                this.modalSettings.classList.remove('show');
-            }
-        } else if (selectedIds.length > 1) {
-            if (this.activateCheckbox.checked) {
-                this.modalSettings.classList.add('show');
-            } else {
-                this.modalSettings.classList.remove('show');
-            }
+        // Add click event listener to the edit node button with toggle functionality
+        if (this.editNodeButton) {
+            this.editNodeButton.addEventListener('click', () => {
+                if (this.modalElement.classList.contains('show')) {
+                    this.closeModal();
+                } else {
+                    this.openModal();
+                }
+            });
         }
-        */
     }
     openModal() {
         this.takeSnapshot();
+        this.loadNodeSettings();
         this.modalElement.classList.add('show');
         this.overlayElement.classList.add('show');
     }
-    closeModal(setActiveNodes, updateNodeStyles, updateCurrentEffect) {
+    closeModal(setActiveNodes, updateNodeStyles) {
         this.modalElement.classList.remove('show');
         this.overlayElement.classList.remove('show');
-        window.nodeManager.deselectAllNodes();//Call node manager's method to deselect all
+        if (window.nodeManager) {
+            window.nodeManager.deselectAllNodes();//Call node manager's method to deselect all
+        }
         this.selectedNodes = []; // Clear selected nodes array
-        setActiveNodes(getActiveNodes());
-        updateNodeStyles(this.globalSettings, this.nodeSpecificSettings);
-        updateCurrentEffect(this.globalSettings, this.nodeSpecificSettings, getActiveNodes());
+        if (setActiveNodes && updateNodeStyles) {
+            setActiveNodes(getActiveNodes());
+            updateNodeStyles(this.profileSettings);
+        }
     }
     updateModalDisplay(selectedNodes, activeNodes) {
         console.log('Modal updateModalDisplay called with:', selectedNodes, activeNodes); // ADDED LOG
         this.activeNodes = activeNodes;
         this.selectedNodes = selectedNodes;
-        const selectedIds = selectedNodes.map(node => node.dataset.id);
-
-        //Update node display
-        if (selectedIds.length > 0) {
-            this.selectedNodesDisplay.textContent = 'Selected Nodes: ' + selectedIds.join(', ');
-        } else {
-            this.selectedNodesDisplay.textContent = 'No nodes selected';
-        }
-        // Check the state of the nodes for activation
-        if (selectedIds.length === 1) {
-            const selectedNodeId = selectedIds[0];
-            if (activeNodes.includes(Number(selectedNodeId))) {
-                this.activateCheckbox.checked = true;
-                this.activateCheckbox.indeterminate = false; //remove indeterminate state
-            } else {
-                this.activateCheckbox.checked = false;
-                this.activateCheckbox.indeterminate = false;
-            }
-            if (selectedNodes.length > 0) {
-                this.loadNodeSettings(selectedNodes[0]);
-            }
-            if (this.selectedNodes.length > 0) {
-                this.modalSettings.classList.remove('show');
-            }
-        } else if (selectedIds.length > 1) {
-            const allActive = selectedIds.every(id => activeNodes.includes(Number(id)));
-            if (allActive) {
-                this.activateCheckbox.checked = true;
-                this.activateCheckbox.indeterminate = false;
-            } else {
-                const noneActive = selectedIds.every(id => !activeNodes.includes(Number(id)));
-                if (noneActive) {
-                    this.activateCheckbox.checked = false;
-                    this.activateCheckbox.indeterminate = false;
-                } else {
-                    this.activateCheckbox.checked = false;
-                    this.activateCheckbox.indeterminate = true;
-                    this.modalSettings.classList.remove('show');
-                }
-            }
-            if (selectedNodes.length > 0) {
-                this.loadNodeSettings(selectedNodes[0]);
-            }
-            if (this.selectedNodes.length > 0) {
-                this.loadNodeSettings(selectedNodes[0]);
-            }
-            this.disableModalInputs();
-        } else {
-            this.activateCheckbox.checked = false;
-            this.activateCheckbox.indeterminate = false;
-            this.disableModalInputs();
-            this.modalElement.classList.remove('show');
-            this.overlayElement.classList.remove('show');
-        }
-        if (selectedIds.length > 0 && !this.modalElement.classList.contains('show')) {
-            this.openModal();
-        }
+        
+        // Load current profile settings (modal-settings is always visible now)
+        this.loadNodeSettings();
     }
     // Function to load node specific settings into the modal
     takeSnapshot() {
         this.initialSettings.activeNodes = [...this.activeNodes]; // Take a snapshot of active nodes
-        this.initialSettings.nodeSpecificSettings = JSON.parse(JSON.stringify(this.nodeSpecificSettings)); // Deep clone node settings
+        this.initialSettings.profileSettings = JSON.parse(JSON.stringify(this.profileSettings)); // Deep clone profile settings
         console.log('Taking a snapshot with these settings', this.initialSettings)
     }
-    // Function to load node specific settings into the modal
-    loadNodeSettings(node) {
-        const nodeId = node.dataset.id;
-        const selectedIds = this.selectedNodes.map(node => node.dataset.id);
+    // Function to load profile settings into the modal
+    loadNodeSettings() {
 
-        // Set values from global or node settings
-        let desiredBehaviorValue = this.nodeSpecificSettings[nodeId]?.desiredBehavior ?? this.globalSettings.desiredBehavior;
-        let rippleDirectionValue = this.nodeSpecificSettings[nodeId]?.rippleDirection ?? this.globalSettings.rippleDirection;
-        let rippleDelayValue = this.nodeSpecificSettings[nodeId]?.rippleDelay ?? this.globalSettings.rippleDelay;
-        let rippleLifeSpanValue = this.nodeSpecificSettings[nodeId]?.rippleLifeSpan ?? this.globalSettings.rippleLifeSpan;
-        let rippleSpeedValue = this.nodeSpecificSettings[nodeId]?.rippleSpeed ?? this.globalSettings.rippleSpeed;
-        let decayPerTickValue = this.nodeSpecificSettings[nodeId]?.decayPerTick ?? this.globalSettings.decayPerTick;
-        let hueDeltaTickValue = this.nodeSpecificSettings[nodeId]?.hueDeltaTick ?? this.globalSettings.hueDeltaTick;
+        // Set values from profile settings
+        let desiredBehaviorValue = this.profileSettings.Behavior ?? 0;
+        let rippleDirectionValue = this.profileSettings.Direction ?? -1;
+        let rippleDelayValue = this.profileSettings.DelayBetweenRipples_ms ?? 1000;
+        let rippleLifeSpanValue = this.profileSettings.RippleLifeSpan ?? 3000;
+        let rippleSpeedValue = this.profileSettings.RippleSpeed ?? 1.0;
+        let decayPerTickValue = this.profileSettings.Decay ?? 0.985;
+        let hueDeltaTickValue = this.profileSettings.RainbowDeltaPerTick ?? 100;
         // Load colors into swatches
         const colorContainer = this.modalElement.querySelector('#modalColorContainer');
         colorContainer.innerHTML = ''; // Clear existing swatches
-        let colorsValue = [];
-        if (this.nodeSpecificSettings[nodeId] && this.nodeSpecificSettings[nodeId].hasOwnProperty('startingColor')) {
-            colorsValue = this.nodeSpecificSettings[nodeId].startingColor
-        } else {
-            colorsValue = this.globalSettings.colors;
-        }
+        let colorsValue = this.profileSettings.Colors || ['#FF0000'];
         if (typeof colorsValue === 'string') {
             colorsValue = [colorsValue];
         }
-        if (!colorsValue) {
-            colorsValue = [];
+        if (!colorsValue || colorsValue.length === 0) {
+            colorsValue = ['#FF0000'];
         }
+        
+        console.log('Loading colors:', colorsValue); // Debug log
+        
         colorsValue.forEach(color => {
             const colorInput = document.createElement('input');
             colorInput.type = 'color';
             colorInput.value = color;
             colorInput.classList.add('color-swatch');
-            // Disable the color swatches when the checkbox is not checked
-            const colorEditCheckbox = Array.from(this.modalElement.querySelectorAll('.edit-button-checkbox')).find(checkbox => checkbox.dataset.setting === 'startingColor');
-            if (colorEditCheckbox && !colorEditCheckbox.checked) {
-                colorInput.disabled = true;
-            }
-            //Add the event listener
-            colorInput.addEventListener('click', function (event) {
-                const colorEditCheckbox = Array.from(this.modalElement.querySelectorAll('.edit-button-checkbox')).find(checkbox => checkbox.dataset.setting === 'startingColor');
-                if (colorEditCheckbox && !colorEditCheckbox.checked) {
-                    event.preventDefault();
-                    return;
-                }
-                this.showPicker();
-            });
+            colorInput.disabled = false; // Always enabled now
             colorContainer.appendChild(colorInput);
         });
-        // Set edit checkbox states based on node specific settings
-        const editCheckboxes = this.modalElement.querySelectorAll('.edit-button-checkbox');
-        editCheckboxes.forEach(checkbox => {
-            const setting = checkbox.dataset.setting;
-            let allSame = true;
-            if (selectedIds.length === 1) {
-                if (this.nodeSpecificSettings[nodeId] && this.nodeSpecificSettings[nodeId].hasOwnProperty(setting)) {
-                    checkbox.checked = true;
-                    checkbox.indeterminate = false;
-                    // Enable the input if the checkbox is checked
-                    this.enableModalInput(setting);
-                } else {
-                    checkbox.checked = false;
-                    checkbox.indeterminate = false;
-                }
-            } else if (selectedIds.length > 1) {
-                allSame = selectedIds.every(id => {
-                    if (this.nodeSpecificSettings[id] && this.nodeSpecificSettings[id].hasOwnProperty(setting)) {
-                        return this.nodeSpecificSettings[selectedIds[0]] && this.nodeSpecificSettings[selectedIds[0]][setting] === this.nodeSpecificSettings[id][setting];
-                    } else {
-                        return !(this.nodeSpecificSettings[selectedIds[0]] && this.nodeSpecificSettings[selectedIds[0]].hasOwnProperty(setting));
-                    }
-                });
-                if (allSame) {
-                    checkbox.checked = selectedIds.every(id => {
-                        if (this.nodeSpecificSettings[id] && this.nodeSpecificSettings[id].hasOwnProperty(setting)) {
-                            return this.nodeSpecificSettings[selectedIds[0]][setting] === this.nodeSpecificSettings[id][setting];
-                        } else {
-                            return !(this.nodeSpecificSettings[id] && this.nodeSpecificSettings[id].hasOwnProperty(setting));
-                        }
-                    })
-                    checkbox.indeterminate = false;
-                    // Enable the input if the checkbox is checked
-                    if (checkbox.checked) {
-                        this.enableModalInput(setting);
-                    }
-                } else {
-                    checkbox.checked = false;
-                    checkbox.indeterminate = true;
-                    if (setting === 'desiredBehavior') {
-                        desiredBehaviorValue = 'N/A';
-                    } else if (setting === 'rippleDirection') {
-                        rippleDirectionValue = 'N/A';
-                    } else if (setting === 'rippleDelay') {
-                        rippleDelayValue = 'N/A';
-                    } else if (setting === 'rippleLifeSpan') {
-                        rippleLifeSpanValue = 'N/A';
-                    } else if (setting === 'rippleSpeed') {
-                        rippleSpeedValue = 'N/A';
-                    } else if (setting === 'decayPerTick') {
-                        decayPerTickValue = 'N/A';
-                    } else if (setting === 'hueDeltaTick') {
-                        hueDeltaTickValue = 'N/A';
-                    }
-                }
-            }
-        });
+        // All inputs are now always enabled - no checkbox logic needed
         this.setModalInputValue('desiredBehavior', desiredBehaviorValue)
         this.setModalInputValue('rippleDirection', rippleDirectionValue)
         this.setModalInputValue('rippleDelay', rippleDelayValue)
@@ -277,36 +129,15 @@ class Modal {
         this.setModalInputValue('rippleSpeed', rippleSpeedValue)
         this.setModalInputValue('decayPerTick', decayPerTickValue)
         this.setModalInputValue('hueDeltaTick', hueDeltaTickValue)
-        // Disable/enable color buttons based on checkbox state
-        const colorEditCheckbox = Array.from(editCheckboxes).find(checkbox => checkbox.dataset.setting === 'startingColor');
-        if (colorEditCheckbox) {
-            const colorButtons = this.modalElement.querySelectorAll('.color-button-container button')
-            colorButtons.forEach(button => {
-                button.disabled = !colorEditCheckbox.checked
-            })
-        }
-        //Add event listener to edit checkbox buttons
-        editCheckboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', () => {
-                const setting = checkbox.dataset.setting;
-                if (checkbox.checked) {
-                    this.enableModalInput(setting);
-                } else {
-                    this.disableModalInput(setting);
-                }
-                // Disable/enable color buttons based on checkbox state
-                if (setting === 'startingColor') {
-                    const colorButtons = this.modalElement.querySelectorAll('.color-button-container button')
-                    colorButtons.forEach(button => {
-                        button.disabled = !checkbox.checked
-                    })
-                    // Disable color inputs when the checkbox is unchecked
-                    const colorInputs = this.modalElement.querySelectorAll('#modalColorContainer input');
-                    colorInputs.forEach(input => {
-                        input.disabled = !checkbox.checked;
-                    });
-                }
-            });
+        // All color buttons and inputs are now always enabled
+        const colorButtons = this.modalElement.querySelectorAll('.color-button-container button');
+        colorButtons.forEach(button => {
+            button.disabled = false;
+        });
+        
+        const colorInputs = this.modalElement.querySelectorAll('#modalColorContainer input');
+        colorInputs.forEach(input => {
+            input.disabled = false;
         });
     }
     //Helper function to set values in modal input elements
@@ -327,7 +158,7 @@ class Modal {
     getModalInputValue(setting) {
         return this.modalInputs[`modal${setting.charAt(0).toUpperCase() + setting.slice(1)}`]?.value;
     }
-    // Helper function to enable modal input elements
+    // Helper function to enable modal input elements (now always enabled)
     enableModalInput(setting) {
         const inputElement = this.modalInputs[`modal${setting.charAt(0).toUpperCase() + setting.slice(1)}`];
         if (inputElement) {
@@ -340,151 +171,110 @@ class Modal {
             }
         }
     }
-    // Helper function to disable modal input elements
+    
+    // Helper function to disable modal input elements (no longer needed)
     disableModalInput(setting) {
-        const inputElement = this.modalInputs[`modal${setting.charAt(0).toUpperCase() + setting.slice(1)}`];
-        if (inputElement) {
-            inputElement.disabled = true;
-            const selectedNodes = this.selectedNodes;
-            selectedNodes.forEach(node => {
-                const nodeId = node.dataset.id;
-                if (this.nodeSpecificSettings[nodeId] && this.nodeSpecificSettings[nodeId].hasOwnProperty(setting)) {
-                    delete this.nodeSpecificSettings[nodeId][setting];
-                }
-            })
-        }
+        // No longer needed - all inputs are always enabled
     }
-    // Helper function to disable all modal input elements
+    
+    // Helper function to disable all modal input elements (no longer needed)
     disableModalInputs() {
-        const inputs = this.modalElement.querySelectorAll('input:not(#activateNodeCheckbox):not(.edit-button-checkbox), select')
-        inputs.forEach(input => {
-            input.disabled = true;
-        })
-        const editCheckboxes = this.modalElement.querySelectorAll('.edit-button-checkbox');
-        editCheckboxes.forEach(checkbox => {
-            checkbox.checked = false;
-        });
-        // Disable color buttons
-        const colorButtons = this.modalElement.querySelectorAll('.color-button-container button')
-        colorButtons.forEach(button => {
-            button.disabled = true
-        })
-        // Disable color inputs
-        const colorInputs = this.modalElement.querySelectorAll('#modalColorContainer input');
-        colorInputs.forEach(input => {
-            input.disabled = true;
-        });
+        // No longer needed - all inputs are always enabled
     }
-    // Function to save node settings
-    saveNodeSettings(setActiveNodes, updateNodeStyles, updateCurrentEffect) {
-        let newActiveNodes = [...this.activeNodes];
-        this.selectedNodes.forEach(node => {
-            const nodeId = node.dataset.id;
-            const activateCheckbox = this.activateCheckbox;
-            const nodeIdNumber = Number(nodeId);
-            if (activateCheckbox.checked) {
-                if (!newActiveNodes.includes(nodeIdNumber)) {
-                    newActiveNodes.push(nodeIdNumber);
-                }
-            } else {
-                newActiveNodes = newActiveNodes.filter(activeNodeId => activeNodeId !== nodeIdNumber);
-            }
-            const editCheckboxes = this.modalElement.querySelectorAll('.edit-button-checkbox');
-            let hasSettings = false;
-            editCheckboxes.forEach(checkbox => {
-                if (checkbox.checked) {
-                    const setting = checkbox.dataset.setting;
-                    if (!this.nodeSpecificSettings[nodeId]) {
-                        this.nodeSpecificSettings[nodeId] = {};
-                    }
-                    if (setting === 'startingColor') {
-                        this.nodeSpecificSettings[nodeId][setting] = Array.from(this.modalElement.querySelectorAll('#modalColorContainer input')).map(input => input.value);
-                    } else {
-                        this.nodeSpecificSettings[nodeId][setting] = this.getModalInputValue(setting);
-                    }
-                    hasSettings = true;
-                } else if (this.nodeSpecificSettings[nodeId]) {
-                    const setting = checkbox.dataset.setting;
-                    if (this.nodeSpecificSettings[nodeId].hasOwnProperty(setting)) {
-                        delete this.nodeSpecificSettings[nodeId][setting]
-                    }
-                }
-            });
-            if (!hasSettings && this.nodeSpecificSettings[nodeId]) {
-                delete this.nodeSpecificSettings[nodeId];
-            }
-        });
-        setActiveNodes(newActiveNodes);
-        updateNodeStyles(this.globalSettings, this.nodeSpecificSettings);
-        updateCurrentEffect(this.globalSettings, this.nodeSpecificSettings, newActiveNodes);
-        window.nodeManager.deselectAllNodes();// Deselect all nodes using the node manager
+    // Function to save profile settings
+    saveNodeSettings(setActiveNodes, updateNodeStyles) {
+        // Update all settings from modal inputs
+        this.profileSettings.Colors = Array.from(this.modalElement.querySelectorAll('#modalColorContainer input')).map(input => input.value);
+        this.profileSettings.NumberOfColors = this.profileSettings.Colors.length;
+        this.profileSettings.Behavior = parseInt(this.getModalInputValue('desiredBehavior') ?? 0);
+        this.profileSettings.Direction = parseInt(this.getModalInputValue('rippleDirection') ?? -1);
+        this.profileSettings.DelayBetweenRipples_ms = parseInt(this.getModalInputValue('rippleDelay') ?? 1000);
+        this.profileSettings.RippleLifeSpan = parseInt(this.getModalInputValue('rippleLifeSpan') ?? 3000);
+        this.profileSettings.RippleSpeed = parseFloat(this.getModalInputValue('rippleSpeed') ?? 1.0);
+        this.profileSettings.Decay = parseFloat(this.getModalInputValue('decayPerTick') ?? 0.985);
+        this.profileSettings.RainbowDeltaPerTick = parseInt(this.getModalInputValue('hueDeltaTick') ?? 100);
+
+        // Update active nodes from current state
+        setActiveNodes(this.activeNodes);
+        updateNodeStyles(this.profileSettings);
+        window.nodeManager.deselectAllNodes();
     }
     // Function to discard node settings
-    discardNodeSettings(setActiveNodes, updateNodeStyles, updateCurrentEffect) {
+    discardNodeSettings(setActiveNodes, updateNodeStyles) {
         console.log('Restoring settings to:', this.initialSettings)
-        // Restore active nodes
         setActiveNodes(this.initialSettings.activeNodes);
-        // Restore node specific settings
-        this.nodeSpecificSettings = JSON.parse(JSON.stringify(this.initialSettings.nodeSpecificSettings));
-        updateNodeStyles(this.globalSettings, this.nodeSpecificSettings);
-        updateCurrentEffect(this.globalSettings, this.nodeSpecificSettings, this.initialSettings.activeNodes);
-        window.nodeManager.deselectAllNodes();// Deselect all nodes using the node manager
+        this.profileSettings = JSON.parse(JSON.stringify(this.initialSettings.profileSettings));
+        updateNodeStyles(this.profileSettings);
+        window.nodeManager.deselectAllNodes();
     }
 }
 
 
 let modal;
 
-function initModalManager(nodeSpecificSettings, globalSettings, updateNodeStyles, updateModal, updateCurrentEffect, setActiveNodes, getActiveNodes) {
+// Helper: read current modal inputs into profileSettings and sync to ESP32
+function readModalAndSync(modal) {
+    const ps = modal.profileSettings;
+    ps.Colors = Array.from(modal.modalElement.querySelectorAll('#modalColorContainer input')).map(input => input.value);
+    ps.NumberOfColors = ps.Colors.length;
+    ps.Behavior = parseInt(modal.getModalInputValue('desiredBehavior') ?? 0);
+    ps.Direction = parseInt(modal.getModalInputValue('rippleDirection') ?? -1);
+    ps.DelayBetweenRipples_ms = parseInt(modal.getModalInputValue('rippleDelay') ?? 1000);
+    ps.RippleLifeSpan = parseInt(modal.getModalInputValue('rippleLifeSpan') ?? 3000);
+    ps.RippleSpeed = parseFloat(modal.getModalInputValue('rippleSpeed') ?? 1.0);
+    ps.Decay = parseFloat(modal.getModalInputValue('decayPerTick') ?? 0.985);
+    ps.RainbowDeltaPerTick = parseInt(modal.getModalInputValue('hueDeltaTick') ?? 100);
+    if (window.mainJS && window.mainJS.syncToMicrocontroller) {
+        window.mainJS.syncToMicrocontroller();
+    }
+}
+
+function initModalManager(profileSettings, updateNodeStyles, updateModal, setActiveNodes, getActiveNodes) {
     const modalElement = document.getElementById('modal');
     const overlayElement = document.getElementById('overlay');
     const selectedNodesDisplay = document.getElementById('selectedNodesDisplay');
-    const activateCheckbox = document.getElementById('activateNodeCheckbox');
     const modalSettings = document.querySelector('.modal-settings');
 
-    modal = new Modal(modalElement, overlayElement, selectedNodesDisplay, activateCheckbox, modalSettings, globalSettings, nodeSpecificSettings);
-    // Add listener to the close modal button
+    modal = new Modal(modalElement, overlayElement, selectedNodesDisplay, modalSettings, profileSettings);
+
+    // Live sync: attach change listeners to all modal inputs
+    Object.values(modal.modalInputs).forEach(input => {
+        if (input && input.tagName) {
+            input.addEventListener('change', () => readModalAndSync(modal));
+        }
+    });
+
+    // Live sync: delegate change events on color container for dynamically added color inputs
+    const modalColorContainer = document.getElementById('modalColorContainer');
+    modalColorContainer.addEventListener('change', () => readModalAndSync(modal));
 
     // Add listener for closing the modal with ESC key
     document.addEventListener('keydown', function (event) {
         if (event.key === 'Escape') {
-            modal.closeModal(setActiveNodes, updateNodeStyles, updateCurrentEffect);
+            modal.closeModal(setActiveNodes, updateNodeStyles);
         }
     });
     const saveNodeButton = document.getElementById('saveNodeButton');
     const discardNodeButton = document.getElementById('discardNodeButton');
     saveNodeButton.addEventListener('click', function () {
-        modal.saveNodeSettings(setActiveNodes, updateNodeStyles, updateCurrentEffect);
-        modal.closeModal(setActiveNodes, updateNodeStyles, updateCurrentEffect);
+        modal.saveNodeSettings(setActiveNodes, updateNodeStyles);
+        modal.closeModal(setActiveNodes, updateNodeStyles);
     });
     discardNodeButton.addEventListener('click', function () {
-        modal.discardNodeSettings(setActiveNodes, updateNodeStyles, updateCurrentEffect);
-        modal.closeModal(setActiveNodes, updateNodeStyles, updateCurrentEffect);
+        modal.discardNodeSettings(setActiveNodes, updateNodeStyles);
+        modal.closeModal(setActiveNodes, updateNodeStyles);
     });
     // Add logic for adding more modal colors
     const addModalColorButton = document.getElementById('addModalColorButton');
-    const modalColorContainer = document.getElementById('modalColorContainer');
     addModalColorButton.addEventListener('click', () => {
         if (modalColorContainer.children.length < 25) {
             const colorInput = document.createElement('input');
             colorInput.type = 'color';
             colorInput.value = '#ffffff'; // Default color
             colorInput.classList.add('color-swatch');
-            // Disable the color swatches when the checkbox is not checked
-            const colorEditCheckbox = Array.from(document.getElementById('modal').querySelectorAll('.edit-button-checkbox')).find(checkbox => checkbox.dataset.setting === 'startingColor');
-            if (colorEditCheckbox && !colorEditCheckbox.checked) {
-                colorInput.disabled = true;
-            }
-            // Add the event listener here
-            colorInput.addEventListener('click', function (event) {
-                const colorEditCheckbox = Array.from(document.getElementById('modal').querySelectorAll('.edit-button-checkbox')).find(checkbox => checkbox.dataset.setting === 'startingColor');
-                if (colorEditCheckbox && !colorEditCheckbox.checked) {
-                    event.preventDefault();
-                    return;
-                }
-                this.showPicker();
-            });
+            colorInput.disabled = false; // Always enabled
             modalColorContainer.appendChild(colorInput);
+            readModalAndSync(modal);
         }
     });
     // Add logic for removing modal colors
@@ -492,6 +282,7 @@ function initModalManager(nodeSpecificSettings, globalSettings, updateNodeStyles
     removeModalColorButton.addEventListener('click', () => {
         if (modalColorContainer.children.length > 1) {
             modalColorContainer.removeChild(modalColorContainer.lastChild);
+            readModalAndSync(modal);
         }
     });
     // Add logic for rainbow modal colors button
@@ -506,22 +297,10 @@ function initModalManager(nodeSpecificSettings, globalSettings, updateNodeStyles
             colorInput.type = 'color';
             colorInput.value = color;
             colorInput.classList.add('color-swatch');
-            // Disable the color swatches when the checkbox is not checked
-            const colorEditCheckbox = Array.from(document.getElementById('modal').querySelectorAll('.edit-button-checkbox')).find(checkbox => checkbox.dataset.setting === 'startingColor');
-            if (colorEditCheckbox && !colorEditCheckbox.checked) {
-                colorInput.disabled = true;
-            }
-            // Add the event listener here
-            colorInput.addEventListener('click', function (event) {
-                const colorEditCheckbox = Array.from(document.getElementById('modal').querySelectorAll('.edit-button-checkbox')).find(checkbox => checkbox.dataset.setting === 'startingColor');
-                if (colorEditCheckbox && !colorEditCheckbox.checked) {
-                    event.preventDefault();
-                    return;
-                }
-                this.showPicker();
-            });
+            colorInput.disabled = false; // Always enabled
             colorContainer.appendChild(colorInput);
         });
+        readModalAndSync(modal);
     });
     // Add logic for random modal colors button
     const modalRandomButton = document.getElementById('modalRandomButton');
@@ -535,22 +314,10 @@ function initModalManager(nodeSpecificSettings, globalSettings, updateNodeStyles
             colorInput.type = 'color';
             colorInput.value = color;
             colorInput.classList.add('color-swatch');
-            // Disable the color swatches when the checkbox is not checked
-            const colorEditCheckbox = Array.from(document.getElementById('modal').querySelectorAll('.edit-button-checkbox')).find(checkbox => checkbox.dataset.setting === 'startingColor');
-            if (colorEditCheckbox && !colorEditCheckbox.checked) {
-                colorInput.disabled = true;
-            }
-            // Add the event listener here
-            colorInput.addEventListener('click', function (event) {
-                const colorEditCheckbox = Array.from(document.getElementById('modal').querySelectorAll('.edit-button-checkbox')).find(checkbox => checkbox.dataset.setting === 'startingColor');
-                if (colorEditCheckbox && !colorEditCheckbox.checked) {
-                    event.preventDefault();
-                    return;
-                }
-                this.showPicker();
-            });
+            colorInput.disabled = false; // Always enabled
             colorContainer.appendChild(colorInput);
         });
+        readModalAndSync(modal);
     });
     // Add logic for similar modal colors button
     const modalSimilarButton = document.getElementById('modalSimilarButton');
@@ -565,29 +332,16 @@ function initModalManager(nodeSpecificSettings, globalSettings, updateNodeStyles
             colorInput.type = 'color';
             colorInput.value = color;
             colorInput.classList.add('color-swatch');
-            // Disable the color swatches when the checkbox is not checked
-            const colorEditCheckbox = Array.from(document.getElementById('modal').querySelectorAll('.edit-button-checkbox')).find(checkbox => checkbox.dataset.setting === 'startingColor');
-            if (colorEditCheckbox && !colorEditCheckbox.checked) {
-                colorInput.disabled = true;
-            }
-            // Add the event listener here
-            colorInput.addEventListener('click', function (event) {
-                const colorEditCheckbox = Array.from(document.getElementById('modal').querySelectorAll('.edit-button-checkbox')).find(checkbox => checkbox.dataset.setting === 'startingColor');
-                if (colorEditCheckbox && !colorEditCheckbox.checked) {
-                    event.preventDefault();
-                    return;
-                }
-                this.showPicker();
-            });
+            colorInput.disabled = false; // Always enabled
             colorContainer.appendChild(colorInput);
         });
+        readModalAndSync(modal);
     });
 }
 
-function updateModal(selectedNodes, activeNodes, nodeSpecificSettings, globalSettings, updateNodeStyles) {
+function updateModal(selectedNodes, activeNodes, profileSettings, updateNodeStyles) {
     if (modal) {
-        modal.globalSettings = globalSettings;
-        modal.nodeSpecificSettings = nodeSpecificSettings;
+        modal.profileSettings = profileSettings;
         modal.updateModalDisplay(selectedNodes, activeNodes);
     }
 }

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPTIONS Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>OPTIONS Request Test</h1>
+    <p>This page tests if your microcontroller properly handles OPTIONS requests for CORS.</p>
+    
+    <button onclick="testOptions()">Test OPTIONS Request</button>
+    <button onclick="testGet()">Test GET Request</button>
+    
+    <div id="results"></div>
+
+    <script>
+        async function testOptions() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="info">Testing OPTIONS request...</div>';
+            
+            try {
+                console.log('Testing OPTIONS request...');
+                const response = await fetch('http://192.168.100.37/getCurrentProfiles', {
+                    method: 'OPTIONS',
+                    mode: 'cors',
+                    headers: {
+                        'Origin': 'http://localhost',
+                        'Access-Control-Request-Method': 'GET',
+                        'Access-Control-Request-Headers': 'Content-Type'
+                    }
+                });
+                
+                console.log('OPTIONS Response:', response.status, response.statusText);
+                console.log('CORS Headers:', {
+                    'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
+                    'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods'),
+                    'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers')
+                });
+                
+                if (response.ok) {
+                    const corsOrigin = response.headers.get('Access-Control-Allow-Origin');
+                    const corsMethods = response.headers.get('Access-Control-Allow-Methods');
+                    const corsHeaders = response.headers.get('Access-Control-Allow-Headers');
+                    
+                    resultsDiv.innerHTML += `
+                        <div class="success">
+                            <h3>✅ OPTIONS Request Successful</h3>
+                            <p>Status: ${response.status} ${response.statusText}</p>
+                            <p>Access-Control-Allow-Origin: ${corsOrigin || 'Not set'}</p>
+                            <p>Access-Control-Allow-Methods: ${corsMethods || 'Not set'}</p>
+                            <p>Access-Control-Allow-Headers: ${corsHeaders || 'Not set'}</p>
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML += `
+                        <div class="error">
+                            <h3>❌ OPTIONS Request Failed</h3>
+                            <p>Status: ${response.status} ${response.statusText}</p>
+                            <p>This means your microcontroller doesn't have an OPTIONS handler for CORS.</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('OPTIONS Error:', error);
+                resultsDiv.innerHTML += `
+                    <div class="error">
+                        <h3>❌ OPTIONS Request Error</h3>
+                        <p>Error: ${error.message}</p>
+                        <p>Type: ${error.name}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        async function testGet() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML += '<div class="info">Testing GET request...</div>';
+            
+            try {
+                console.log('Testing GET request...');
+                const response = await fetch('http://192.168.100.37/getCurrentProfiles', {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('GET Response:', response.status, response.statusText);
+                
+                if (response.ok) {
+                    const text = await response.text();
+                    console.log('GET Response Text:', text);
+                    
+                    resultsDiv.innerHTML += `
+                        <div class="success">
+                            <h3>✅ GET Request Successful</h3>
+                            <p>Status: ${response.status} ${response.statusText}</p>
+                            <p>Response length: ${text.length} characters</p>
+                            <pre>${text.substring(0, 500)}${text.length > 500 ? '...' : ''}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML += `
+                        <div class="error">
+                            <h3>❌ GET Request Failed</h3>
+                            <p>Status: ${response.status} ${response.statusText}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('GET Error:', error);
+                resultsDiv.innerHTML += `
+                    <div class="error">
+                        <h3>❌ GET Request Error</h3>
+                        <p>Error: ${error.message}</p>
+                        <p>Type: ${error.name}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Auto-test on page load
+        window.addEventListener('load', () => {
+            testOptions();
+            setTimeout(testGet, 1000);
+        });
+    </script>
+</body>
+</html>

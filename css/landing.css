@@ -156,6 +156,12 @@ main {
     color: var(--text-color);
 }
 
+.header-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
 .refresh-button {
     background: none;
     border: 2px solid var(--border-color);
@@ -170,6 +176,52 @@ main {
     background-color: var(--primary-color);
     color: white;
     border-color: var(--primary-color);
+}
+
+.create-button {
+    background: none;
+    border: 2px solid var(--success-color);
+    padding: 0.5rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: var(--success-color);
+    transition: all var(--transition-duration);
+    min-width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.create-button:hover {
+    background-color: var(--success-color);
+    color: white;
+    border-color: var(--success-color);
+    transform: scale(1.05);
+}
+
+.restore-button {
+    background: none;
+    border: 2px solid var(--warning-color);
+    padding: 0.5rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: var(--warning-color);
+    transition: all var(--transition-duration);
+    min-width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.restore-button:hover {
+    background-color: var(--warning-color);
+    color: white;
+    border-color: var(--warning-color);
+    transform: scale(1.05);
 }
 
 /* Profiles Grid */
@@ -323,6 +375,15 @@ main {
     background-color: #218838;
 }
 
+.deactivate-button {
+    background-color: var(--error-color);
+    color: white;
+}
+
+.deactivate-button:hover {
+    background-color: #c82333;
+}
+
 .edit-button {
     background-color: var(--primary-color);
     color: white;
@@ -412,6 +473,15 @@ main {
 
 .confirm-button:hover {
     background-color: #0056b3;
+}
+
+.restore-button {
+    background-color: var(--warning-color);
+    color: white;
+}
+
+.restore-button:hover {
+    background-color: #e0a800;
 }
 
 /* Overlay */

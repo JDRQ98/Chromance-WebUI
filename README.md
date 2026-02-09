@@ -28,8 +28,9 @@ A web-based interface for managing lighting profiles for the Chromance LED syste
 The application communicates with the microcontroller at `http://hexagono.local`:
 
 - `GET /getCurrentProfiles` - Retrieve all available profiles
-- `POST /selectProfile` - Activate a specific profile
-- `POST /UpdateProfile` - Save profile changes
+- `POST /updateProfile` - Update profile settings, activate/deactivate profiles, or create new profiles
+  - Can send partial updates (e.g., just `ProfileIndex` and `Active` to toggle activation)
+  - Automatically creates new profiles when `ProfileIndex` exceeds existing profiles
 
 ## Data Format
 

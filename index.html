@@ -33,7 +33,11 @@
         <div id="profilesContainer" class="profiles-container" style="display: none;">
             <div class="profiles-header">
                 <h2>Available Profiles</h2>
-                <button id="refreshButton" class="refresh-button" title="Refresh profiles">🔄</button>
+                <div class="header-actions">
+                    <button id="createProfileButton" class="create-button" title="Create new profile">➕</button>
+                    <button id="refreshButton" class="refresh-button" title="Refresh profiles">🔄</button>
+                    <button id="restoreDefaultsButton" class="restore-button" title="Restore default profiles">🔄</button>
+                </div>
             </div>
             <div id="profilesGrid" class="profiles-grid">
                 <!-- Profile cards will be dynamically inserted here -->
@@ -93,6 +97,19 @@
             <div class="modal-actions">
                 <button id="modalCancel" class="modal-button cancel-button">Cancel</button>
                 <button id="modalConfirm" class="modal-button confirm-button">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Restore Defaults Confirmation Modal -->
+    <div id="restoreDefaultsModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>⚠️ Restore Default Profiles</h3>
+            <p>This will clear all current profiles and restore the default configuration. This action cannot be undone.</p>
+            <p><strong>Are you sure you want to continue?</strong></p>
+            <div class="modal-actions">
+                <button id="restoreCancel" class="modal-button cancel-button">Cancel</button>
+                <button id="restoreConfirm" class="modal-button restore-button">Restore Defaults</button>
             </div>
         </div>
     </div>

@@ -75,6 +75,29 @@ header h1 {
     display: block;
 }
 
+/* Edit Node Button */
+.edit-node-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all var(--transition-duration);
+    box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+.edit-node-button:hover {
+    background-color: #0056b3;
+    transform: scale(1.1);
+}
+
 .hex-wrap {
     position: absolute;
     display: flex;
@@ -211,8 +234,6 @@ header h1 {
     display: none;
     transition: opacity 0.3s ease;
 }
-.overlay.show {
-}
 
 .modal button {
     padding: 5px 10px;
@@ -228,10 +249,6 @@ header h1 {
 }
 
 .modal-settings {
-    display: none;
-}
-
-.modal-settings.show {
     display: block;
 }
 
@@ -433,7 +450,6 @@ input:checked + .slider:before {
     cursor: pointer;
     border-radius: var(--button-radius);
     border: 1px solid var(--border-color);
-    background-color: var(--background-color);
     transition: background-color var(--transition-duration);
 }
 
@@ -489,6 +505,81 @@ aside {
 
 .submit-buttons button:hover {
     background-color: #bfbfbf;
+}
+
+/* ---------- Apply and Discard Button Styles ---------- */
+.apply-button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--button-radius);
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all var(--transition-duration);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.apply-button:hover {
+    background-color: #0056b3;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+.discard-button {
+    background-color: #dc3545;
+    border: none;
+    border-radius: var(--button-radius);
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all var(--transition-duration);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.discard-button:hover {
+    background-color: #c82333;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+/* ---------- Modal Button Styles ---------- */
+.modal-save-button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--button-radius);
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all var(--transition-duration);
+}
+
+.modal-save-button:hover {
+    background-color: #0056b3;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+.modal-discard-button {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: var(--button-radius);
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all var(--transition-duration);
+}
+
+.modal-discard-button:hover {
+    background-color: #c82333;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
 }
 
 /* ---------- Setting Container Style ---------- */
@@ -613,8 +704,8 @@ aside {
     display: inline-flex;
 }
 
-/* ---------- Effect Selector Styles ---------- */
-.effect-selector {
+/* ---------- Profile Selector Styles ---------- */
+.profile-selector {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -622,21 +713,20 @@ aside {
     margin-bottom: 20px;
 }
 
-.effect-selector-container {
+.profile-selector-container {
     display: flex;
     align-items: center;
     gap: 5px;
 }
 
-#effectDropdown {
+#profileDropdown {
     padding: 8px;
     border-radius: 4px;
     border: 1px solid var(--border-color);
     min-width: 150px;
 }
 
-.effect-selector button,
-.global-settings-modal .submit-buttons button,
+.profile-selector button,
 .modal-buttons button{
     padding: 8px;
     cursor: pointer;
@@ -651,38 +741,20 @@ aside {
     transition: background-color var(--transition-duration);
 }
 
-/*Specific color for each effect button*/
-.effect-selector button[title="Edit Effect"] {
-    background-color: #ffa500;
-    /* Orange */
-    color: #fff;
-    margin-right: 20px;
-}
-
-.effect-selector button[title="Add Effect"] {
+/*Specific color for each profile button*/
+.profile-selector button[title="Add Profile"] {
     background-color: var(--secondary-color);
     /* Green */
     color: #fff;
 }
 
-.effect-selector button[title="Delete Effect"] {
+.profile-selector button[title="Delete Profile"] {
     background-color: #f44336;
     /* Red */
     color: #fff;
 }
 
-/*Style for the save button*/
-.effect-selector button[title="Save Changes"] {
-    width: auto;
-    height: auto;
-    padding: 8px 15px;
-    background-color: var(--primary-color);
-    /* Blue */
-    color: #fff;
-}
-
-.effect-selector button:active,
-.global-settings-modal .submit-buttons button:active,
+.profile-selector button:active,
 .modal-buttons button[title="Edit Node"]:active{
     background-color: #bfbfbf;
 }

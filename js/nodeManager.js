@@ -1,30 +1,30 @@
 // File: /js/nodeManager.js
 
 class Node {
-    constructor(id, element, wrapper, globalSettings, nodeSpecificSettings) {
+    constructor(id, element, wrapper, profileSettings) {
         this.id = id;
         this.element = element;
         this.wrapper = wrapper;
         this.state = 'inactive';
-        this.globalSettings = globalSettings;
-        this.nodeSpecificSettings = nodeSpecificSettings;
+        this.profileSettings = profileSettings;
         this.element.addEventListener('click', () => this.toggleSelect());
     }
     getSettings() {
-        return this.nodeSpecificSettings[this.id] || this.globalSettings
+        return this.profileSettings;
     }
     toggleSelect() {
-       console.log(`Node ${this.id} toggleSelect called. Current state: ${this.state}`); // ADDED LOG
-        if (this.state === 'inactive' || this.state === 'active') {
-             window.nodeManager.addSelectedNode(this)
-             this.select();
-        } else {
-            window.nodeManager.removeSelectedNode(this)
-            this.deselect();
+        console.log(`Node ${this.id} toggleSelect called. Current state: ${this.state}`);
+        // Toggle between active and inactive
+        if (this.state === 'inactive') {
+            this.activate();
+            window.nodeManager.addActiveNode(this);
+        } else if (this.state === 'active') {
+            this.deactivate();
+            window.nodeManager.removeActiveNode(this);
         }
-        if (window.modal) { // Check if window.modal is defined
-            console.log(`Updating modal from Node ${this.id}`);  // ADDED LOG
-            window.modal.updateModalDisplay(window.nodeManager.getSelectedNodes().map(node => node.element), window.nodeManager.getActiveNodes().map(node => node.id))
+        // Live sync node changes to ESP32
+        if (window.mainJS && window.mainJS.syncToMicrocontroller) {
+            window.mainJS.syncToMicrocontroller();
         }
     }
     select() {
@@ -63,48 +63,40 @@ class Node {
         }
     }
     applyColorAnimation() {
-        let colors = [];
-        let duration = 0;
-        const settings = this.getSettings();
-        if (settings.startingColor) {
-            colors = settings.startingColor;
-        } else {
-            colors = settings.colors;
-        }
-        if (settings.rippleDelay) {
-            duration = settings.rippleDelay;
-        } else {
-            duration = settings.rippleDelay;
-        }
+        let colors = this.profileSettings.Colors || ['#FF0000'];
+        let duration = this.profileSettings.DelayBetweenRipples_ms || 1000;
+        
         if (!Array.isArray(colors)) {
             colors = [colors];
         }
-        // Ensure duration is a number
+        
         if (typeof duration !== 'number') {
             duration = Number(duration);
         }
-        //Set a default color if no colors are present
+        
         if (colors.length === 0) {
             colors = ['#FF0000']
         }
+        
         // Set the CSS variables for the animation
         colors.forEach((color, index) => {
             this.wrapper.style.setProperty(`--active-node-color-${index}`, color);
         });
+        
         // If there are less than 6 colors, repeat the colors to fill the gaps
         for (let i = colors.length; i < 6; i++) {
             this.wrapper.style.setProperty(`--active-node-color-${i}`, colors[i % colors.length]);
         }
+        
         // Set the duration
         this.wrapper.style.setProperty('--pulse-duration', `${duration / 1000}s`);
     }
 }
 
 class NodeManager {
-    constructor(globalSettings, nodeSpecificSettings) {
+    constructor(profileSettings) {
         this.nodes = [];
-        this.globalSettings = globalSettings;
-        this.nodeSpecificSettings = nodeSpecificSettings;
+        this.profileSettings = profileSettings;
         this.selectedNodes = [];
         this.activeNodes = [];
         this.borderNodes = [0, 3, 5, 13, 15, 18];
@@ -119,7 +111,7 @@ class NodeManager {
         nodeElements.forEach(element => {
             const id = Number(element.dataset.id);
             const wrapper = element.closest('.hex-wrap');
-            const node = new Node(id, element, wrapper, this.globalSettings, this.nodeSpecificSettings);
+            const node = new Node(id, element, wrapper, this.profileSettings);
             this.nodes.push(node);
         });
         //Set node 9 as active by default
@@ -135,6 +127,16 @@ class NodeManager {
     getActiveNodes() {
         return this.activeNodes;
     }
+    addActiveNode(node) {
+        if (!this.activeNodes.includes(node)) {
+            this.activeNodes.push(node);
+        }
+    }
+    
+    removeActiveNode(node) {
+        this.activeNodes = this.activeNodes.filter(activeNode => activeNode !== node);
+    }
+    
     addSelectedNode(node){
            if (!this.selectedNodes.includes(node)){
                this.selectedNodes.push(node)
@@ -205,15 +207,31 @@ class NodeManager {
          this.selectedNodes.forEach(node => node.deselect());
           this.selectedNodes = [];
     }
-     selectBiNodes() {
-         this.selectNodes(this.borderNodes);
-     }
-     selectTriNodes() {
-          this.selectNodes(this.triNodes);
-     }
-     selectQuadNodes() {
-          this.selectNodes(this.quadNodes);
-     }
+     toggleBiNodes() {
+        this.toggleNodes(this.borderNodes);
+    }
+    
+    toggleTriNodes() {
+        this.toggleNodes(this.triNodes);
+    }
+    
+    toggleQuadNodes() {
+        this.toggleNodes(this.quadNodes);
+    }
+    
+    toggleNodes(ids) {
+        this.nodes.forEach(node => {
+            if (ids.includes(node.id)) {
+                if (node.state === 'inactive') {
+                    node.activate();
+                    this.addActiveNode(node);
+                } else if (node.state === 'active') {
+                    node.deactivate();
+                    this.removeActiveNode(node);
+                }
+            }
+        });
+    }
       selectAllActive() {
           this.selectNodes(this.activeNodes.map(node => node.id));
      }
@@ -222,55 +240,60 @@ class NodeManager {
 
 let nodeManager;
 
-function initNodeManager(updateNodeStyles, updateModal, globalSettings, nodeSpecificSettings, updateCurrentEffect) {
-    nodeManager = new NodeManager(globalSettings, nodeSpecificSettings);
-       // Event listeners for selecting node categories
+function initNodeManager(updateNodeStyles, updateModal, profileSettings) {
+    nodeManager = new NodeManager(profileSettings);
+       // Event listeners for toggling node categories
     console.log('initNodeManager called') // ADDED LOG
-    document.getElementById('selectBiNodes').addEventListener('click', () => {
-         console.log('selectBiNodes button pressed') // ADDED LOG
-          nodeManager.selectBiNodes();
-           updateModal(nodeManager.getSelectedNodes().map(node => node.element), nodeManager.getActiveNodes().map(node => node.id), nodeSpecificSettings, globalSettings, updateNodeStyles);
+    document.getElementById('toggleBiNodes').addEventListener('click', () => {
+         console.log('toggleBiNodes button pressed') // ADDED LOG
+          nodeManager.toggleBiNodes();
+           updateNodeStyles(profileSettings);
+           if (window.mainJS && window.mainJS.syncToMicrocontroller) window.mainJS.syncToMicrocontroller();
     });
-    document.getElementById('selectTriNodes').addEventListener('click', () => {
-         console.log('selectTriNodes button pressed') // ADDED LOG
-        nodeManager.selectTriNodes()
-          updateModal(nodeManager.getSelectedNodes().map(node => node.element), nodeManager.getActiveNodes().map(node => node.id), nodeSpecificSettings, globalSettings, updateNodeStyles);
+    document.getElementById('toggleTriNodes').addEventListener('click', () => {
+         console.log('toggleTriNodes button pressed') // ADDED LOG
+        nodeManager.toggleTriNodes();
+        updateNodeStyles(profileSettings);
+        if (window.mainJS && window.mainJS.syncToMicrocontroller) window.mainJS.syncToMicrocontroller();
     });
-    document.getElementById('selectQuadNodes').addEventListener('click', () => {
-         console.log('selectQuadNodes button pressed') // ADDED LOG
-        nodeManager.selectQuadNodes()
-          updateModal(nodeManager.getSelectedNodes().map(node => node.element), nodeManager.getActiveNodes().map(node => node.id), nodeSpecificSettings, globalSettings, updateNodeStyles);
-    });
-     document.getElementById('selectAllActive').addEventListener('click', () => {
-          console.log('selectAllActive button pressed') // ADDED LOG
-         nodeManager.selectAllActive();
-           updateModal(nodeManager.getSelectedNodes().map(node => node.element), nodeManager.getActiveNodes().map(node => node.id), nodeSpecificSettings, globalSettings, updateNodeStyles);
-     });
-     document.getElementById('deselectAll').addEventListener('click', () => {
-          console.log('deselectAll button pressed') // ADDED LOG
-         nodeManager.deselectAllNodes();
-         updateModal([], nodeManager.getActiveNodes().map(node => node.id), nodeSpecificSettings, globalSettings, updateNodeStyles);
+    document.getElementById('toggleQuadNodes').addEventListener('click', () => {
+         console.log('toggleQuadNodes button pressed') // ADDED LOG
+        nodeManager.toggleQuadNodes();
+        updateNodeStyles(profileSettings);
+        if (window.mainJS && window.mainJS.syncToMicrocontroller) window.mainJS.syncToMicrocontroller();
     });
     document.getElementById('deactivateAllNodes').addEventListener('click', () => {
           console.log('deactivateAllNodes button pressed') // ADDED LOG
          nodeManager.deactivateAllNodes()
-        updateModal([], nodeManager.getActiveNodes().map(node => node.id), nodeSpecificSettings, globalSettings, updateNodeStyles);
-        updateCurrentEffect(globalSettings, nodeSpecificSettings, nodeManager.getActiveNodes().map(node => node.id));
+        updateModal([], nodeManager.getActiveNodes().map(node => node.id), profileSettings, updateNodeStyles);
+        if (window.mainJS && window.mainJS.syncToMicrocontroller) window.mainJS.syncToMicrocontroller();
     });
     document.getElementById('applyChanges').addEventListener('click', () => {
         console.log('Apply Changes button pressed');
         // Call the function to send the configuration to the microcontroller.
         window.mainJS.sendConfigurationToMicrocontroller();  // Access through window to avoid scope issues
     });
-      updateNodeStyles(globalSettings, nodeSpecificSettings);
+    
+    document.getElementById('discardChanges').addEventListener('click', async () => {
+        console.log('Discard Changes button pressed');
+        // Use smart discard that handles both new and existing profiles
+        if (window.mainJS && window.mainJS.smartDiscard) {
+            await window.mainJS.smartDiscard();
+        } else {
+            // Fallback: just reset active nodes to default
+            nodeManager.deactivateAllNodes();
+            nodeManager.activateNodes([9]); // Default to node 9
+            updateNodeStyles(profileSettings);
+        }
+    });
+      updateNodeStyles(profileSettings);
 }
 
 
 //Functions to be used outside this module
-function updateNodeStyles(globalSettings, nodeSpecificSettings) {
+function updateNodeStyles(profileSettings) {
     if (nodeManager) {
-      nodeManager.globalSettings = globalSettings;
-        nodeManager.nodeSpecificSettings = nodeSpecificSettings;
+        nodeManager.profileSettings = profileSettings;
         nodeManager.updateStyles();
     }
 }
