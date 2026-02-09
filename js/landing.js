@@ -3,6 +3,7 @@ class ProfileManager {
     constructor() {
         this.profiles = [];
         this.currentProfileIndex = -1;
+        this.brightnessTimeout = null;
         // Try hexagono.local first, fallback to IP address
         this.baseUrl = 'http://hexagono.local';
         this.fallbackUrl = 'http://192.168.100.37';
@@ -23,6 +24,16 @@ class ProfileManager {
         // Create profile button
         document.getElementById('createProfileButton').addEventListener('click', () => {
             this.createNewProfile();
+        });
+
+        // Brightness slider
+        const brightnessSlider = document.getElementById('brightnessSlider');
+        const brightnessValue = document.getElementById('brightnessValue');
+        brightnessSlider.addEventListener('input', () => {
+            brightnessValue.textContent = brightnessSlider.value;
+        });
+        brightnessSlider.addEventListener('change', () => {
+            this.sendBrightness(parseInt(brightnessSlider.value));
         });
 
         // Restore defaults button
@@ -121,6 +132,14 @@ class ProfileManager {
                 
                 console.log('Received data:', data);
                 
+                // Load brightness from response
+                if (data.Brightness !== undefined) {
+                    const slider = document.getElementById('brightnessSlider');
+                    const display = document.getElementById('brightnessValue');
+                    slider.value = data.Brightness;
+                    display.textContent = data.Brightness;
+                }
+
                 // Handle the data structure from your microcontroller
                 if (data.Profiles && Array.isArray(data.Profiles)) {
                     this.profiles = data.Profiles;
@@ -630,6 +649,27 @@ class ProfileManager {
                 }
             }, 300);
         }, 3000);
+    }
+
+    async sendBrightness(value) {
+        if (this.isDemoMode()) {
+            this.showNotification(`Demo: Brightness set to ${value}`, 'info');
+            return;
+        }
+        try {
+            const response = await fetch(`${this.baseUrl}/updateGlobalParameters`, {
+                method: 'POST',
+                mode: 'cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ Brightness: value })
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+        } catch (error) {
+            console.error('Error setting brightness:', error);
+            this.showNotification('Failed to update brightness', 'error');
+        }
     }
 
     showRestoreDefaultsModal() {

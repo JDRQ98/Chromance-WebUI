@@ -23,7 +23,7 @@ class Modal {
         // Add listener for closing the modal with overlay
         this.overlayElement.addEventListener('click', (event) => {
             if (event.target === this.overlayElement) {
-                this.closeModal(setActiveNodes, updateNodeStyles, updateCurrentEffect);
+                this.closeModal();
             }
         });
     }
@@ -58,22 +58,18 @@ class Modal {
         }
     }
     openModal() {
-        this.takeSnapshot();
         this.loadNodeSettings();
+        this.takeSnapshot(); // Snapshot AFTER loadNodeSettings so activeNodes is populated
         this.modalElement.classList.add('show');
         this.overlayElement.classList.add('show');
     }
-    closeModal(setActiveNodes, updateNodeStyles) {
+    closeModal() {
         this.modalElement.classList.remove('show');
         this.overlayElement.classList.remove('show');
         if (window.nodeManager) {
-            window.nodeManager.deselectAllNodes();//Call node manager's method to deselect all
+            window.nodeManager.deselectAllNodes();
         }
-        this.selectedNodes = []; // Clear selected nodes array
-        if (setActiveNodes && updateNodeStyles) {
-            setActiveNodes(getActiveNodes());
-            updateNodeStyles(this.profileSettings);
-        }
+        this.selectedNodes = [];
     }
     updateModalDisplay(selectedNodes, activeNodes) {
         console.log('Modal updateModalDisplay called with:', selectedNodes, activeNodes); // ADDED LOG
@@ -182,7 +178,7 @@ class Modal {
         // No longer needed - all inputs are always enabled
     }
     // Function to save profile settings
-    saveNodeSettings(setActiveNodes, updateNodeStyles) {
+    saveNodeSettings(updateNodeStyles) {
         // Update all settings from modal inputs
         this.profileSettings.Colors = Array.from(this.modalElement.querySelectorAll('#modalColorContainer input')).map(input => input.value);
         this.profileSettings.NumberOfColors = this.profileSettings.Colors.length;
@@ -194,18 +190,15 @@ class Modal {
         this.profileSettings.Decay = parseFloat(this.getModalInputValue('decayPerTick') ?? 0.985);
         this.profileSettings.RainbowDeltaPerTick = parseInt(this.getModalInputValue('hueDeltaTick') ?? 100);
 
-        // Update active nodes from current state
-        setActiveNodes(this.activeNodes);
+        // Active nodes are managed by nodeManager via the hex grid — don't override them here
         updateNodeStyles(this.profileSettings);
-        window.nodeManager.deselectAllNodes();
     }
     // Function to discard node settings
-    discardNodeSettings(setActiveNodes, updateNodeStyles) {
+    discardNodeSettings(updateNodeStyles) {
         console.log('Restoring settings to:', this.initialSettings)
-        setActiveNodes(this.initialSettings.activeNodes);
-        this.profileSettings = JSON.parse(JSON.stringify(this.initialSettings.profileSettings));
+        // Restore profile settings to snapshot, but don't override active nodes
+        Object.assign(this.profileSettings, JSON.parse(JSON.stringify(this.initialSettings.profileSettings)));
         updateNodeStyles(this.profileSettings);
-        window.nodeManager.deselectAllNodes();
     }
 }
 
@@ -251,18 +244,18 @@ function initModalManager(profileSettings, updateNodeStyles, updateModal, setAct
     // Add listener for closing the modal with ESC key
     document.addEventListener('keydown', function (event) {
         if (event.key === 'Escape') {
-            modal.closeModal(setActiveNodes, updateNodeStyles);
+            modal.closeModal();
         }
     });
     const saveNodeButton = document.getElementById('saveNodeButton');
     const discardNodeButton = document.getElementById('discardNodeButton');
     saveNodeButton.addEventListener('click', function () {
-        modal.saveNodeSettings(setActiveNodes, updateNodeStyles);
-        modal.closeModal(setActiveNodes, updateNodeStyles);
+        modal.saveNodeSettings(updateNodeStyles);
+        modal.closeModal();
     });
     discardNodeButton.addEventListener('click', function () {
-        modal.discardNodeSettings(setActiveNodes, updateNodeStyles);
-        modal.closeModal(setActiveNodes, updateNodeStyles);
+        modal.discardNodeSettings(updateNodeStyles);
+        modal.closeModal();
     });
     // Add logic for adding more modal colors
     const addModalColorButton = document.getElementById('addModalColorButton');
