@@ -780,3 +780,168 @@ aside {
     border-radius: 4px;
     border: 1px solid var(--border-color);
 }
+
+/* ---------- Profile Controls (top-level period + colors) ---------- */
+.profile-controls {
+    padding: 10px 15px;
+    background: #fff;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.profile-controls .setting-container {
+    margin-bottom: 8px;
+}
+
+.profile-controls .color-container {
+    margin-top: 5px;
+}
+
+/* ---------- Event Settings Panel ---------- */
+.event-settings-panel {
+    padding: 10px 15px;
+    background: #f0f4f8;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin: 10px 15px;
+}
+
+.event-settings-panel h3 {
+    margin: 0 0 8px 0;
+    font-size: 1rem;
+    color: var(--primary-color);
+}
+
+.event-settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 12px;
+}
+
+.event-settings-grid .setting-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.event-settings-grid label {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.event-settings-grid select,
+.event-settings-grid input[type="number"] {
+    padding: 4px 6px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+.event-settings-grid input[type="range"] {
+    width: 100%;
+}
+
+/* ---------- Timeline ---------- */
+.timeline-section {
+    padding: 10px 15px 5px;
+    margin: 0 15px;
+}
+
+.timeline-bar {
+    position: relative;
+    height: 40px;
+    background: linear-gradient(to right, #e0e0e0, #ccc);
+    border-radius: 6px;
+    margin-bottom: 4px;
+    cursor: pointer;
+}
+
+.timeline-marker {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    z-index: 2;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: background-color 0.2s, transform 0.1s;
+    user-select: none;
+    touch-action: none;
+}
+
+.timeline-marker:hover {
+    transform: translate(-50%, -50%) scale(1.15);
+}
+
+.timeline-marker.selected {
+    background: var(--secondary-color);
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.4), 0 2px 6px rgba(0,0,0,0.3);
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+.timeline-labels {
+    position: relative;
+    height: 18px;
+    font-size: 0.7rem;
+    color: #888;
+}
+
+.timeline-label {
+    position: absolute;
+    transform: translateX(-50%);
+}
+
+.timeline-label-end {
+    transform: translateX(-100%);
+}
+
+.timeline-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.add-event-button,
+.remove-event-button {
+    padding: 4px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--button-radius);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background-color var(--transition-duration);
+}
+
+.add-event-button {
+    background: var(--secondary-color);
+    color: white;
+    border: none;
+}
+
+.add-event-button:hover {
+    background: #45a049;
+}
+
+.remove-event-button {
+    background: #dc3545;
+    color: white;
+    border: none;
+}
+
+.remove-event-button:hover {
+    background: #c82333;
+}
+
+.beat-hint {
+    font-size: 0.75rem;
+    color: #888;
+    font-weight: normal;
+}

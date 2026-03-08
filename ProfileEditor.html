@@ -11,15 +11,15 @@
 <body>
     <header>
         <div class="header-top">
-            <button id="backButton" class="back-button" title="Back to Profile Manager" aria-label="Back to Profile Manager">← Back</button>
+            <button id="backButton" class="back-button" title="Back to Profile Manager" aria-label="Back to Profile Manager">&larr; Back</button>
             <h1 id="profileTitle">Profile editor: Default</h1>
         </div>
         <div class="profile-selector">
             <div class="profile-selector-container">
                 <select id="profileDropdown"></select>
-                <button id="editProfileNameButton" title="Edit Profile Name" aria-label="Edit Profile Name">✏️</button>
-                <button id="addProfileButton" title="Add Profile" aria-label="Add Profile">➕</button>
-                <button id="deleteProfileButton" title="Delete Profile" aria-label="Delete Profile">🗑️</button>
+                <button id="editProfileNameButton" title="Edit Profile Name" aria-label="Edit Profile Name">&#9998;</button>
+                <button id="addProfileButton" title="Add Profile" aria-label="Add Profile">+</button>
+                <button id="deleteProfileButton" title="Delete Profile" aria-label="Delete Profile">X</button>
             </div>
             <div id="profileNameEditContainer" style="display: none; margin-top: 10px;">
                 <input type="text" id="profileNameInput" placeholder="Enter profile name" style="padding: 8px; border-radius: 4px; border: 1px solid var(--border-color); width: 200px;">
@@ -29,104 +29,74 @@
         </div>
     </header>
     <main>
-        <div class="container" id="container">
-            <button id="editNodeButton" class="edit-node-button" title="Edit Node Properties" aria-label="Edit Node Properties">⚙️</button>
-            <!-- Nodes -->
-            <div class="hex-wrap">
-                <div title="node 0" class="hex" data-id="0"></div>
+        <!-- Profile-level controls -->
+        <div class="profile-controls">
+            <div class="setting-container">
+                <label for="profilePeriodSlider">Profile Period:</label>
+                <input type="range" id="profilePeriodSlider" min="500" max="60000" step="100" value="5000">
+                <span id="profilePeriodDisplay">5000ms</span>
             </div>
-            <div class="hex-wrap">
-                <div title="node 1" class="hex" data-id="1"></div>
-            </div>
-            <div class="hex-wrap">
-                <div title="node 2" class="hex" data-id="2"></div>
-            </div>
-            <div class="hex-wrap">
-                <div title="node 3" class="hex" data-id="3"></div>
-            </div>
-            <div class="hex-wrap">
-                <div title="node 4" class="hex" data-id="4"></div>
-            </div>
-            <div class="hex-wrap">
-                <div title="node 5" class="hex" data-id="5"></div>
-            </div>
-            <div class="hex-wrap">
-                <div title="node 6" class="hex" data-id="6"></div>
-            </div>
-            <div class="hex-wrap">
-                <div title="node 7" class="hex" data-id="7"></div>
-            </div>
-            <div class="hex-wrap">
-                <div title="node 8" class="hex" data-id="8"></div>
-            </div>
-            <div class="hex-wrap">
-                <div title="node 9" class="hex" data-id="9"></div>
-            </div>
-            <div class="hex-wrap">
-                <div title="node 10" class="hex" data-id="10"></div>
-            </div>
-            <div class="hex-wrap">
-                <div title="node 11" class="hex" data-id="11"></div>
-            </div>
-            <div class="hex-wrap">
-                <div title="node 12" class="hex" data-id="12"></div>
-            </div>
-            <div class="hex-wrap">
-                <div title="node 13" class="hex" data-id="13"></div>
-            </div>
-            <div class="hex-wrap">
-                <div title="node 14" class="hex" data-id="14"></div>
-            </div>
-            <div class="hex-wrap">
-                <div title="node 15" class="hex" data-id="15"></div>
-            </div>
-            <div class="hex-wrap">
-                <div title="node 16" class="hex" data-id="16"></div>
-            </div>
-            <div class="hex-wrap">
-                <div title="node 17" class="hex" data-id="17"></div>
-            </div>
-            <div class="hex-wrap">
-                <div title="node 18" class="hex" data-id="18"></div>
+            <div class="setting-container">
+                <label>Colors:</label>
+                <div class="color-button-container">
+                    <button id="addColorButton" class="add-color-button">+</button>
+                    <button id="removeColorButton" class="remove-color-button">-</button>
+                    <button id="rainbowButton">Rainbow</button>
+                    <button id="randomButton">Random</button>
+                    <button id="similarButton">Similar</button>
+                </div>
+                <div id="colorContainer" class="color-container"></div>
             </div>
         </div>
+
+        <!-- Hex Grid -->
+        <div class="container" id="container">
+            <!-- Nodes -->
+            <div class="hex-wrap"><div title="node 0" class="hex" data-id="0"></div></div>
+            <div class="hex-wrap"><div title="node 2" class="hex" data-id="2"></div></div>
+            <div class="hex-wrap"><div title="node 1" class="hex" data-id="1"></div></div>
+            <div class="hex-wrap"><div title="node 5" class="hex" data-id="5"></div></div>
+            <div class="hex-wrap"><div title="node 4" class="hex" data-id="4"></div></div>
+            <div class="hex-wrap"><div title="node 3" class="hex" data-id="3"></div></div>
+            <div class="hex-wrap"><div title="node 7" class="hex" data-id="7"></div></div>
+            <div class="hex-wrap"><div title="node 6" class="hex" data-id="6"></div></div>
+            <div class="hex-wrap"><div title="node 10" class="hex" data-id="10"></div></div>
+            <div class="hex-wrap"><div title="node 9" class="hex" data-id="9"></div></div>
+            <div class="hex-wrap"><div title="node 8" class="hex" data-id="8"></div></div>
+            <div class="hex-wrap"><div title="node 12" class="hex" data-id="12"></div></div>
+            <div class="hex-wrap"><div title="node 11" class="hex" data-id="11"></div></div>
+            <div class="hex-wrap"><div title="node 15" class="hex" data-id="15"></div></div>
+            <div class="hex-wrap"><div title="node 14" class="hex" data-id="14"></div></div>
+            <div class="hex-wrap"><div title="node 13" class="hex" data-id="13"></div></div>
+            <div class="hex-wrap"><div title="node 17" class="hex" data-id="17"></div></div>
+            <div class="hex-wrap"><div title="node 16" class="hex" data-id="16"></div></div>
+            <div class="hex-wrap"><div title="node 18" class="hex" data-id="18"></div></div>
+        </div>
+
         <aside>
-            <nav class="menu">
-            </nav>
             <nav class="controls">
                 <button id="toggleBiNodes">Toggle Bi-Nodes</button>
                 <button id="toggleTriNodes">Toggle Tri-Nodes</button>
                 <button id="toggleQuadNodes">Toggle Quad-Nodes</button>
-                <button id="deactivateAllNodes">De-activate all nodes</button>
-            </nav>
-            <nav class="menu">
-                <button id="discardChanges" class="discard-button" title="Discard Changes">↶</button>
-                <button id="applyChanges" class="apply-button" title="Apply Changes">💾</button>
+                <button id="deactivateAllNodes">Deactivate All</button>
             </nav>
         </aside>
-        <div class="overlay" id="overlay"></div>
-        <div class="modal" id="modal">
-            <h2>Profile Properties
-                <i class="info-icon">i
-                    <span class="tooltiptext">Configure the settings for this profile</span>
-                </i>
-            </h2>
-            <div class="modal-settings">
+
+        <!-- Event Settings Panel (inline, below grid) -->
+        <div class="event-settings-panel" id="eventSettingsPanel">
+            <h3 id="eventSettingsTitle">Event t0</h3>
+            <div class="event-settings-grid">
                 <div class="setting-container">
-                    <label>Starting Color(s):</label>
-                    <div class="color-button-container">
-                        <button id="addModalColorButton" class="add-color-button">+</button>
-                        <button id="removeModalColorButton" class="remove-color-button">-</button>
-                        <button id="modalRainbowButton">Rainbow</button>
-                        <button id="modalRandomButton">Random</button>
-                        <button id="modalSimilarButton">Similar</button>
-                    </div>
-                    <div id="modalColorContainer" class="color-container">
-                    </div>
+                    <label for="eventRippleType">Ripple Type:</label>
+                    <select id="eventRippleType">
+                        <option value="0">Single</option>
+                        <option value="1">Double</option>
+                        <option value="2">Shard</option>
+                    </select>
                 </div>
                 <div class="setting-container">
-                    <label for="modalDesiredBehavior">Desired behavior:</label>
-                    <select id="modalDesiredBehavior">
+                    <label for="eventBehavior">Behavior:</label>
+                    <select id="eventBehavior">
                         <option value="0">weaksauce</option>
                         <option value="1">feisty</option>
                         <option value="2">angry</option>
@@ -135,45 +105,50 @@
                     </select>
                 </div>
                 <div class="setting-container">
-                    <label for="modalRippleDirection">Ripple direction:</label>
-                    <select id="modalRippleDirection">
+                    <label for="eventDirection">Direction:</label>
+                    <select id="eventDirection">
                         <option value="-1">All directions</option>
-                        <option value="0">0°</option>
-                        <option value="1">60°</option>
-                        <option value="2">120°</option>
-                        <option value="3">180°</option>
-                        <option value="4">240°</option>
-                        <option value="5">300°</option>
+                        <option value="0">0 deg</option>
+                        <option value="1">60 deg</option>
+                        <option value="2">120 deg</option>
+                        <option value="3">180 deg</option>
+                        <option value="4">240 deg</option>
+                        <option value="5">300 deg</option>
                     </select>
                 </div>
                 <div class="setting-container">
-                    <label for="modalRippleDelay">Delay between ripples [1 - 60000]:</label>
-                    <input type="number" id="modalRippleDelay" min="1" max="60000" value="3000">
+                    <label for="eventSpeed">Speed:</label>
+                    <input type="range" id="eventSpeed" min="0.01" max="5" step="0.01" value="0.5">
+                    <span id="eventSpeedDisplay">0.50</span>
                 </div>
                 <div class="setting-container">
-                    <label for="modalRippleLifeSpan">Ripple life span [1 - 60000]:</label>
-                    <input type="number" id="modalRippleLifeSpan" min="1" max="60000" value="3000">
+                    <label for="eventLifeSpan">Lifespan: <span id="eventLifeSpanBeats" class="beat-hint"></span></label>
+                    <input type="number" id="eventLifeSpan" min="1" max="60000" value="3000">
                 </div>
                 <div class="setting-container">
-                    <label for="modalRippleSpeed">Ripple speed [0.01 - 5]:</label>
-                    <input type="range" id="modalRippleSpeed" min="0.01" max="5" step="0.01" value="0.5">
-                    <span id="modalRippleSpeedDisplay">0.5</span>
+                    <label for="eventHueDelta">Hue Delta:</label>
+                    <input type="number" id="eventHueDelta" min="0" max="2000" value="200">
                 </div>
-                <div class="setting-container">
-                    <label for="modalDecayPerTick">Decay per tick [0.90 - 1]:</label>
-                    <input type="range" id="modalDecayPerTick" min="0.90" max="1" step="0.001" value="0.985">
-                    <span id="modalDecayPerTickDisplay">0.985</span>
-                </div>
-                <div class="setting-container">
-                    <label for="modalHueDeltaTick">Hue delta per tick [0 - 500]:</label>
-                    <input type="number" id="modalHueDeltaTick" min="0" max="500" value="200">
-                </div>
-            </div>
-            <div class="modal-buttons">
-                <button id="saveNodeButton" class="modal-save-button">💾</button>
-                <button id="discardNodeButton" class="modal-discard-button">↶</button>
             </div>
         </div>
+
+        <!-- Timeline -->
+        <div class="timeline-section">
+            <div class="timeline-bar" id="timelineBar">
+                <!-- Event markers rendered by JS -->
+            </div>
+            <div class="timeline-labels" id="timelineLabels"></div>
+            <div class="timeline-actions">
+                <button id="addEventButton" class="add-event-button">+ Event</button>
+                <button id="removeEventButton" class="remove-event-button">- Event</button>
+            </div>
+        </div>
+
+        <!-- Apply/Discard -->
+        <nav class="menu">
+            <button id="discardChanges" class="discard-button" title="Discard Changes">Discard</button>
+            <button id="applyChanges" class="apply-button" title="Apply Changes">Apply</button>
+        </nav>
     </main>
     <script type="module" src="js/main.js"></script>
 </body>

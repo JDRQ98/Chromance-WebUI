@@ -1,9 +1,56 @@
 // Landing Page JavaScript
+let GlobalParameters_MasterFireEnabled = true;
+
+// Hex topology constants (mirror mapping.cpp)
+const HEX_NODE_POSITIONS = [
+    [2,0],[1,1],[3,1],[0,2],[2,2],[4,2],
+    [1,3],[3,3],[0,4],[2,4],[4,4],
+    [1,5],[3,5],[0,6],[2,6],[4,6],
+    [1,7],[3,7],[2,8]
+];
+const HEX_SEGMENT_CONNECTIONS = [
+    [17,18],[15,17],[10,15],[7,10],[7,9],[9,12],[12,17],[14,17],
+    [4,9],[1,4],[0,1],[0,2],[2,5],[5,10],[10,12],
+    [16,18],[13,16],[8,13],[6,8],[6,9],[9,14],[14,16],
+    [11,16],[8,11],[3,8],[1,3],[1,6],[9,11],[2,4],[2,7]
+];
+// Precompute: for each node, which segment indices touch it
+const HEX_NODE_SEGMENT_MAP = (() => {
+    const map = Array.from({length: 19}, () => []);
+    HEX_SEGMENT_CONNECTIONS.forEach(([n1, n2], si) => {
+        map[n1].push(si);
+        map[n2].push(si);
+    });
+    return map;
+})();
+
 class ProfileManager {
     constructor() {
         this.profiles = [];
         this.currentProfileIndex = -1;
         this.brightnessTimeout = null;
+        this.sequencerState = {
+            enabled: false,
+            mode: 0,
+            dwellTime: 30,
+            currentProfile: 0
+        };
+        this.bpmState = {
+            bpm: 120.0,
+            tapTimes: [],
+            tapTimeout: null,
+            beatPulseInterval: null,
+            lockSpeedToBPM: false
+        };
+        this.stableColorState = {
+            mode: false,          // false = ripple, true = stable color
+            color: '#0000ff',
+            pulseFrequency: 0.3,
+            pulseDepth: 0.4,
+            segments: new Array(30).fill(true),
+            selectionMode: 'segment',   // 'segment' | 'node'
+            nodeSelection: new Array(19).fill(true)
+        };
         // Try hexagono.local first, fallback to IP address
         this.baseUrl = 'http://hexagono.local';
         this.fallbackUrl = 'http://192.168.100.37';
@@ -34,6 +81,132 @@ class ProfileManager {
         });
         brightnessSlider.addEventListener('change', () => {
             this.sendBrightness(parseInt(brightnessSlider.value));
+        });
+
+        // Sequencer toggle
+        document.getElementById('sequencerToggle').addEventListener('change', (e) => {
+            this.setSequencerEnabled(e.target.checked);
+        });
+
+        // Sequencer mode
+        document.getElementById('sequencerMode').addEventListener('change', (e) => {
+            this.sendSequencerUpdate({ SequencerMode: parseInt(e.target.value) });
+        });
+
+        // Sequencer dwell time
+        const dwellSlider = document.getElementById('sequencerDwell');
+        const dwellValue = document.getElementById('dwellValue');
+        dwellSlider.addEventListener('input', () => {
+            dwellValue.textContent = dwellSlider.value;
+        });
+        dwellSlider.addEventListener('change', () => {
+            this.sendSequencerUpdate({ SequencerDwellTime_s: parseInt(dwellSlider.value) });
+        });
+
+        // BPM controls
+        const bpmInput = document.getElementById('bpmInput');
+        const bpmSlider = document.getElementById('bpmSlider');
+
+        bpmInput.addEventListener('change', () => {
+            const val = parseFloat(bpmInput.value);
+            if (!isNaN(val) && val >= 40 && val <= 300) {
+                this.setBPM(val);
+            } else {
+                bpmInput.value = this.bpmState.bpm.toFixed(1);
+            }
+        });
+
+        bpmSlider.addEventListener('input', () => {
+            bpmInput.value = parseFloat(bpmSlider.value).toFixed(1);
+        });
+        bpmSlider.addEventListener('change', () => {
+            this.setBPM(parseFloat(bpmSlider.value));
+        });
+
+        document.getElementById('tapTempoButton').addEventListener('click', () => {
+            this.tapTempo();
+        });
+
+        document.getElementById('bpmDown1').addEventListener('click', () => this.adjustBPM(-1));
+        document.getElementById('bpmUp1').addEventListener('click', () => this.adjustBPM(1));
+        document.getElementById('bpmDown10').addEventListener('click', () => this.adjustBPM(-10));
+        document.getElementById('bpmUp10').addEventListener('click', () => this.adjustBPM(10));
+
+        document.getElementById('lockSpeedToggle').addEventListener('change', (e) => {
+            this.bpmState.lockSpeedToBPM = e.target.checked;
+        });
+
+        // Keyboard hotkeys
+        document.addEventListener('keydown', (e) => this.handleHotkey(e));
+
+        // Mode toggle
+        document.getElementById('modeRippleBtn').addEventListener('click', () => {
+            if (this.stableColorState.mode) this.setStableColorMode(false);
+        });
+        document.getElementById('modeStableBtn').addEventListener('click', () => {
+            if (!this.stableColorState.mode) this.setStableColorMode(true);
+        });
+
+        // Stable color controls
+        document.getElementById('stableColorPicker').addEventListener('change', (e) => {
+            this.stableColorState.color = e.target.value;
+            this.sendGlobalParam({ StableColorHue: e.target.value });
+            this.buildStableColorSVG();
+            this.renderFavorites(); // update active swatch highlight
+        });
+
+        // Add current color to favorites
+        document.getElementById('addFavoriteBtn').addEventListener('click', () => {
+            const color = this.stableColorState.color;
+            const favs = this.loadFavorites();
+            if (!favs.includes(color)) {
+                favs.push(color);
+                this.saveFavorites(favs);
+                this.renderFavorites();
+            }
+        });
+
+        const pulseFreqSlider = document.getElementById('pulseFreqSlider');
+        const pulseFreqValue = document.getElementById('pulseFreqValue');
+        pulseFreqSlider.addEventListener('input', () => {
+            const hz = parseInt(pulseFreqSlider.value) / 10;
+            pulseFreqValue.textContent = hz.toFixed(2);
+        });
+        pulseFreqSlider.addEventListener('change', () => {
+            const hz = parseInt(pulseFreqSlider.value) / 10;
+            this.stableColorState.pulseFrequency = hz;
+            this.sendGlobalParam({ PulseFrequency: hz });
+        });
+
+        const pulseDepthSlider = document.getElementById('pulseDepthSlider');
+        const pulseDepthValue = document.getElementById('pulseDepthValue');
+        pulseDepthSlider.addEventListener('input', () => {
+            pulseDepthValue.textContent = pulseDepthSlider.value;
+        });
+        pulseDepthSlider.addEventListener('change', () => {
+            const depth = parseInt(pulseDepthSlider.value) / 100;
+            this.stableColorState.pulseDepth = depth;
+            this.sendGlobalParam({ PulseDepth: depth });
+        });
+
+        // Selection mode toggle (Segments vs Nodes)
+        document.getElementById('selModeSegBtn').addEventListener('click', () => {
+            if (this.stableColorState.selectionMode === 'segment') return;
+            this.stableColorState.selectionMode = 'segment';
+            document.getElementById('selModeSegBtn').classList.add('stable-sel-btn-active');
+            document.getElementById('selModeNodeBtn').classList.remove('stable-sel-btn-active');
+            this.buildStableColorSVG();
+        });
+        document.getElementById('selModeNodeBtn').addEventListener('click', () => {
+            if (this.stableColorState.selectionMode === 'node') return;
+            this.stableColorState.selectionMode = 'node';
+            // Infer which nodes are "active" from current segment state
+            this.stableColorState.nodeSelection = HEX_NODE_SEGMENT_MAP.map(
+                segs => segs.some(si => this.stableColorState.segments[si])
+            );
+            document.getElementById('selModeSegBtn').classList.remove('stable-sel-btn-active');
+            document.getElementById('selModeNodeBtn').classList.add('stable-sel-btn-active');
+            this.buildStableColorSVG();
         });
 
         // Restore defaults button
@@ -140,6 +313,37 @@ class ProfileManager {
                     display.textContent = data.Brightness;
                 }
 
+                // Load master fire state
+                if (data.MasterFireRippleEnabled !== undefined) {
+                    GlobalParameters_MasterFireEnabled = !!data.MasterFireRippleEnabled;
+                }
+
+                // Load BPM from response
+                if (data.GlobalBPM !== undefined) {
+                    this.bpmState.bpm = data.GlobalBPM;
+                    this.updateBPMUI();
+                    this.startBeatPulse();
+                }
+
+                // Load sequencer state from response
+                if (data.SequencerEnabled !== undefined) {
+                    this.sequencerState.enabled = data.SequencerEnabled;
+                    this.sequencerState.mode = data.SequencerMode || 0;
+                    this.sequencerState.dwellTime = data.SequencerDwellTime_s || 30;
+                    this.sequencerState.currentProfile = data.SequencerCurrentProfile || 0;
+                    this.updateSequencerUI();
+                }
+
+                // Load stable color state from response
+                if (data.StableColorMode !== undefined) {
+                    this.stableColorState.mode = !!data.StableColorMode;
+                    if (data.StableColorHue) this.stableColorState.color = data.StableColorHue;
+                    if (data.PulseFrequency !== undefined) this.stableColorState.pulseFrequency = data.PulseFrequency;
+                    if (data.PulseDepth !== undefined) this.stableColorState.pulseDepth = data.PulseDepth;
+                    if (data.StableColorSegments) this.stableColorState.segments = data.StableColorSegments.map(v => !!v);
+                    this.updateStableColorUI();
+                }
+
                 // Handle the data structure from your microcontroller
                 if (data.Profiles && Array.isArray(data.Profiles)) {
                     this.profiles = data.Profiles;
@@ -210,7 +414,18 @@ class ProfileManager {
             }
             
             // Create hex grid visualization
-            this.createHexGrid(cardElement.querySelector('.hex-grid'), profile.ActiveNodes || []);
+            // Derive combined ActiveNodes from all events
+            let combinedNodes = new Array(19).fill(0);
+            if (profile.Events) {
+                profile.Events.forEach(evt => {
+                    if (evt.Enabled && evt.ActiveNodes) {
+                        evt.ActiveNodes.forEach((v, i) => { if (v) combinedNodes[i] = 1; });
+                    }
+                });
+            } else if (profile.ActiveNodes) {
+                combinedNodes = profile.ActiveNodes;
+            }
+            this.createHexGrid(cardElement.querySelector('.hex-grid'), combinedNodes);
             
             // Create color preview
             this.createColorPreview(cardElement.querySelector('.color-preview'), profile.Colors || []);
@@ -235,20 +450,7 @@ class ProfileManager {
     createHexGrid(container, activeNodes) {
         container.innerHTML = '';
         
-        // Create 19 hexagon nodes (1 2 3 2 3 2 3 2 1 arrangement)
-        const nodePositions = [
-            [2, 0], // Row 0: 1 node (node 0)
-            [1, 1], [3, 1], // Row 1: 2 nodes (nodes 1, 2)
-            [0, 2], [2, 2], [4, 2], // Row 2: 3 nodes (nodes 3, 4, 5)
-            [1, 3], [3, 3], // Row 3: 2 nodes (nodes 6, 7)
-            [0, 4], [2, 4], [4, 4], // Row 4: 3 nodes (nodes 8, 9, 10)
-            [1, 5], [3, 5], // Row 5: 2 nodes (nodes 11, 12)
-            [0, 6], [2, 6], [4, 6], // Row 6: 3 nodes (nodes 13, 14, 15)
-            [1, 7], [3, 7], // Row 7: 2 nodes (nodes 16, 17)
-            [2, 8] // Row 8: 1 node (node 18)
-        ];
-
-        nodePositions.forEach(([row, col], index) => {
+        HEX_NODE_POSITIONS.forEach(([row, col], index) => {
             const hexNode = document.createElement('div');
             hexNode.className = 'hex-node';
             
@@ -400,16 +602,14 @@ class ProfileManager {
         const newProfile = {
             ProfileIndex: nextIndex,
             ProfileName: `New Profile ${nextIndex + 1}`,
-            Active: 0, // Start as inactive
-            ActiveNodes: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0], // Default to node 9 active
-            Behavior: 1,
-            Direction: 0,
-            RippleLifeSpan: 3000,
-            DelayBetweenRipples_ms: 1000,
-            RippleSpeed: 1.0,
-            RainbowDeltaPerTick: 100,
+            Active: 0,
+            ProfilePeriod_ms: 5000,
             NumberOfColors: 3,
-            Colors: ["#FF0000", "#00FF00", "#0000FF"]
+            Colors: ["#FF0000", "#00FF00", "#0000FF"],
+            Events: [
+                { Enabled: true, TimeOffset_ms: 0, RippleLifeSpan: 5000, RippleType: 0, Behavior: 1, RippleSpeed: 0.5, RainbowDeltaPerTick: 200, Direction: -1, ActiveNodes: [0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0] },
+                { Enabled: false }, { Enabled: false }, { Enabled: false }, { Enabled: false }
+            ]
         };
         
         // Store the new profile data for the editor
@@ -533,43 +733,37 @@ class ProfileManager {
                 ProfileIndex: 0,
                 ProfileName: "Demo Profile 1",
                 Active: true,
-                ActiveNodes: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                Behavior: 1,
-                Direction: 0,
-                RippleLifeSpan: 3000,
-                DelayBetweenRipples_ms: 1000,
-                RippleSpeed: 1.0,
-                RainbowDeltaPerTick: 100,
+                ProfilePeriod_ms: 3000,
                 NumberOfColors: 3,
-                Colors: ["#FF0000", "#00FF00", "#0000FF"]
+                Colors: ["#FF0000", "#00FF00", "#0000FF"],
+                Events: [
+                    { Enabled: true, TimeOffset_ms: 0, RippleLifeSpan: 3000, RippleType: 0, Behavior: 1, RippleSpeed: 1.0, RainbowDeltaPerTick: 100, Direction: -1, ActiveNodes: [0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0] },
+                    { Enabled: false }, { Enabled: false }, { Enabled: false }, { Enabled: false }
+                ]
             },
             {
                 ProfileIndex: 1,
                 ProfileName: "Demo Profile 2",
                 Active: false,
-                ActiveNodes: [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-                Behavior: 1,
-                Direction: 1,
-                RippleLifeSpan: 5000,
-                DelayBetweenRipples_ms: 2000,
-                RippleSpeed: 0.5,
-                RainbowDeltaPerTick: 200,
+                ProfilePeriod_ms: 5000,
                 NumberOfColors: 5,
-                Colors: ["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7"]
+                Colors: ["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7"],
+                Events: [
+                    { Enabled: true, TimeOffset_ms: 0, RippleLifeSpan: 5000, RippleType: 0, Behavior: 1, RippleSpeed: 0.5, RainbowDeltaPerTick: 200, Direction: -1, ActiveNodes: [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1] },
+                    { Enabled: false }, { Enabled: false }, { Enabled: false }, { Enabled: false }
+                ]
             },
             {
                 ProfileIndex: 2,
                 ProfileName: "Demo Profile 3",
                 Active: false,
-                ActiveNodes: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-                Behavior: 0,
-                Direction: 2,
-                RippleLifeSpan: 2000,
-                DelayBetweenRipples_ms: 500,
-                RippleSpeed: 2.0,
-                RainbowDeltaPerTick: 50,
+                ProfilePeriod_ms: 2000,
                 NumberOfColors: 2,
-                Colors: ["#FF0000", "#FFFFFF"]
+                Colors: ["#FF0000", "#FFFFFF"],
+                Events: [
+                    { Enabled: true, TimeOffset_ms: 0, RippleLifeSpan: 2000, RippleType: 0, Behavior: 0, RippleSpeed: 2.0, RainbowDeltaPerTick: 50, Direction: -1, ActiveNodes: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1] },
+                    { Enabled: false }, { Enabled: false }, { Enabled: false }, { Enabled: false }
+                ]
             }
         ];
         
@@ -651,6 +845,268 @@ class ProfileManager {
         }, 3000);
     }
 
+    // --- BPM Methods ---
+
+    tapTempo() {
+        const now = performance.now();
+
+        // Reset if gap > 3 seconds
+        if (this.bpmState.tapTimes.length > 0) {
+            const lastTap = this.bpmState.tapTimes[this.bpmState.tapTimes.length - 1];
+            if (now - lastTap > 3000) {
+                this.bpmState.tapTimes = [];
+            }
+        }
+
+        this.bpmState.tapTimes.push(now);
+
+        // Keep last 8 taps
+        if (this.bpmState.tapTimes.length > 8) {
+            this.bpmState.tapTimes.shift();
+        }
+
+        // Need at least 2 taps to calculate
+        if (this.bpmState.tapTimes.length >= 2) {
+            const times = this.bpmState.tapTimes;
+            let totalInterval = 0;
+            for (let i = 1; i < times.length; i++) {
+                totalInterval += times[i] - times[i - 1];
+            }
+            const avgInterval = totalInterval / (times.length - 1);
+            const bpm = Math.round((60000 / avgInterval) * 10) / 10;
+            this.setBPM(Math.max(40, Math.min(300, bpm)));
+        }
+
+        // Clear tap timeout
+        if (this.bpmState.tapTimeout) clearTimeout(this.bpmState.tapTimeout);
+        this.bpmState.tapTimeout = setTimeout(() => {
+            this.bpmState.tapTimes = [];
+        }, 3000);
+
+        // Flash the tap button
+        const btn = document.getElementById('tapTempoButton');
+        btn.classList.add('hotkey-flash');
+        setTimeout(() => btn.classList.remove('hotkey-flash'), 300);
+    }
+
+    adjustBPM(delta) {
+        this.setBPM(Math.max(40, Math.min(300, this.bpmState.bpm + delta)));
+    }
+
+    setBPM(newBPM) {
+        const oldBPM = this.bpmState.bpm;
+        newBPM = Math.round(newBPM * 10) / 10;
+        if (newBPM === oldBPM) return;
+
+        const ratio = oldBPM / newBPM;
+        this.bpmState.bpm = newBPM;
+        this.updateBPMUI();
+        this.startBeatPulse();
+
+        // Scale timing fields for all loaded profiles
+        this.profiles.forEach((profile, idx) => {
+            let changed = false;
+            if (profile.ProfilePeriod_ms) {
+                profile.ProfilePeriod_ms = Math.round(Math.max(500, Math.min(60000, profile.ProfilePeriod_ms * ratio)));
+                changed = true;
+            }
+            if (profile.Events) {
+                profile.Events.forEach(evt => {
+                    if (!evt.Enabled) return;
+                    if (evt.TimeOffset_ms !== undefined) {
+                        evt.TimeOffset_ms = Math.round(evt.TimeOffset_ms * ratio);
+                    }
+                    if (evt.RippleLifeSpan !== undefined) {
+                        evt.RippleLifeSpan = Math.round(evt.RippleLifeSpan * ratio);
+                    }
+                    if (this.bpmState.lockSpeedToBPM && evt.RippleSpeed !== undefined) {
+                        evt.RippleSpeed = Math.round((evt.RippleSpeed / ratio) * 100) / 100;
+                    }
+                    changed = true;
+                });
+            }
+            if (changed) {
+                this.sendProfileUpdate(idx, profile);
+            }
+        });
+
+        // Send BPM to firmware for storage
+        this.sendGlobalParam({ GlobalBPM: newBPM });
+    }
+
+    updateBPMUI() {
+        const bpmInput = document.getElementById('bpmInput');
+        const bpmSlider = document.getElementById('bpmSlider');
+        if (bpmInput) bpmInput.value = this.bpmState.bpm.toFixed(1);
+        if (bpmSlider) bpmSlider.value = this.bpmState.bpm;
+    }
+
+    startBeatPulse() {
+        if (this.bpmState.beatPulseInterval) {
+            clearInterval(this.bpmState.beatPulseInterval);
+        }
+        const pulse = document.getElementById('beatPulse');
+        if (!pulse) return;
+
+        const intervalMs = 60000 / this.bpmState.bpm;
+        this.bpmState.beatPulseInterval = setInterval(() => {
+            pulse.classList.add('on');
+            setTimeout(() => pulse.classList.remove('on'), Math.min(100, intervalMs * 0.3));
+        }, intervalMs);
+    }
+
+    async sendProfileUpdate(profileIndex, profile) {
+        if (this.isDemoMode()) return;
+        try {
+            await fetch(`${this.baseUrl}/updateProfile`, {
+                method: 'POST',
+                mode: 'cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ProfileIndex: profileIndex,
+                    ProfilePeriod_ms: profile.ProfilePeriod_ms,
+                    Events: profile.Events
+                })
+            });
+        } catch (error) {
+            console.error(`Error updating profile ${profileIndex}:`, error);
+        }
+    }
+
+    async sendGlobalParam(params) {
+        if (this.isDemoMode()) return;
+        try {
+            await fetch(`${this.baseUrl}/updateGlobalParameters`, {
+                method: 'POST',
+                mode: 'cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(params)
+            });
+        } catch (error) {
+            console.error('Error updating global params:', error);
+        }
+    }
+
+    handleHotkey(e) {
+        // Skip if focused on input/textarea/select
+        const tag = document.activeElement.tagName.toLowerCase();
+        if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+
+        switch (e.key.toLowerCase()) {
+            case 't':
+                e.preventDefault();
+                this.tapTempo();
+                break;
+            case '1': case '2': case '3': case '4': {
+                e.preventDefault();
+                const idx = parseInt(e.key) - 1;
+                if (idx < this.profiles.length) {
+                    this.toggleProfileActivation(idx);
+                    this.flashElement(document.querySelector(`[data-profile-index="${idx}"]`));
+                }
+                break;
+            }
+            case ' ':
+                e.preventDefault();
+                this.toggleMasterFire();
+                break;
+            case 's':
+                e.preventDefault();
+                this.setSequencerEnabled(!this.sequencerState.enabled);
+                break;
+            case '-':
+                e.preventDefault();
+                this.adjustBPM(-1);
+                break;
+            case '=':
+                e.preventDefault();
+                this.adjustBPM(1);
+                break;
+            case '[':
+                e.preventDefault();
+                this.adjustBPM(-10);
+                break;
+            case ']':
+                e.preventDefault();
+                this.adjustBPM(10);
+                break;
+        }
+    }
+
+    async toggleMasterFire() {
+        // Read current state and toggle
+        const newState = !GlobalParameters_MasterFireEnabled;
+        GlobalParameters_MasterFireEnabled = newState;
+        this.sendGlobalParam({ MasterFireRippleEnabled: newState });
+        this.showNotification(`Master fire ${newState ? 'enabled' : 'disabled'}`, 'info');
+    }
+
+    flashElement(el) {
+        if (!el) return;
+        el.classList.add('hotkey-flash');
+        setTimeout(() => el.classList.remove('hotkey-flash'), 300);
+    }
+
+    updateSequencerUI() {
+        const toggle = document.getElementById('sequencerToggle');
+        const options = document.getElementById('sequencerOptions');
+        const modeSelect = document.getElementById('sequencerMode');
+        const dwellSlider = document.getElementById('sequencerDwell');
+        const dwellValue = document.getElementById('dwellValue');
+        const status = document.getElementById('sequencerStatus');
+
+        toggle.checked = this.sequencerState.enabled;
+        modeSelect.value = this.sequencerState.mode;
+        dwellSlider.value = this.sequencerState.dwellTime;
+        dwellValue.textContent = this.sequencerState.dwellTime;
+
+        options.style.display = this.sequencerState.enabled ? 'flex' : 'none';
+
+        if (this.sequencerState.enabled && this.profiles.length > 0) {
+            const idx = this.sequencerState.currentProfile;
+            const name = this.profiles[idx] ? this.profiles[idx].ProfileName : `Profile ${idx}`;
+            const modeText = this.sequencerState.mode === 0 ? 'Sequential' : 'Random';
+            status.textContent = `Playing: ${name} (${modeText}, ${this.sequencerState.dwellTime}s per profile)`;
+        } else {
+            status.textContent = '';
+        }
+    }
+
+    async setSequencerEnabled(enabled) {
+        this.sequencerState.enabled = enabled;
+        this.updateSequencerUI();
+
+        if (this.isDemoMode()) {
+            this.showNotification(`Demo: Sequencer ${enabled ? 'enabled' : 'disabled'}`, 'info');
+            return;
+        }
+
+        await this.sendSequencerUpdate({ SequencerEnabled: enabled });
+    }
+
+    async sendSequencerUpdate(params) {
+        if (this.isDemoMode()) {
+            this.showNotification('Demo: Sequencer settings updated', 'info');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${this.baseUrl}/updateGlobalParameters`, {
+                method: 'POST',
+                mode: 'cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(params)
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            this.showNotification('Sequencer updated', 'success');
+        } catch (error) {
+            console.error('Error updating sequencer:', error);
+            this.showNotification('Failed to update sequencer', 'error');
+        }
+    }
+
     async sendBrightness(value) {
         if (this.isDemoMode()) {
             this.showNotification(`Demo: Brightness set to ${value}`, 'info');
@@ -680,6 +1136,224 @@ class ProfileManager {
     hideRestoreDefaultsModal() {
         document.getElementById('restoreDefaultsModal').style.display = 'none';
         document.getElementById('overlay').style.display = 'none';
+    }
+
+    // --- Stable Color Mode Methods ---
+
+    async setStableColorMode(enabled) {
+        this.stableColorState.mode = enabled;
+        this.updateStableColorUI();
+        await this.sendGlobalParam({ StableColorMode: enabled });
+    }
+
+    updateStableColorUI() {
+        const rippleBtn = document.getElementById('modeRippleBtn');
+        const stableBtn = document.getElementById('modeStableBtn');
+        const panel = document.getElementById('stableColorPanel');
+        const profilesGrid = document.getElementById('profilesGrid');
+        const sequencer = document.querySelector('.sequencer-control');
+        const bpmControl = document.querySelector('.bpm-control');
+
+        if (this.stableColorState.mode) {
+            rippleBtn.classList.remove('mode-btn-active');
+            stableBtn.classList.add('mode-btn-active');
+            panel.style.display = 'block';
+            if (profilesGrid) profilesGrid.style.display = 'none';
+            if (sequencer) sequencer.style.display = 'none';
+            if (bpmControl) bpmControl.style.display = 'none';
+        } else {
+            rippleBtn.classList.add('mode-btn-active');
+            stableBtn.classList.remove('mode-btn-active');
+            panel.style.display = 'none';
+            if (profilesGrid) profilesGrid.style.display = '';
+            if (sequencer) sequencer.style.display = '';
+            if (bpmControl) bpmControl.style.display = '';
+        }
+
+        // Sync control values from state
+        const picker = document.getElementById('stableColorPicker');
+        if (picker) picker.value = this.stableColorState.color;
+
+        const freqSlider = document.getElementById('pulseFreqSlider');
+        const freqLabel = document.getElementById('pulseFreqValue');
+        if (freqSlider) {
+            freqSlider.value = Math.round(this.stableColorState.pulseFrequency * 10);
+            if (freqLabel) freqLabel.textContent = this.stableColorState.pulseFrequency.toFixed(2);
+        }
+
+        const depthSlider = document.getElementById('pulseDepthSlider');
+        const depthLabel = document.getElementById('pulseDepthValue');
+        if (depthSlider) {
+            depthSlider.value = Math.round(this.stableColorState.pulseDepth * 100);
+            if (depthLabel) depthLabel.textContent = Math.round(this.stableColorState.pulseDepth * 100);
+        }
+
+        this.renderFavorites();
+        this.buildStableColorSVG();
+    }
+
+    buildStableColorSVG() {
+        const container = document.getElementById('stableColorNodes');
+        if (!container) return;
+        container.innerHTML = '';
+
+        const scale = 30, pad = 15;
+        const W = 4 * scale + 2 * pad;   // 150
+        const H = 8 * scale + 2 * pad;   // 270
+
+        // Mirror x so the UI matches the physical view from behind the device
+        const px = HEX_NODE_POSITIONS.map(([c, r]) => [W - (c * scale + pad), r * scale + pad]);
+
+        const activeColor = this.stableColorState.color || '#4fc3f7';
+        const inactiveSegColor = '#444';
+        const inactiveNodeColor = '#444';
+
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', W);
+        svg.setAttribute('height', H);
+        svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+        svg.style.display = 'block';
+
+        const isNodeMode = this.stableColorState.selectionMode === 'node';
+
+        if (isNodeMode) {
+            // Compute which segments are visually lit (any adjacent selected node)
+            const visSegs = new Array(30).fill(false);
+            this.stableColorState.nodeSelection.forEach((active, ni) => {
+                if (active) HEX_NODE_SEGMENT_MAP[ni].forEach(si => { visSegs[si] = true; });
+            });
+
+            // Thin segment lines (decorative, reflect lit state)
+            HEX_SEGMENT_CONNECTIONS.forEach(([n1, n2], idx) => {
+                const [x1, y1] = px[n1], [x2, y2] = px[n2];
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+                line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+                line.setAttribute('stroke', visSegs[idx] ? activeColor : '#333');
+                line.setAttribute('stroke-width', 2);
+                line.setAttribute('stroke-linecap', 'round');
+                line.style.pointerEvents = 'none';
+                svg.appendChild(line);
+            });
+
+            // Large clickable node circles
+            px.forEach(([x, y], ni) => {
+                const active = this.stableColorState.nodeSelection[ni];
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', x);
+                circle.setAttribute('cy', y);
+                circle.setAttribute('r', 8);
+                circle.setAttribute('fill', active ? activeColor : inactiveNodeColor);
+                circle.setAttribute('stroke', active ? activeColor : '#666');
+                circle.setAttribute('stroke-width', 1.5);
+                circle.style.cursor = 'pointer';
+                circle.addEventListener('click', () => {
+                    this.stableColorState.nodeSelection[ni] = !this.stableColorState.nodeSelection[ni];
+                    const segs = new Array(30).fill(false);
+                    this.stableColorState.nodeSelection.forEach((on, n) => {
+                        if (on) HEX_NODE_SEGMENT_MAP[n].forEach(si => { segs[si] = true; });
+                    });
+                    this.stableColorState.segments = segs;
+                    this.sendGlobalParam({ StableColorSegments: segs.map(v => v ? 1 : 0) });
+                    this.buildStableColorSVG();
+                });
+                svg.appendChild(circle);
+            });
+
+        } else {
+            // Segment mode: thick clickable segment lines, small decorative node dots
+            HEX_SEGMENT_CONNECTIONS.forEach(([n1, n2], idx) => {
+                const [x1, y1] = px[n1], [x2, y2] = px[n2];
+                const active = this.stableColorState.segments[idx];
+
+                const vis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                vis.setAttribute('x1', x1); vis.setAttribute('y1', y1);
+                vis.setAttribute('x2', x2); vis.setAttribute('y2', y2);
+                vis.setAttribute('stroke', active ? activeColor : inactiveSegColor);
+                vis.setAttribute('stroke-width', 4);
+                vis.setAttribute('stroke-linecap', 'round');
+                vis.style.pointerEvents = 'none';
+                svg.appendChild(vis);
+
+                const hit = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                hit.setAttribute('x1', x1); hit.setAttribute('y1', y1);
+                hit.setAttribute('x2', x2); hit.setAttribute('y2', y2);
+                hit.setAttribute('stroke', 'transparent');
+                hit.setAttribute('stroke-width', 14);
+                hit.style.cursor = 'pointer';
+                hit.addEventListener('click', () => {
+                    this.stableColorState.segments[idx] = !this.stableColorState.segments[idx];
+                    vis.setAttribute('stroke', this.stableColorState.segments[idx] ? activeColor : inactiveSegColor);
+                    this.sendGlobalParam({ StableColorSegments: this.stableColorState.segments.map(v => v ? 1 : 0) });
+                });
+                svg.appendChild(hit);
+            });
+
+            // Small decorative node dots
+            px.forEach(([x, y]) => {
+                const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                dot.setAttribute('cx', x);
+                dot.setAttribute('cy', y);
+                dot.setAttribute('r', 4);
+                dot.setAttribute('fill', '#666');
+                dot.style.pointerEvents = 'none';
+                svg.appendChild(dot);
+            });
+        }
+
+        container.appendChild(svg);
+    }
+
+    // --- Favorite colors (localStorage) ---
+
+    loadFavorites() {
+        const stored = localStorage.getItem('chromanceFavorites');
+        if (stored) {
+            try { return JSON.parse(stored); } catch (_) {}
+        }
+        return ['#0000ff','#ff0000','#00ff00','#ff8800','#ff00ff','#00ffff','#ffffff','#ff6699'];
+    }
+
+    saveFavorites(favs) {
+        localStorage.setItem('chromanceFavorites', JSON.stringify(favs));
+    }
+
+    renderFavorites() {
+        const list = document.getElementById('colorFavoritesList');
+        if (!list) return;
+        const favs = this.loadFavorites();
+        const current = this.stableColorState.color;
+        list.innerHTML = '';
+        favs.forEach((hex, idx) => {
+            const swatch = document.createElement('div');
+            swatch.className = 'color-swatch' + (hex === current ? ' color-swatch-active' : '');
+            swatch.style.background = hex;
+            swatch.title = hex;
+
+            const del = document.createElement('button');
+            del.className = 'swatch-del';
+            del.textContent = '×';
+            del.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const f = this.loadFavorites();
+                const pos = f.indexOf(hex); // find by value, not stale positional idx
+                if (pos !== -1) f.splice(pos, 1);
+                this.saveFavorites(f);
+                this.renderFavorites();
+            });
+
+            swatch.addEventListener('click', () => {
+                this.stableColorState.color = hex;
+                const picker = document.getElementById('stableColorPicker');
+                if (picker) picker.value = hex;
+                this.sendGlobalParam({ StableColorHue: hex });
+                this.buildStableColorSVG();
+                this.renderFavorites();
+            });
+
+            swatch.appendChild(del);
+            list.appendChild(swatch);
+        });
     }
 
     async confirmRestoreDefaults() {

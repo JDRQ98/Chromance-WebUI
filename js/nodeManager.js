@@ -1,4 +1,4 @@
-// File: /js/nodeManager.js
+// File: /js/nodeManager.js — Node selection operates on selected event's ActiveNodes
 
 class Node {
     constructor(id, element, wrapper, profileSettings) {
@@ -9,12 +9,8 @@ class Node {
         this.profileSettings = profileSettings;
         this.element.addEventListener('click', () => this.toggleSelect());
     }
-    getSettings() {
-        return this.profileSettings;
-    }
+
     toggleSelect() {
-        console.log(`Node ${this.id} toggleSelect called. Current state: ${this.state}`);
-        // Toggle between active and inactive
         if (this.state === 'inactive') {
             this.activate();
             window.nodeManager.addActiveNode(this);
@@ -22,19 +18,11 @@ class Node {
             this.deactivate();
             window.nodeManager.removeActiveNode(this);
         }
-        // Live sync node changes to ESP32
+        // Update the selected event's ActiveNodes array
+        window.nodeManager.syncActiveNodesToEvent();
         if (window.mainJS && window.mainJS.syncToMicrocontroller) {
             window.mainJS.syncToMicrocontroller();
         }
-    }
-    select() {
-        this.state = this.state === 'active' ? 'activeandselected' : 'selected';
-        this.updateStyle();
-    }
-
-    deselect() {
-        this.state = this.state === 'activeandselected' ? 'active' : 'inactive';
-        this.updateStyle();
     }
 
     activate() {
@@ -46,10 +34,19 @@ class Node {
         this.state = this.state === 'activeandselected' ? 'selected' : 'inactive';
         this.updateStyle();
     }
+
+    select() {
+        this.state = this.state === 'active' ? 'activeandselected' : 'selected';
+        this.updateStyle();
+    }
+
+    deselect() {
+        this.state = this.state === 'activeandselected' ? 'active' : 'inactive';
+        this.updateStyle();
+    }
+
     updateStyle() {
-        // Remove all style classes
         this.wrapper.classList.remove('regularNode', 'SelectedNode', 'ActiveNode', 'ActiveandSelectedNode');
-        // Add the class according to the node's status
         if (this.state === 'activeandselected') {
             this.wrapper.classList.add('ActiveandSelectedNode');
             this.applyColorAnimation();
@@ -62,33 +59,20 @@ class Node {
             this.wrapper.classList.add('regularNode');
         }
     }
+
     applyColorAnimation() {
         let colors = this.profileSettings.Colors || ['#FF0000'];
-        let duration = this.profileSettings.DelayBetweenRipples_ms || 1000;
-        
-        if (!Array.isArray(colors)) {
-            colors = [colors];
-        }
-        
-        if (typeof duration !== 'number') {
-            duration = Number(duration);
-        }
-        
-        if (colors.length === 0) {
-            colors = ['#FF0000']
-        }
-        
-        // Set the CSS variables for the animation
+        let duration = this.profileSettings.ProfilePeriod_ms || 5000;
+        if (!Array.isArray(colors)) colors = [colors];
+        if (colors.length === 0) colors = ['#FF0000'];
+        if (typeof duration !== 'number') duration = Number(duration);
+
         colors.forEach((color, index) => {
             this.wrapper.style.setProperty(`--active-node-color-${index}`, color);
         });
-        
-        // If there are less than 6 colors, repeat the colors to fill the gaps
         for (let i = colors.length; i < 6; i++) {
             this.wrapper.style.setProperty(`--active-node-color-${i}`, colors[i % colors.length]);
         }
-        
-        // Set the duration
         this.wrapper.style.setProperty('--pulse-duration', `${duration / 1000}s`);
     }
 }
@@ -114,111 +98,49 @@ class NodeManager {
             const node = new Node(id, element, wrapper, this.profileSettings);
             this.nodes.push(node);
         });
-        //Set node 9 as active by default
-        this.activateNodes([9])
+        this.activateNodes([9]);
     }
 
-    getNode(id) {
-        return this.nodes.find(node => node.id === id);
-    }
-    getSelectedNodes() {
-        return this.selectedNodes;
-    }
-    getActiveNodes() {
-        return this.activeNodes;
-    }
+    getNode(id) { return this.nodes.find(n => n.id === id); }
+    getActiveNodes() { return this.activeNodes; }
+
     addActiveNode(node) {
-        if (!this.activeNodes.includes(node)) {
-            this.activeNodes.push(node);
-        }
+        if (!this.activeNodes.includes(node)) this.activeNodes.push(node);
     }
-    
+
     removeActiveNode(node) {
-        this.activeNodes = this.activeNodes.filter(activeNode => activeNode !== node);
+        this.activeNodes = this.activeNodes.filter(n => n !== node);
     }
-    
-    addSelectedNode(node){
-           if (!this.selectedNodes.includes(node)){
-               this.selectedNodes.push(node)
-           }
-    }
-    removeSelectedNode(node){
-         this.selectedNodes = this.selectedNodes.filter(selectedNode => selectedNode !== node)
-    }
-    selectNodes(ids) {
-        this.nodes.forEach(node => {
-            if (ids.includes(node.id)) {
-                if (!this.selectedNodes.includes(node)) {
-                    this.selectedNodes.push(node)
-                }
-                node.toggleSelect();
-            }
-        });
-        if (window.modal) {
-            console.log("Updating modal from NodeManager selectNodes"); // ADDED LOG
-            window.modal.updateModalDisplay(this.selectedNodes.map(node => node.element), this.activeNodes.map(node => node.id))
-        }
-    }
-    deselectNodes(ids) {
-        this.nodes.forEach(node => {
-            if (ids.includes(node.id)) {
-                 this.selectedNodes = this.selectedNodes.filter(selectedNode => selectedNode !== node)
-                node.deselect();
-            }
-        });
-        if (window.modal) {
-            console.log("Updating modal from NodeManager deselectNodes"); // ADDED LOG
-            window.modal.updateModalDisplay(this.selectedNodes.map(node => node.element), this.activeNodes.map(node => node.id))
-        }
-    }
+
     activateNodes(ids) {
-      this.nodes.forEach(node => {
-           if (ids.includes(node.id)) {
-                if (!this.activeNodes.includes(node)){
-                   this.activeNodes.push(node)
-                }
+        this.nodes.forEach(node => {
+            if (ids.includes(node.id)) {
+                if (!this.activeNodes.includes(node)) this.activeNodes.push(node);
                 node.activate();
             }
         });
     }
+
     deactivateNodes(ids) {
         this.nodes.forEach(node => {
             if (ids.includes(node.id)) {
-                 this.activeNodes = this.activeNodes.filter(activeNode => activeNode !== node);
+                this.activeNodes = this.activeNodes.filter(n => n !== node);
                 node.deactivate();
             }
         });
     }
-    deactivateAllNodes(){
-        this.nodes.forEach(node => {
-            this.activeNodes = [];
-             node.deactivate();
-         });
+
+    deactivateAllNodes() {
+        this.nodes.forEach(node => node.deactivate());
+        this.activeNodes = [];
         this.selectedNodes = [];
-        if (window.modal) {
-            console.log("Updating modal from NodeManager deactivateAllNodes"); // ADDED LOG
-            window.modal.updateModalDisplay(this.selectedNodes.map(node => node.element), this.activeNodes.map(node => node.id))
-        }
     }
-     updateStyles() {
-        this.nodes.forEach(node => node.updateStyle());
+
+    deselectAllNodes() {
+        this.selectedNodes.forEach(node => node.deselect());
+        this.selectedNodes = [];
     }
-      deselectAllNodes(){ //Added method
-         this.selectedNodes.forEach(node => node.deselect());
-          this.selectedNodes = [];
-    }
-     toggleBiNodes() {
-        this.toggleNodes(this.borderNodes);
-    }
-    
-    toggleTriNodes() {
-        this.toggleNodes(this.triNodes);
-    }
-    
-    toggleQuadNodes() {
-        this.toggleNodes(this.quadNodes);
-    }
-    
+
     toggleNodes(ids) {
         this.nodes.forEach(node => {
             if (ids.includes(node.id)) {
@@ -231,87 +153,83 @@ class NodeManager {
                 }
             }
         });
+        this.syncActiveNodesToEvent();
     }
-      selectAllActive() {
-          this.selectNodes(this.activeNodes.map(node => node.id));
-     }
-}
 
+    toggleBiNodes() { this.toggleNodes(this.borderNodes); }
+    toggleTriNodes() { this.toggleNodes(this.triNodes); }
+    toggleQuadNodes() { this.toggleNodes(this.quadNodes); }
+
+    updateStyles() {
+        this.nodes.forEach(node => node.updateStyle());
+    }
+
+    // Sync the current active node state to the selected event's ActiveNodes array
+    syncActiveNodesToEvent() {
+        if (!window.mainJS) return;
+        const idx = window.mainJS.getSelectedEventIndex();
+        const ps = window.mainJS.ProfileSettings || this.profileSettings;
+        if (!ps.Events || !ps.Events[idx]) return;
+
+        const arr = new Array(19).fill(0);
+        this.activeNodes.forEach(node => { arr[node.id] = 1; });
+        ps.Events[idx].ActiveNodes = arr;
+    }
+}
 
 let nodeManager;
 
 function initNodeManager(updateNodeStyles, updateModal, profileSettings) {
     nodeManager = new NodeManager(profileSettings);
-       // Event listeners for toggling node categories
-    console.log('initNodeManager called') // ADDED LOG
+
     document.getElementById('toggleBiNodes').addEventListener('click', () => {
-         console.log('toggleBiNodes button pressed') // ADDED LOG
-          nodeManager.toggleBiNodes();
-           updateNodeStyles(profileSettings);
-           if (window.mainJS && window.mainJS.syncToMicrocontroller) window.mainJS.syncToMicrocontroller();
+        nodeManager.toggleBiNodes();
+        updateNodeStyles(profileSettings);
+        if (window.mainJS && window.mainJS.syncToMicrocontroller) window.mainJS.syncToMicrocontroller();
     });
     document.getElementById('toggleTriNodes').addEventListener('click', () => {
-         console.log('toggleTriNodes button pressed') // ADDED LOG
         nodeManager.toggleTriNodes();
         updateNodeStyles(profileSettings);
         if (window.mainJS && window.mainJS.syncToMicrocontroller) window.mainJS.syncToMicrocontroller();
     });
     document.getElementById('toggleQuadNodes').addEventListener('click', () => {
-         console.log('toggleQuadNodes button pressed') // ADDED LOG
         nodeManager.toggleQuadNodes();
         updateNodeStyles(profileSettings);
         if (window.mainJS && window.mainJS.syncToMicrocontroller) window.mainJS.syncToMicrocontroller();
     });
     document.getElementById('deactivateAllNodes').addEventListener('click', () => {
-          console.log('deactivateAllNodes button pressed') // ADDED LOG
-         nodeManager.deactivateAllNodes()
-        updateModal([], nodeManager.getActiveNodes().map(node => node.id), profileSettings, updateNodeStyles);
+        nodeManager.deactivateAllNodes();
+        nodeManager.syncActiveNodesToEvent();
+        updateNodeStyles(profileSettings);
         if (window.mainJS && window.mainJS.syncToMicrocontroller) window.mainJS.syncToMicrocontroller();
     });
     document.getElementById('applyChanges').addEventListener('click', () => {
-        console.log('Apply Changes button pressed');
-        // Call the function to send the configuration to the microcontroller.
-        window.mainJS.sendConfigurationToMicrocontroller();  // Access through window to avoid scope issues
+        if (window.mainJS) window.mainJS.sendConfigurationToMicrocontroller();
     });
-    
-    document.getElementById('discardChanges').addEventListener('click', async () => {
-        console.log('Discard Changes button pressed');
-        // Use smart discard that handles both new and existing profiles
-        if (window.mainJS && window.mainJS.smartDiscard) {
-            await window.mainJS.smartDiscard();
-        } else {
-            // Fallback: just reset active nodes to default
-            nodeManager.deactivateAllNodes();
-            nodeManager.activateNodes([9]); // Default to node 9
-            updateNodeStyles(profileSettings);
-        }
+    document.getElementById('discardChanges').addEventListener('click', () => {
+        window.location.href = 'index.html';
     });
-      updateNodeStyles(profileSettings);
+
+    updateNodeStyles(profileSettings);
 }
 
-
-//Functions to be used outside this module
 function updateNodeStyles(profileSettings) {
     if (nodeManager) {
         nodeManager.profileSettings = profileSettings;
         nodeManager.updateStyles();
     }
 }
-function setActiveNodes(newActiveNodes) {
+
+function setActiveNodes(newActiveNodeIds) {
     if (nodeManager) {
-        nodeManager.deactivateNodes(nodeManager.getActiveNodes().map(node => node.id))
-        nodeManager.activateNodes(newActiveNodes)
+        nodeManager.deactivateNodes(nodeManager.getActiveNodes().map(n => n.id));
+        nodeManager.activateNodes(newActiveNodeIds);
     }
 }
+
 function getActiveNodes() {
-     if (nodeManager) {
-         return nodeManager.getActiveNodes().map(node => node.id)
-     }
-     return [];
+    if (nodeManager) return nodeManager.getActiveNodes().map(n => n.id);
+    return [];
 }
-export {
-    initNodeManager,
-    updateNodeStyles,
-    setActiveNodes,
-    getActiveNodes
-};
+
+export { initNodeManager, updateNodeStyles, setActiveNodes, getActiveNodes };
