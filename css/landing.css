@@ -1089,3 +1089,195 @@ main {
     display: flex;
     justify-content: center;
 }
+
+/* Stable Color Sequencer */
+.sc-sequencer-section {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #c0d0ff;
+}
+
+.sc-seq-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sc-seq-label {
+    font-weight: 500;
+    font-size: 1rem;
+    color: #333;
+}
+
+.sc-seq-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+}
+
+.sc-seq-option {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.sc-seq-option label {
+    min-width: 120px;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.sc-seq-option select,
+.sc-seq-option input[type="range"] {
+    flex: 1;
+}
+
+.sc-seq-cycle-row {
+    flex-direction: row;
+}
+
+.sc-seq-cycle-row label {
+    min-width: unset;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+}
+
+.sc-seq-status {
+    font-size: 0.8rem;
+    color: #666;
+    font-style: italic;
+    min-height: 1.2em;
+}
+
+.sc-preset-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-top: 0.3rem;
+}
+
+.sc-preset-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.5rem;
+    border-radius: 6px;
+    background: #e8eeff;
+    border: 1px solid #c0d0ff;
+    font-size: 0.85rem;
+}
+
+.sc-preset-row-playing {
+    border-color: var(--success-color);
+    background: #e8f5e9;
+}
+
+.sc-preset-row-editing {
+    border-color: var(--primary-color);
+    background: #e3ecff;
+}
+
+.sc-preset-swatch {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.2);
+    flex-shrink: 0;
+}
+
+.sc-preset-segs {
+    font-size: 0.75rem;
+    color: #888;
+    flex-shrink: 0;
+}
+
+.sc-preset-name {
+    flex: 1;
+    font-weight: 500;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sc-preset-btn {
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid #aaa;
+    background: white;
+    font-size: 0.75rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s;
+}
+
+.sc-preset-btn:hover {
+    background: #f0f0f0;
+}
+
+.sc-preset-btn-del {
+    border-color: #e88;
+    color: #c44;
+}
+
+.sc-preset-btn-del:hover {
+    background: #ffe0e0;
+}
+
+.sc-save-preset-btn {
+    margin-top: 0.4rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    border: 1px dashed var(--primary-color);
+    background: transparent;
+    color: var(--primary-color);
+    font-size: 0.85rem;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.15s;
+}
+
+.sc-save-preset-btn:hover:not(:disabled) {
+    background: #e8eeff;
+}
+
+.sc-save-preset-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.sc-preset-drag-handle {
+    cursor: grab;
+    color: #aaa;
+    font-size: 1rem;
+    flex-shrink: 0;
+    user-select: none;
+    padding: 0 2px;
+}
+
+.sc-preset-drag-handle:active {
+    cursor: grabbing;
+}
+
+.sc-preset-row-dragging {
+    opacity: 0.4;
+}
+
+.sc-preset-row-dragover {
+    border-color: var(--primary-color);
+    background: #d0dcff;
+}
+
+.sc-preset-rename-input {
+    flex: 1;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: 1px solid var(--primary-color);
+    border-radius: 3px;
+    padding: 1px 4px;
+    outline: none;
+    min-width: 0;
+}

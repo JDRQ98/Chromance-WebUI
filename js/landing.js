@@ -51,6 +51,24 @@ class ProfileManager {
             selectionMode: 'segment',   // 'segment' | 'node'
             nodeSelection: new Array(19).fill(true)
         };
+        this.scSeqState = {
+            enabled: false,
+            mode: 0,              // 0=sequential, 1=random
+            timingMode: 0,        // 0=time, 1=beat, 2=fps
+            dwellTime: 30.0,      // seconds (0.5-120)
+            beatsPerSwitch: 1.0,  // beat mode
+            fps: 12,              // fps mode
+            cycleColors: true,
+            fadeEnabled: false,
+            fadeOuter: true,
+            fadeInner: true,
+            fadeDuration_ms: 300,
+            currentPreset: 0,
+            numberOfPresets: 0,
+            presets: []           // array of {Active, PresetName, Hue, Segments}
+        };
+        this.scSeqEditingIndex = -1;  // -1 = not editing, N = editing preset N
+        this.scSeqDragStartIdx = null; // drag-and-drop source index
         // Try hexagono.local first, fallback to IP address
         this.baseUrl = 'http://hexagono.local';
         this.fallbackUrl = 'http://192.168.100.37';
@@ -209,6 +227,69 @@ class ProfileManager {
             this.buildStableColorSVG();
         });
 
+        // SC sequencer controls
+        document.getElementById('scSeqToggle').addEventListener('change', (e) => {
+            this.scSeqState.enabled = e.target.checked;
+            this.sendGlobalParam({ SCSeqEnabled: this.scSeqState.enabled });
+            this.updateSCSeqUI();
+        });
+        document.getElementById('scSeqMode').addEventListener('change', (e) => {
+            this.scSeqState.mode = parseInt(e.target.value);
+            this.sendGlobalParam({ SCSeqMode: this.scSeqState.mode });
+        });
+        document.getElementById('scSeqTimingMode').addEventListener('change', (e) => {
+            this.scSeqState.timingMode = parseInt(e.target.value);
+            this.sendGlobalParam({ SCSeqTimingMode: this.scSeqState.timingMode });
+            this.updateSCSeqTimingUI();
+        });
+        document.getElementById('scSeqDwell').addEventListener('input', (e) => {
+            const v = parseFloat(e.target.value);
+            document.getElementById('scDwellValue').textContent = v % 1 === 0 ? v.toFixed(0) : v.toFixed(1);
+        });
+        document.getElementById('scSeqDwell').addEventListener('change', (e) => {
+            this.scSeqState.dwellTime = parseFloat(e.target.value);
+            this.sendGlobalParam({ SCSeqDwellTime_s: this.scSeqState.dwellTime });
+        });
+        document.getElementById('scSeqBeats').addEventListener('change', (e) => {
+            this.scSeqState.beatsPerSwitch = parseFloat(e.target.value);
+            this.sendGlobalParam({ SCSeqBeatsPerSwitch: this.scSeqState.beatsPerSwitch });
+        });
+        document.getElementById('scSeqFPS').addEventListener('input', (e) => {
+            document.getElementById('scFPSValue').textContent = e.target.value;
+        });
+        document.getElementById('scSeqFPS').addEventListener('change', (e) => {
+            this.scSeqState.fps = parseInt(e.target.value);
+            this.sendGlobalParam({ SCSeqFPS: this.scSeqState.fps });
+        });
+        document.getElementById('scSeqCycleColors').addEventListener('change', (e) => {
+            this.scSeqState.cycleColors = e.target.checked;
+            this.sendGlobalParam({ SCSeqCycleColors: this.scSeqState.cycleColors });
+        });
+        document.getElementById('scSeqFadeEnabled').addEventListener('change', (e) => {
+            this.scSeqState.fadeEnabled = e.target.checked;
+            this.sendGlobalParam({ SCSeqFadeEnabled: this.scSeqState.fadeEnabled });
+            document.getElementById('scFadeDurationRow').style.display = e.target.checked ? 'flex' : 'none';
+            document.getElementById('scFadeZoneRow').style.display = e.target.checked ? 'flex' : 'none';
+        });
+        document.getElementById('scFadeDuration').addEventListener('input', (e) => {
+            document.getElementById('scFadeValue').textContent = e.target.value;
+        });
+        document.getElementById('scFadeDuration').addEventListener('change', (e) => {
+            this.scSeqState.fadeDuration_ms = parseInt(e.target.value);
+            this.sendGlobalParam({ SCSeqFadeDuration_ms: this.scSeqState.fadeDuration_ms });
+        });
+        document.getElementById('scSeqFadeOuter').addEventListener('change', (e) => {
+            this.scSeqState.fadeOuter = e.target.checked;
+            this.sendGlobalParam({ SCSeqFadeOuter: this.scSeqState.fadeOuter });
+        });
+        document.getElementById('scSeqFadeInner').addEventListener('change', (e) => {
+            this.scSeqState.fadeInner = e.target.checked;
+            this.sendGlobalParam({ SCSeqFadeInner: this.scSeqState.fadeInner });
+        });
+        document.getElementById('scSavePresetBtn').addEventListener('click', () => {
+            this.saveCurrentAsPreset();
+        });
+
         // Restore defaults button
         document.getElementById('restoreDefaultsButton').addEventListener('click', () => {
             this.showRestoreDefaultsModal();
@@ -342,6 +423,25 @@ class ProfileManager {
                     if (data.PulseDepth !== undefined) this.stableColorState.pulseDepth = data.PulseDepth;
                     if (data.StableColorSegments) this.stableColorState.segments = data.StableColorSegments.map(v => !!v);
                     this.updateStableColorUI();
+                }
+
+                // Load stable color sequencer state from response
+                if (data.SCSeqEnabled !== undefined) {
+                    this.scSeqState.enabled = !!data.SCSeqEnabled;
+                    this.scSeqState.mode = data.SCSeqMode || 0;
+                    this.scSeqState.timingMode = data.SCSeqTimingMode || 0;
+                    this.scSeqState.dwellTime = data.SCSeqDwellTime_s || 30.0;
+                    this.scSeqState.beatsPerSwitch = data.SCSeqBeatsPerSwitch || 1.0;
+                    this.scSeqState.fps = data.SCSeqFPS || 12;
+                    this.scSeqState.cycleColors = data.SCSeqCycleColors !== undefined ? !!data.SCSeqCycleColors : true;
+                    this.scSeqState.fadeEnabled = !!data.SCSeqFadeEnabled;
+                    this.scSeqState.fadeOuter = data.SCSeqFadeOuter !== undefined ? !!data.SCSeqFadeOuter : true;
+                    this.scSeqState.fadeInner = data.SCSeqFadeInner !== undefined ? !!data.SCSeqFadeInner : true;
+                    this.scSeqState.fadeDuration_ms = data.SCSeqFadeDuration_ms || 300;
+                    this.scSeqState.currentPreset = data.SCSeqCurrentPreset || 0;
+                    this.scSeqState.numberOfPresets = data.NumberOfSCPresets || 0;
+                    this.scSeqState.presets = data.SCPresets || [];
+                    this.updateSCSeqUI();
                 }
 
                 // Handle the data structure from your microcontroller
@@ -1383,6 +1483,378 @@ class ProfileManager {
         } catch (error) {
             console.error('Error restoring defaults:', error);
             this.showErrorState(`Failed to restore defaults: ${error.message}`);
+        }
+    }
+
+    // --- Stable Color Sequencer Methods ---
+
+    updateSCSeqUI() {
+        const toggle = document.getElementById('scSeqToggle');
+        if (!toggle) return; // SC panel may not be visible yet
+
+        const options = document.getElementById('scSeqOptions');
+        toggle.checked = this.scSeqState.enabled;
+        options.style.display = this.scSeqState.enabled ? 'flex' : 'none';
+
+        document.getElementById('scSeqMode').value = this.scSeqState.mode;
+        document.getElementById('scSeqTimingMode').value = this.scSeqState.timingMode;
+        document.getElementById('scSeqCycleColors').checked = this.scSeqState.cycleColors;
+        document.getElementById('scSeqFadeEnabled').checked = this.scSeqState.fadeEnabled;
+
+        // Dwell (time mode)
+        const dwellSlider = document.getElementById('scSeqDwell');
+        dwellSlider.value = this.scSeqState.dwellTime;
+        const dv = this.scSeqState.dwellTime;
+        document.getElementById('scDwellValue').textContent = dv % 1 === 0 ? dv.toFixed(0) : dv.toFixed(1);
+
+        // Beat mode
+        document.getElementById('scSeqBeats').value = this.scSeqState.beatsPerSwitch;
+
+        // FPS mode
+        document.getElementById('scSeqFPS').value = this.scSeqState.fps;
+        document.getElementById('scFPSValue').textContent = this.scSeqState.fps;
+
+        // Fade duration
+        document.getElementById('scFadeDuration').value = this.scSeqState.fadeDuration_ms;
+        document.getElementById('scFadeValue').textContent = this.scSeqState.fadeDuration_ms;
+        document.getElementById('scFadeDurationRow').style.display = this.scSeqState.fadeEnabled ? 'flex' : 'none';
+        document.getElementById('scSeqFadeOuter').checked = this.scSeqState.fadeOuter;
+        document.getElementById('scSeqFadeInner').checked = this.scSeqState.fadeInner;
+        document.getElementById('scFadeZoneRow').style.display = this.scSeqState.fadeEnabled ? 'flex' : 'none';
+
+        this.updateSCSeqTimingUI();
+
+        // Status
+        const status = document.getElementById('scSeqStatus');
+        if (this.scSeqState.enabled && this.scSeqState.numberOfPresets > 0) {
+            const idx = this.scSeqState.currentPreset;
+            const preset = this.scSeqState.presets[idx];
+            const name = preset ? preset.PresetName : `Preset ${idx}`;
+            let timingText;
+            if (this.scSeqState.timingMode === 1) {
+                timingText = `${this.scSeqState.beatsPerSwitch} pulse(s)`;
+            } else if (this.scSeqState.timingMode === 2) {
+                timingText = `${this.scSeqState.fps} fps`;
+            } else {
+                const dw = this.scSeqState.dwellTime;
+                timingText = `${dw % 1 === 0 ? dw.toFixed(0) : dw.toFixed(1)}s`;
+            }
+            const orderText = this.scSeqState.mode === 0 ? 'seq' : 'rnd';
+            status.textContent = `Playing: ${name} (${orderText}, ${timingText})`;
+        } else {
+            status.textContent = '';
+        }
+
+        this.renderSCPresetList();
+    }
+
+    updateSCSeqTimingUI() {
+        const tm = this.scSeqState.timingMode;
+        document.getElementById('scTimeModeRow').style.display  = tm === 0 ? 'flex' : 'none';
+        document.getElementById('scBeatModeRow').style.display  = tm === 1 ? 'flex' : 'none';
+        document.getElementById('scFpsModeRow').style.display   = tm === 2 ? 'flex' : 'none';
+    }
+
+    renderSCPresetList() {
+        const list = document.getElementById('scPresetList');
+        if (!list) return;
+        list.innerHTML = '';
+
+        const activePresets = this.scSeqState.presets.slice(0, this.scSeqState.numberOfPresets);
+        activePresets.forEach((preset, idx) => {
+            if (!preset.Active) return;
+
+            const row = document.createElement('div');
+            row.className = 'sc-preset-row';
+            row.draggable = true;
+            if (idx === this.scSeqState.currentPreset && this.scSeqState.enabled) {
+                row.classList.add('sc-preset-row-playing');
+            }
+            if (idx === this.scSeqEditingIndex) {
+                row.classList.add('sc-preset-row-editing');
+            }
+
+            // Click row (not a button) to apply preset
+            row.addEventListener('click', (e) => {
+                if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT') {
+                    this.applyPreset(idx);
+                }
+            });
+            row.style.cursor = 'pointer';
+
+            // Drag handle
+            const handle = document.createElement('span');
+            handle.className = 'sc-preset-drag-handle';
+            handle.textContent = '⠿';
+            handle.title = 'Drag to reorder';
+            row.appendChild(handle);
+
+            // Drag-and-drop events
+            row.addEventListener('dragstart', (e) => {
+                this.scSeqDragStartIdx = idx;
+                row.classList.add('sc-preset-row-dragging');
+                e.dataTransfer.effectAllowed = 'move';
+            });
+            row.addEventListener('dragend', () => {
+                row.classList.remove('sc-preset-row-dragging');
+                list.querySelectorAll('.sc-preset-row-dragover').forEach(el => el.classList.remove('sc-preset-row-dragover'));
+            });
+            row.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                if (idx !== this.scSeqDragStartIdx) row.classList.add('sc-preset-row-dragover');
+            });
+            row.addEventListener('dragleave', () => {
+                row.classList.remove('sc-preset-row-dragover');
+            });
+            row.addEventListener('drop', (e) => {
+                e.preventDefault();
+                row.classList.remove('sc-preset-row-dragover');
+                if (this.scSeqDragStartIdx !== null && this.scSeqDragStartIdx !== idx) {
+                    this.reorderSCPresets(this.scSeqDragStartIdx, idx);
+                }
+                this.scSeqDragStartIdx = null;
+            });
+
+            const swatch = document.createElement('span');
+            swatch.className = 'sc-preset-swatch';
+            swatch.style.background = preset.Hue;
+            row.appendChild(swatch);
+
+            const segCount = preset.Segments ? preset.Segments.filter(Boolean).length : 0;
+            const badge = document.createElement('span');
+            badge.className = 'sc-preset-segs';
+            badge.textContent = `${segCount} segs`;
+            row.appendChild(badge);
+
+            const nameEl = document.createElement('span');
+            nameEl.className = 'sc-preset-name';
+            nameEl.textContent = preset.PresetName || `Preset ${idx}`;
+            row.appendChild(nameEl);
+
+            const renameBtn = document.createElement('button');
+            renameBtn.className = 'sc-preset-btn';
+            renameBtn.textContent = '✎';
+            renameBtn.title = 'Rename';
+            renameBtn.addEventListener('click', () => this.startRenamePreset(idx, nameEl));
+            row.appendChild(renameBtn);
+
+            const editBtn = document.createElement('button');
+            editBtn.className = 'sc-preset-btn';
+            editBtn.textContent = idx === this.scSeqEditingIndex ? 'Save' : 'Edit';
+            editBtn.addEventListener('click', () => {
+                if (idx === this.scSeqEditingIndex) {
+                    this.saveEditedPreset(idx);
+                } else {
+                    this.startEditingPreset(idx);
+                }
+            });
+            row.appendChild(editBtn);
+
+            const delBtn = document.createElement('button');
+            delBtn.className = 'sc-preset-btn sc-preset-btn-del';
+            delBtn.textContent = '✕';
+            delBtn.addEventListener('click', () => this.deletePreset(idx));
+            row.appendChild(delBtn);
+
+            list.appendChild(row);
+        });
+
+        const saveBtn = document.getElementById('scSavePresetBtn');
+        if (saveBtn) {
+            if (this.scSeqEditingIndex >= 0) {
+                saveBtn.textContent = '✕ Cancel Edit';
+            } else {
+                saveBtn.textContent = '+ Save Current as Preset';
+                saveBtn.disabled = this.scSeqState.numberOfPresets >= 8;
+            }
+        }
+    }
+
+    async reorderSCPresets(fromIdx, toIdx) {
+        if (fromIdx === toIdx) return;
+        const moved = this.scSeqState.presets.splice(fromIdx, 1)[0];
+        this.scSeqState.presets.splice(toIdx, 0, moved);
+
+        // Adjust editing index if affected by the move
+        if (this.scSeqEditingIndex === fromIdx) {
+            this.scSeqEditingIndex = toIdx;
+        } else if (fromIdx < toIdx) {
+            if (this.scSeqEditingIndex > fromIdx && this.scSeqEditingIndex <= toIdx) this.scSeqEditingIndex--;
+        } else {
+            if (this.scSeqEditingIndex >= toIdx && this.scSeqEditingIndex < fromIdx) this.scSeqEditingIndex++;
+        }
+
+        // Send firmware updates for the affected range
+        const lo = Math.min(fromIdx, toIdx);
+        const hi = Math.max(fromIdx, toIdx);
+        for (let i = lo; i <= hi; i++) {
+            await this.sendSCPresetUpdate(i, { index: i, ...this.scSeqState.presets[i] });
+        }
+        this.renderSCPresetList();
+    }
+
+    startRenamePreset(idx, nameEl) {
+        const preset = this.scSeqState.presets[idx];
+        if (!preset) return;
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'sc-preset-rename-input';
+        input.value = preset.PresetName || `Preset ${idx}`;
+        input.maxLength = 31;
+        nameEl.replaceWith(input);
+        input.focus();
+        input.select();
+
+        const commit = async () => {
+            const newName = input.value.trim() || preset.PresetName;
+            preset.PresetName = newName;
+            await this.sendSCPresetUpdate(idx, { index: idx, PresetName: newName });
+            this.renderSCPresetList();
+        };
+
+        input.addEventListener('blur', commit);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                input.blur();
+            } else if (e.key === 'Escape') {
+                input.removeEventListener('blur', commit);
+                this.renderSCPresetList();
+            }
+        });
+    }
+
+    applyPreset(idx) {
+        const preset = this.scSeqState.presets[idx];
+        if (!preset) return;
+
+        this.stableColorState.color = preset.Hue;
+        this.stableColorState.segments = preset.Segments ? preset.Segments.map(Boolean) : new Array(30).fill(true);
+        this.stableColorState.selectionMode = 'segment';
+
+        const picker = document.getElementById('stableColorPicker');
+        if (picker) picker.value = preset.Hue;
+        document.getElementById('selModeSegBtn').classList.add('stable-sel-btn-active');
+        document.getElementById('selModeNodeBtn').classList.remove('stable-sel-btn-active');
+        this.buildStableColorSVG();
+
+        this.sendGlobalParam({
+            StableColorHue: preset.Hue,
+            StableColorSegments: this.stableColorState.segments
+        });
+    }
+
+    startEditingPreset(idx) {
+        const preset = this.scSeqState.presets[idx];
+        if (!preset) return;
+
+        this.scSeqEditingIndex = idx;
+        this.stableColorState.color = preset.Hue;
+        this.stableColorState.segments = preset.Segments ? preset.Segments.map(Boolean) : new Array(30).fill(true);
+        this.stableColorState.selectionMode = 'segment';
+
+        const picker = document.getElementById('stableColorPicker');
+        if (picker) picker.value = preset.Hue;
+        document.getElementById('selModeSegBtn').classList.add('stable-sel-btn-active');
+        document.getElementById('selModeNodeBtn').classList.remove('stable-sel-btn-active');
+
+        this.buildStableColorSVG();
+        this.renderSCPresetList();
+    }
+
+    async saveEditedPreset(idx) {
+        const preset = this.scSeqState.presets[idx];
+        if (!preset) return;
+
+        preset.Hue = this.stableColorState.color;
+        preset.Segments = [...this.stableColorState.segments];
+        this.scSeqEditingIndex = -1;
+
+        await this.sendSCPresetUpdate(idx, {
+            index: idx,
+            Active: true,
+            PresetName: preset.PresetName,
+            Hue: this.stableColorState.color,
+            Segments: this.stableColorState.segments
+        });
+
+        this.renderSCPresetList();
+    }
+
+    async saveCurrentAsPreset() {
+        if (this.scSeqEditingIndex >= 0) {
+            this.scSeqEditingIndex = -1;
+            this.renderSCPresetList();
+            return;
+        }
+
+        if (this.scSeqState.numberOfPresets >= 8) {
+            this.showNotification('Maximum 8 presets reached', 'error');
+            return;
+        }
+
+        const idx = this.scSeqState.numberOfPresets;
+        const name = `Preset ${idx + 1}`;
+        const newPreset = {
+            Active: true,
+            PresetName: name,
+            Hue: this.stableColorState.color,
+            Segments: [...this.stableColorState.segments]
+        };
+
+        this.scSeqState.presets[idx] = newPreset;
+        this.scSeqState.numberOfPresets++;
+
+        await this.sendSCPresetUpdate(idx, { index: idx, ...newPreset });
+        await this.sendGlobalParam({ NumberOfSCPresets: this.scSeqState.numberOfPresets });
+
+        this.renderSCPresetList();
+        this.showNotification(`Saved as "${name}"`, 'success');
+    }
+
+    async deletePreset(idx) {
+        if (this.scSeqState.numberOfPresets <= 1) {
+            this.showNotification('Cannot delete the only preset', 'error');
+            return;
+        }
+
+        for (let i = idx; i < this.scSeqState.numberOfPresets - 1; i++) {
+            this.scSeqState.presets[i] = this.scSeqState.presets[i + 1];
+            await this.sendSCPresetUpdate(i, { index: i, ...this.scSeqState.presets[i] });
+        }
+
+        const lastIdx = this.scSeqState.numberOfPresets - 1;
+        const emptyPreset = { Active: false, PresetName: 'Preset', Hue: '#000000', Segments: new Array(30).fill(false) };
+        this.scSeqState.presets[lastIdx] = emptyPreset;
+        await this.sendSCPresetUpdate(lastIdx, { index: lastIdx, ...emptyPreset });
+
+        this.scSeqState.numberOfPresets--;
+        if (this.scSeqState.currentPreset >= this.scSeqState.numberOfPresets)
+            this.scSeqState.currentPreset = 0;
+        if (this.scSeqEditingIndex === idx) this.scSeqEditingIndex = -1;
+
+        await this.sendGlobalParam({ NumberOfSCPresets: this.scSeqState.numberOfPresets });
+        this.renderSCPresetList();
+        this.showNotification('Preset deleted', 'info');
+    }
+
+    async sendSCPresetUpdate(idx, data) {
+        if (this.isDemoMode()) {
+            this.showNotification(`Demo: Preset ${idx} updated`, 'info');
+            return;
+        }
+        try {
+            const response = await fetch(`${this.baseUrl}/updateStableColorPreset`, {
+                method: 'POST',
+                mode: 'cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        } catch (error) {
+            console.error('Error updating SC preset:', error);
+            this.showNotification('Failed to update preset', 'error');
         }
     }
 }

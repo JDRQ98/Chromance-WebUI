@@ -86,6 +86,84 @@
                         </div>
                         <div id="stableColorNodes" class="stable-hex-grid"></div>
                     </div>
+
+                    <!-- Stable Color Preset Sequencer -->
+                    <div class="sc-sequencer-section">
+                        <div class="sc-seq-header">
+                            <label class="sc-seq-label">Preset Sequencer</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="scSeqToggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div id="scSeqOptions" class="sc-seq-options" style="display:none;">
+                            <div class="sc-seq-option">
+                                <label for="scSeqMode">Order:</label>
+                                <select id="scSeqMode">
+                                    <option value="0">Sequential</option>
+                                    <option value="1">Random</option>
+                                </select>
+                            </div>
+                            <div class="sc-seq-option">
+                                <label for="scSeqTimingMode">Timing:</label>
+                                <select id="scSeqTimingMode">
+                                    <option value="0">Time</option>
+                                    <option value="1">Pulse</option>
+                                    <option value="2">FPS</option>
+                                </select>
+                            </div>
+                            <!-- Time mode controls -->
+                            <div class="sc-seq-option" id="scTimeModeRow">
+                                <label for="scSeqDwell">Dwell: <span id="scDwellValue">30.0</span>s</label>
+                                <input type="range" id="scSeqDwell" min="0.5" max="120" value="30" step="0.5">
+                            </div>
+                            <!-- Pulse mode controls -->
+                            <div class="sc-seq-option" id="scBeatModeRow" style="display:none;">
+                                <label for="scSeqBeats">Every:</label>
+                                <select id="scSeqBeats">
+                                    <option value="0.25">¼ pulse</option>
+                                    <option value="0.5">½ pulse</option>
+                                    <option value="1" selected>1 pulse</option>
+                                    <option value="2">2 pulses</option>
+                                    <option value="4">4 pulses</option>
+                                    <option value="8">8 pulses</option>
+                                    <option value="16">16 pulses</option>
+                                </select>
+                            </div>
+                            <!-- FPS mode controls -->
+                            <div class="sc-seq-option" id="scFpsModeRow" style="display:none;">
+                                <label for="scSeqFPS">FPS: <span id="scFPSValue">12</span></label>
+                                <input type="range" id="scSeqFPS" min="1" max="60" value="12" step="1">
+                            </div>
+                            <div class="sc-seq-option sc-seq-cycle-row">
+                                <label>
+                                    <input type="checkbox" id="scSeqCycleColors"> Cycle Colors
+                                </label>
+                            </div>
+                            <div class="sc-seq-option sc-seq-cycle-row">
+                                <label>
+                                    <input type="checkbox" id="scSeqFadeEnabled"> Fade transition
+                                </label>
+                            </div>
+                            <!-- Fade duration (shown when fade enabled) -->
+                            <div class="sc-seq-option" id="scFadeDurationRow" style="display:none;">
+                                <label for="scFadeDuration">Fade: <span id="scFadeValue">300</span>ms</label>
+                                <input type="range" id="scFadeDuration" min="5" max="2000" value="300" step="5">
+                            </div>
+                            <!-- Fade zone controls (shown when fade enabled) -->
+                            <div class="sc-seq-option sc-seq-cycle-row" id="scFadeZoneRow" style="display:none;">
+                                <label>
+                                    <input type="checkbox" id="scSeqFadeOuter" checked> Outer ring
+                                </label>
+                                <label>
+                                    <input type="checkbox" id="scSeqFadeInner" checked> Inner segs
+                                </label>
+                            </div>
+                            <div class="sc-seq-status" id="scSeqStatus"></div>
+                            <div class="sc-preset-list" id="scPresetList"></div>
+                            <button class="sc-save-preset-btn" id="scSavePresetBtn">+ Save Current as Preset</button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="bpm-control">
