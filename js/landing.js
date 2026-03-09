@@ -3,20 +3,20 @@ let GlobalParameters_MasterFireEnabled = true;
 
 // Hex topology constants (mirror mapping.cpp)
 const HEX_NODE_POSITIONS = [
-    [2,0],[1,1],[3,1],[0,2],[2,2],[4,2],
-    [1,3],[3,3],[0,4],[2,4],[4,4],
-    [1,5],[3,5],[0,6],[2,6],[4,6],
-    [1,7],[3,7],[2,8]
+    [2, 0], [1, 1], [3, 1], [0, 2], [2, 2], [4, 2],
+    [1, 3], [3, 3], [0, 4], [2, 4], [4, 4],
+    [1, 5], [3, 5], [0, 6], [2, 6], [4, 6],
+    [1, 7], [3, 7], [2, 8]
 ];
 const HEX_SEGMENT_CONNECTIONS = [
-    [17,18],[15,17],[10,15],[7,10],[7,9],[9,12],[12,17],[14,17],
-    [4,9],[1,4],[0,1],[0,2],[2,5],[5,10],[10,12],
-    [16,18],[13,16],[8,13],[6,8],[6,9],[9,14],[14,16],
-    [11,16],[8,11],[3,8],[1,3],[1,6],[9,11],[2,4],[2,7]
+    [17, 18], [15, 17], [10, 15], [7, 10], [7, 9], [9, 12], [12, 17], [14, 17],
+    [4, 9], [1, 4], [0, 1], [0, 2], [2, 5], [5, 10], [10, 12],
+    [16, 18], [13, 16], [8, 13], [6, 8], [6, 9], [9, 14], [14, 16],
+    [11, 16], [8, 11], [3, 8], [1, 3], [1, 6], [9, 11], [2, 4], [2, 7]
 ];
 // Precompute: for each node, which segment indices touch it
 const HEX_NODE_SEGMENT_MAP = (() => {
-    const map = Array.from({length: 19}, () => []);
+    const map = Array.from({ length: 19 }, () => []);
     HEX_SEGMENT_CONNECTIONS.forEach(([n1, n2], si) => {
         map[n1].push(si);
         map[n2].push(si);
@@ -81,6 +81,11 @@ class ProfileManager {
     }
 
     setupEventListeners() {
+        // Master on/off button
+        document.getElementById('masterFireBtn').addEventListener('click', () => {
+            this.toggleMasterFire();
+        });
+
         // Refresh button
         document.getElementById('refreshButton').addEventListener('click', () => {
             this.loadProfiles();
@@ -330,14 +335,14 @@ class ProfileManager {
 
     async loadProfiles() {
         this.showLoadingState();
-        
+
         // Try primary URL first, then fallback to IP
         const urls = [this.baseUrl, this.fallbackUrl];
-        
+
         for (let i = 0; i < urls.length; i++) {
             const url = urls[i];
             console.log(`Trying to connect to: ${url}`);
-            
+
             try {
                 const response = await fetch(`${url}/getCurrentProfiles`, {
                     method: 'GET',
@@ -346,9 +351,9 @@ class ProfileManager {
                         'Content-Type': 'application/json',
                     }
                 });
-                
+
                 console.log(`Response from ${url}:`, response.status, response.statusText);
-                
+
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
                 }
@@ -356,25 +361,25 @@ class ProfileManager {
                 // Get the response text first, then try to parse it
                 const text = await response.text();
                 console.log('Raw response:', text);
-                
+
                 let data;
                 try {
                     data = JSON.parse(text);
                 } catch (jsonError) {
                     console.error('JSON parsing error:', jsonError);
-                    
+
                     // Fix trailing comma issue - more comprehensive fix
                     let fixedText = text;
-                    
+
                     // Remove trailing commas before closing brackets and braces
                     fixedText = fixedText.replace(/,(\s*[}\]])/g, '$1');
-                    
+
                     // Fix the specific issue in your JSON structure
                     fixedText = fixedText.replace(/,(\s*])/g, '$1');
                     fixedText = fixedText.replace(/,(\s*})/g, '$1');
-                    
+
                     console.log('Fixed JSON:', fixedText);
-                    
+
                     try {
                         data = JSON.parse(fixedText);
                     } catch (secondError) {
@@ -383,9 +388,9 @@ class ProfileManager {
                         throw new Error(`JSON parsing failed: ${jsonError.message}. Raw response: ${text.substring(0, 200)}...`);
                     }
                 }
-                
+
                 console.log('Received data:', data);
-                
+
                 // Load brightness from response
                 if (data.Brightness !== undefined) {
                     const slider = document.getElementById('brightnessSlider');
@@ -397,6 +402,7 @@ class ProfileManager {
                 // Load master fire state
                 if (data.MasterFireRippleEnabled !== undefined) {
                     GlobalParameters_MasterFireEnabled = !!data.MasterFireRippleEnabled;
+                    this.updateMasterFireUI();
                 }
 
                 // Load BPM from response
@@ -452,11 +458,11 @@ class ProfileManager {
                 } else {
                     this.profiles = [];
                 }
-                
+
                 // Update baseUrl to the working one
                 this.baseUrl = url;
                 console.log(`Successfully connected to: ${url}`);
-                
+
                 if (this.profiles.length === 0) {
                     this.showEmptyState();
                 } else {
@@ -464,10 +470,10 @@ class ProfileManager {
                     this.showProfilesContainer();
                 }
                 return; // Success, exit the function
-                
+
             } catch (error) {
                 console.error(`Error with ${url}:`, error);
-                
+
                 // If this is the last URL, show error
                 if (i === urls.length - 1) {
                     if (error.name === 'TypeError' && error.message.includes('fetch')) {
@@ -484,25 +490,25 @@ class ProfileManager {
     renderProfiles() {
         const profilesGrid = document.getElementById('profilesGrid');
         const template = document.getElementById('profileCardTemplate');
-        
+
         // Clear existing profiles
         profilesGrid.innerHTML = '';
 
         this.profiles.forEach((profile, index) => {
             const profileCard = template.content.cloneNode(true);
             const cardElement = profileCard.querySelector('.profile-card');
-            
+
             // Set profile data attributes
             cardElement.setAttribute('data-profile-index', index);
-            
+
             // Set profile name
             cardElement.querySelector('.profile-name').textContent = profile.ProfileName || `Profile ${index}`;
-            
+
             // Set active status - handle both boolean and numeric values
             const isActive = profile.Active === true || profile.Active === 1;
             const statusIndicator = cardElement.querySelector('.status-indicator');
             const statusText = cardElement.querySelector('.status-text');
-            
+
             if (isActive) {
                 statusIndicator.classList.add('active');
                 statusText.textContent = 'Active';
@@ -512,7 +518,7 @@ class ProfileManager {
                 statusIndicator.classList.remove('active');
                 statusText.textContent = 'Inactive';
             }
-            
+
             // Create hex grid visualization
             // Derive combined ActiveNodes from all events
             let combinedNodes = new Array(19).fill(0);
@@ -526,50 +532,78 @@ class ProfileManager {
                 combinedNodes = profile.ActiveNodes;
             }
             this.createHexGrid(cardElement.querySelector('.hex-grid'), combinedNodes);
-            
+
             // Create color preview
             this.createColorPreview(cardElement.querySelector('.color-preview'), profile.Colors || []);
-            
+
             // Add event listeners
             const activateButton = cardElement.querySelector('.select-button');
             activateButton.addEventListener('click', () => {
                 this.toggleProfileActivation(index);
             });
-            
+
             // Update button text and class based on active state
             this.updateActivateButton(activateButton, isActive);
-            
+
             cardElement.querySelector('.edit-button').addEventListener('click', () => {
                 this.editProfile(index);
             });
-            
+
             profilesGrid.appendChild(profileCard);
         });
     }
 
     createHexGrid(container, activeNodes) {
         container.innerHTML = '';
-        
-        HEX_NODE_POSITIONS.forEach(([row, col], index) => {
-            const hexNode = document.createElement('div');
-            hexNode.className = 'hex-node';
-            
-            // Check if this node is active
-            if (activeNodes[index] === 1) {
-                hexNode.classList.add('active');
-            }
-            
-            // Position the node in the grid
-            hexNode.style.gridRow = row + 1;
-            hexNode.style.gridColumn = col + 1;
-            
-            container.appendChild(hexNode);
+
+        const scale = 15, pad = 8;
+        const W = 4 * scale + 2 * pad;   // 76
+        const H = 8 * scale + 2 * pad;   // 136
+
+        const px = HEX_NODE_POSITIONS.map(([c, r]) => [W - (c * scale + pad), r * scale + pad]);
+
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+        svg.style.width = '80px';
+        svg.style.height = 'auto';
+        svg.style.display = 'block';
+        svg.style.margin = '0.5rem auto'; // Center in card
+
+        // Draw segment connecting lines 
+        HEX_SEGMENT_CONNECTIONS.forEach(([n1, n2]) => {
+            const [x1, y1] = px[n1], [x2, y2] = px[n2];
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+            line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+            line.setAttribute('stroke', '#e0e0e0');
+            line.setAttribute('stroke-width', 2);
+            line.setAttribute('stroke-linecap', 'round');
+            svg.appendChild(line);
         });
+
+        // Draw nodes
+        px.forEach(([x, y], ni) => {
+            const active = activeNodes[ni] === 1;
+            const hr = 6;
+            let pts = [];
+            for (let i = 0; i < 6; i++) {
+                const angle = (Math.PI / 180) * (30 + 60 * i);
+                pts.push(`${x + hr * Math.cos(angle)},${y + hr * Math.sin(angle)}`);
+            }
+            const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            poly.setAttribute('points', pts.join(' '));
+            poly.setAttribute('fill', active ? 'var(--primary-color)' : '#ffffff');
+            poly.setAttribute('stroke', active ? 'var(--primary-color)' : '#bbbbbb');
+            poly.setAttribute('stroke-width', 1.5);
+            svg.appendChild(poly);
+        });
+
+        container.appendChild(svg);
     }
 
     createColorPreview(container, colors) {
         container.innerHTML = '';
-        
+
         if (!colors || colors.length === 0) {
             const noColors = document.createElement('span');
             noColors.textContent = 'No colors';
@@ -590,7 +624,7 @@ class ProfileManager {
     updateActivateButton(button, isActive) {
         const icon = button.querySelector('.button-icon');
         const text = button.querySelector('.button-text');
-        
+
         if (isActive) {
             button.title = 'Deactivate this profile';
             icon.textContent = '⏸️';
@@ -609,14 +643,14 @@ class ProfileManager {
     updateProfileCard(profileIndex) {
         const profile = this.profiles[profileIndex];
         const cardElement = document.querySelector(`[data-profile-index="${profileIndex}"]`);
-        
+
         if (!cardElement) return;
-        
+
         const isActive = profile.Active === true || profile.Active === 1;
         const statusIndicator = cardElement.querySelector('.status-indicator');
         const statusText = cardElement.querySelector('.status-text');
         const activateButton = cardElement.querySelector('.select-button, .deactivate-button');
-        
+
         // Update status indicator
         if (isActive) {
             statusIndicator.classList.add('active');
@@ -627,7 +661,7 @@ class ProfileManager {
             statusText.textContent = 'Inactive';
             cardElement.classList.remove('active');
         }
-        
+
         // Update button
         this.updateActivateButton(activateButton, isActive);
     }
@@ -635,7 +669,7 @@ class ProfileManager {
     async toggleProfileActivation(profileIndex) {
         const profile = this.profiles[profileIndex];
         const isCurrentlyActive = profile.Active === true || profile.Active === 1;
-        
+
         // Check if we're in demo mode
         if (this.isDemoMode()) {
             // Toggle the active state in demo mode
@@ -652,7 +686,7 @@ class ProfileManager {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     ProfileIndex: profileIndex,
                     Active: isCurrentlyActive ? 0 : 1
                 })
@@ -666,7 +700,7 @@ class ProfileManager {
             profile.Active = isCurrentlyActive ? 0 : 1;
             this.updateProfileCard(profileIndex);
             this.showNotification(`Profile ${isCurrentlyActive ? 'deactivated' : 'activated'} successfully`, 'success');
-            
+
         } catch (error) {
             console.error('Error toggling profile activation:', error);
             if (error.name === 'TypeError' && error.message.includes('fetch')) {
@@ -678,18 +712,18 @@ class ProfileManager {
     }
 
     isDemoMode() {
-        return document.getElementById('corsErrorState') && 
-               document.getElementById('corsErrorState').style.display === 'none' &&
-               this.profiles.length > 0 && 
-               this.profiles[0].ProfileName && 
-               this.profiles[0].ProfileName.includes('Demo');
+        return document.getElementById('corsErrorState') &&
+            document.getElementById('corsErrorState').style.display === 'none' &&
+            this.profiles.length > 0 &&
+            this.profiles[0].ProfileName &&
+            this.profiles[0].ProfileName.includes('Demo');
     }
 
     editProfile(profileIndex) {
         // Store the profile index in localStorage for the editor to use
         localStorage.setItem('editingProfileIndex', profileIndex);
         localStorage.setItem('profileData', JSON.stringify(this.profiles[profileIndex]));
-        
+
         // Navigate to the profile editor
         window.location.href = 'ProfileEditor.html';
     }
@@ -697,7 +731,7 @@ class ProfileManager {
     createNewProfile() {
         // Find the next available profile index
         const nextIndex = this.profiles.length;
-        
+
         // Create a new profile template
         const newProfile = {
             ProfileIndex: nextIndex,
@@ -707,16 +741,16 @@ class ProfileManager {
             NumberOfColors: 3,
             Colors: ["#FF0000", "#00FF00", "#0000FF"],
             Events: [
-                { Enabled: true, TimeOffset_ms: 0, RippleLifeSpan: 5000, RippleType: 0, Behavior: 1, RippleSpeed: 0.5, RainbowDeltaPerTick: 200, Direction: -1, ActiveNodes: [0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0] },
+                { Enabled: true, TimeOffset_ms: 0, RippleLifeSpan: 5000, RippleType: 0, Behavior: 1, RippleSpeed: 0.5, RainbowDeltaPerTick: 200, Direction: -1, ActiveNodes: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
                 { Enabled: false }, { Enabled: false }, { Enabled: false }, { Enabled: false }
             ]
         };
-        
+
         // Store the new profile data for the editor
         localStorage.setItem('editingProfileIndex', nextIndex);
         localStorage.setItem('profileData', JSON.stringify(newProfile));
         localStorage.setItem('isNewProfile', 'true'); // Flag to indicate this is a new profile
-        
+
         // Navigate to the profile editor
         window.location.href = 'ProfileEditor.html';
     }
@@ -727,7 +761,7 @@ class ProfileManager {
             card.classList.remove('active');
             const statusIndicator = card.querySelector('.status-indicator');
             const statusText = card.querySelector('.status-text');
-            
+
             statusIndicator.classList.remove('active');
             statusText.textContent = 'Inactive';
         });
@@ -738,7 +772,7 @@ class ProfileManager {
             currentCard.classList.add('active');
             const statusIndicator = currentCard.querySelector('.status-indicator');
             const statusText = currentCard.querySelector('.status-text');
-            
+
             statusIndicator.classList.add('active');
             statusText.textContent = 'Active';
         }
@@ -756,7 +790,7 @@ class ProfileManager {
         document.getElementById('errorState').style.display = 'flex';
         document.getElementById('profilesContainer').style.display = 'none';
         document.getElementById('emptyState').style.display = 'none';
-        
+
         document.getElementById('errorMessage').textContent = message;
     }
 
@@ -779,7 +813,7 @@ class ProfileManager {
         document.getElementById('errorState').style.display = 'none';
         document.getElementById('profilesContainer').style.display = 'none';
         document.getElementById('emptyState').style.display = 'none';
-        
+
         // Create CORS error state
         const corsErrorState = document.getElementById('corsErrorState') || this.createCorsErrorState();
         corsErrorState.style.display = 'flex';
@@ -790,7 +824,7 @@ class ProfileManager {
         corsErrorDiv.id = 'corsErrorState';
         corsErrorDiv.className = 'error-state';
         corsErrorDiv.style.display = 'none';
-        
+
         corsErrorDiv.innerHTML = `
             <div class="error-icon">🚫</div>
             <h3>CORS Error</h3>
@@ -808,25 +842,25 @@ class ProfileManager {
                 <button id="retryCors" class="retry-button">Retry</button>
             </div>
         `;
-        
+
         document.querySelector('main').appendChild(corsErrorDiv);
-        
+
         // Add event listeners
         document.getElementById('tryDemoMode').addEventListener('click', () => {
             this.loadDemoProfiles();
         });
-        
+
         document.getElementById('retryCors').addEventListener('click', () => {
             this.loadProfiles();
         });
-        
+
         return corsErrorDiv;
     }
 
     loadDemoProfiles() {
         // Hide CORS error state
         document.getElementById('corsErrorState').style.display = 'none';
-        
+
         // Create demo profiles
         this.profiles = [
             {
@@ -837,7 +871,7 @@ class ProfileManager {
                 NumberOfColors: 3,
                 Colors: ["#FF0000", "#00FF00", "#0000FF"],
                 Events: [
-                    { Enabled: true, TimeOffset_ms: 0, RippleLifeSpan: 3000, RippleType: 0, Behavior: 1, RippleSpeed: 1.0, RainbowDeltaPerTick: 100, Direction: -1, ActiveNodes: [0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0] },
+                    { Enabled: true, TimeOffset_ms: 0, RippleLifeSpan: 3000, RippleType: 0, Behavior: 1, RippleSpeed: 1.0, RainbowDeltaPerTick: 100, Direction: -1, ActiveNodes: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
                     { Enabled: false }, { Enabled: false }, { Enabled: false }, { Enabled: false }
                 ]
             },
@@ -849,7 +883,7 @@ class ProfileManager {
                 NumberOfColors: 5,
                 Colors: ["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7"],
                 Events: [
-                    { Enabled: true, TimeOffset_ms: 0, RippleLifeSpan: 5000, RippleType: 0, Behavior: 1, RippleSpeed: 0.5, RainbowDeltaPerTick: 200, Direction: -1, ActiveNodes: [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1] },
+                    { Enabled: true, TimeOffset_ms: 0, RippleLifeSpan: 5000, RippleType: 0, Behavior: 1, RippleSpeed: 0.5, RainbowDeltaPerTick: 200, Direction: -1, ActiveNodes: [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1] },
                     { Enabled: false }, { Enabled: false }, { Enabled: false }, { Enabled: false }
                 ]
             },
@@ -861,12 +895,12 @@ class ProfileManager {
                 NumberOfColors: 2,
                 Colors: ["#FF0000", "#FFFFFF"],
                 Events: [
-                    { Enabled: true, TimeOffset_ms: 0, RippleLifeSpan: 2000, RippleType: 0, Behavior: 0, RippleSpeed: 2.0, RainbowDeltaPerTick: 50, Direction: -1, ActiveNodes: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1] },
+                    { Enabled: true, TimeOffset_ms: 0, RippleLifeSpan: 2000, RippleType: 0, Behavior: 0, RippleSpeed: 2.0, RainbowDeltaPerTick: 50, Direction: -1, ActiveNodes: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1] },
                     { Enabled: false }, { Enabled: false }, { Enabled: false }, { Enabled: false }
                 ]
             }
         ];
-        
+
         this.currentProfileIndex = 0;
         this.renderProfiles();
         this.showProfilesContainer();
@@ -878,7 +912,7 @@ class ProfileManager {
         document.getElementById('modalMessage').textContent = message;
         document.getElementById('modal').style.display = 'flex';
         document.getElementById('overlay').style.display = 'block';
-        
+
         this.pendingAction = confirmCallback;
     }
 
@@ -900,7 +934,7 @@ class ProfileManager {
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
         notification.textContent = message;
-        
+
         // Style the notification
         Object.assign(notification.style, {
             position: 'fixed',
@@ -1134,11 +1168,25 @@ class ProfileManager {
     }
 
     async toggleMasterFire() {
-        // Read current state and toggle
         const newState = !GlobalParameters_MasterFireEnabled;
         GlobalParameters_MasterFireEnabled = newState;
+        this.updateMasterFireUI();
         this.sendGlobalParam({ MasterFireRippleEnabled: newState });
-        this.showNotification(`Master fire ${newState ? 'enabled' : 'disabled'}`, 'info');
+    }
+
+    updateMasterFireUI() {
+        const btn = document.getElementById('masterFireBtn');
+        if (!btn) return;
+        const label = btn.querySelector('.master-fire-label');
+        if (GlobalParameters_MasterFireEnabled) {
+            btn.classList.add('master-fire-on');
+            btn.classList.remove('master-fire-off');
+            if (label) label.textContent = 'ON';
+        } else {
+            btn.classList.add('master-fire-off');
+            btn.classList.remove('master-fire-on');
+            if (label) label.textContent = 'OFF';
+        }
     }
 
     flashElement(el) {
@@ -1242,6 +1290,8 @@ class ProfileManager {
 
     async setStableColorMode(enabled) {
         this.stableColorState.mode = enabled;
+        GlobalParameters_MasterFireEnabled = true;
+        this.updateMasterFireUI();
         this.updateStableColorUI();
         await this.sendGlobalParam({ StableColorMode: enabled });
     }
@@ -1339,15 +1389,19 @@ class ProfileManager {
             // Large clickable node circles
             px.forEach(([x, y], ni) => {
                 const active = this.stableColorState.nodeSelection[ni];
-                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                circle.setAttribute('cx', x);
-                circle.setAttribute('cy', y);
-                circle.setAttribute('r', 8);
-                circle.setAttribute('fill', active ? activeColor : inactiveNodeColor);
-                circle.setAttribute('stroke', active ? activeColor : '#666');
-                circle.setAttribute('stroke-width', 1.5);
-                circle.style.cursor = 'pointer';
-                circle.addEventListener('click', () => {
+                const hr = 10;
+                let pts = [];
+                for (let i = 0; i < 6; i++) {
+                    const angle = (Math.PI / 180) * (30 + 60 * i);
+                    pts.push(`${x + hr * Math.cos(angle)},${y + hr * Math.sin(angle)}`);
+                }
+                const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                poly.setAttribute('points', pts.join(' '));
+                poly.setAttribute('fill', active ? activeColor : inactiveNodeColor);
+                poly.setAttribute('stroke', active ? activeColor : '#666');
+                poly.setAttribute('stroke-width', 1.5);
+                poly.style.cursor = 'pointer';
+                poly.addEventListener('click', () => {
                     this.stableColorState.nodeSelection[ni] = !this.stableColorState.nodeSelection[ni];
                     const segs = new Array(30).fill(false);
                     this.stableColorState.nodeSelection.forEach((on, n) => {
@@ -1357,7 +1411,7 @@ class ProfileManager {
                     this.sendGlobalParam({ StableColorSegments: segs.map(v => v ? 1 : 0) });
                     this.buildStableColorSVG();
                 });
-                svg.appendChild(circle);
+                svg.appendChild(poly);
             });
 
         } else {
@@ -1391,10 +1445,14 @@ class ProfileManager {
 
             // Small decorative node dots
             px.forEach(([x, y]) => {
-                const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                dot.setAttribute('cx', x);
-                dot.setAttribute('cy', y);
-                dot.setAttribute('r', 4);
+                const hr = 4;
+                let pts = [];
+                for (let i = 0; i < 6; i++) {
+                    const angle = (Math.PI / 180) * (30 + 60 * i);
+                    pts.push(`${x + hr * Math.cos(angle)},${y + hr * Math.sin(angle)}`);
+                }
+                const dot = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                dot.setAttribute('points', pts.join(' '));
                 dot.setAttribute('fill', '#666');
                 dot.style.pointerEvents = 'none';
                 svg.appendChild(dot);
@@ -1409,9 +1467,9 @@ class ProfileManager {
     loadFavorites() {
         const stored = localStorage.getItem('chromanceFavorites');
         if (stored) {
-            try { return JSON.parse(stored); } catch (_) {}
+            try { return JSON.parse(stored); } catch (_) { }
         }
-        return ['#0000ff','#ff0000','#00ff00','#ff8800','#ff00ff','#00ffff','#ffffff','#ff6699'];
+        return ['#0000ff', '#ff0000', '#00ff00', '#ff8800', '#ff00ff', '#00ffff', '#ffffff', '#ff6699'];
     }
 
     saveFavorites(favs) {
@@ -1459,7 +1517,7 @@ class ProfileManager {
     async confirmRestoreDefaults() {
         this.hideRestoreDefaultsModal();
         this.showLoadingState();
-        
+
         try {
             const response = await fetch(`${this.baseUrl}/clearEEPROM`, {
                 method: 'POST',
@@ -1474,12 +1532,12 @@ class ProfileManager {
             }
 
             this.showNotification('Default profiles restored successfully!', 'success');
-            
+
             // Reload profiles after a short delay
             setTimeout(() => {
                 this.loadProfiles();
             }, 1500);
-            
+
         } catch (error) {
             console.error('Error restoring defaults:', error);
             this.showErrorState(`Failed to restore defaults: ${error.message}`);
@@ -1550,9 +1608,9 @@ class ProfileManager {
 
     updateSCSeqTimingUI() {
         const tm = this.scSeqState.timingMode;
-        document.getElementById('scTimeModeRow').style.display  = tm === 0 ? 'flex' : 'none';
-        document.getElementById('scBeatModeRow').style.display  = tm === 1 ? 'flex' : 'none';
-        document.getElementById('scFpsModeRow').style.display   = tm === 2 ? 'flex' : 'none';
+        document.getElementById('scTimeModeRow').style.display = tm === 0 ? 'flex' : 'none';
+        document.getElementById('scBeatModeRow').style.display = tm === 1 ? 'flex' : 'none';
+        document.getElementById('scFpsModeRow').style.display = tm === 2 ? 'flex' : 'none';
     }
 
     renderSCPresetList() {
