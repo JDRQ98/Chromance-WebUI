@@ -68,11 +68,13 @@ header h1 {
 .container {
     position: relative;
     align-items: center;
-    width: 100vw; /* Use 160% of viewport width */
-    max-width: 500px; /* Increased max-width */
-    height: 80vh; /* Use 160% of viewport height */
-    max-height: 250px; /* Increased max-height */
-    display: block;
+    width: 100vw;
+    max-width: 500px;
+    height: 80vh;
+    max-height: 450px;
+    display: flex;
+    /* Changed from display block to flex so we can align */
+    justify-content: center;
 }
 
 /* Edit Node Button */
@@ -98,103 +100,64 @@ header h1 {
     transform: scale(1.1);
 }
 
-.hex-wrap {
-    position: absolute;
-    display: flex;
-    width: var(--base-node-size);
-    height: var(--base-node-size);
-    justify-content: center;
-    align-items: center;
-    pointer-events: none;
-}
-
-.hex {
-    width: var(--base-node-size);
-    height: var(--base-node-size);
-    background-color: #000;
-    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+.svg-hex-wrap .svg-hex {
+    fill: #000;
+    stroke: #666;
+    stroke-width: 1.5px;
     cursor: pointer;
-    z-index: 1;
+    transition: fill 0.2s, stroke 0.2s;
     pointer-events: auto;
 }
 
-.line {
-    position: absolute;
-    background-color: #000;
-    height: 4px;
-    transform-origin: 0 0;
-    z-index: -1;
-}
-
 /* ---------- Node Styles ---------- */
-.hex-wrap.regularNode .hex {
-    background-color: #000;
-    filter: none;
+.svg-hex-wrap.regularNode .svg-hex {
+    fill: #000;
 }
 
-.hex-wrap.ActiveandSelectedNode .hex,
-.hex-wrap.SelectedNode .hex {
-    background-color: red;
-    filter: none;
+.svg-hex-wrap.ActiveandSelectedNode .svg-hex,
+.svg-hex-wrap.SelectedNode .svg-hex {
+    fill: red;
 }
 
-.hex-wrap.ActiveNode,
-.hex-wrap.ActiveandSelectedNode {
-    position: absolute;
-    animation: pulse-active-rainbow var(--pulse-duration) infinite;
+.svg-hex-wrap.ActiveNode .svg-hex,
+.svg-hex-wrap.ActiveandSelectedNode .svg-hex {
+    animation: pulse-active-svg-rainbow var(--pulse-duration) infinite;
 }
 
-.hex-wrap.ActiveNode::before,
-.hex-wrap.ActiveandSelectedNode::before {
-    content: "";
-    position: absolute;
-    background-color: green;
-    filter: blur(10px);
-    opacity: 0.7;
-    z-index: -1;
-    animation: pulse-active-rainbow-overlay var(--pulse-duration) infinite;
-}
-
-
-@keyframes pulse-active-rainbow {
+@keyframes pulse-active-svg-rainbow {
     0% {
-        filter: drop-shadow(0 0 5px var(--active-node-color-0)) drop-shadow(0 0 15px var(--active-node-color-0)) drop-shadow(0 0 20px var(--active-node-color-0));
+        fill: var(--active-node-color-0);
+        filter: drop-shadow(0 0 5px var(--active-node-color-0));
     }
 
     16% {
-        filter: drop-shadow(0 0 5px var(--active-node-color-1)) drop-shadow(0 0 15px var(--active-node-color-1)) drop-shadow(0 0 20px var(--active-node-color-1));
+        fill: var(--active-node-color-1);
+        filter: drop-shadow(0 0 5px var(--active-node-color-1));
     }
 
     33% {
-         filter: drop-shadow(0 0 5px var(--active-node-color-2)) drop-shadow(0 0 15px var(--active-node-color-2)) drop-shadow(0 0 20px var(--active-node-color-2));
+        fill: var(--active-node-color-2);
+        filter: drop-shadow(0 0 5px var(--active-node-color-2));
     }
 
     50% {
-        filter: drop-shadow(0 0 10px var(--active-node-color-3)) drop-shadow(0 0 20px var(--active-node-color-3)) drop-shadow(0 0 30px var(--active-node-color-3));
+        fill: var(--active-node-color-3);
+        filter: drop-shadow(0 0 10px var(--active-node-color-3));
     }
+
     66% {
-         filter: drop-shadow(0 0 5px var(--active-node-color-4)) drop-shadow(0 0 15px var(--active-node-color-4)) drop-shadow(0 0 20px var(--active-node-color-4));
+        fill: var(--active-node-color-4);
+        filter: drop-shadow(0 0 5px var(--active-node-color-4));
     }
 
     83% {
-        filter: drop-shadow(0 0 5px var(--active-node-color-5)) drop-shadow(0 0 15px var(--active-node-color-5)) drop-shadow(0 0 20px var(--active-node-color-5));
-    }
-    100% {
-          filter: drop-shadow(0 0 5px var(--active-node-color-0)) drop-shadow(0 0 15px var(--active-node-color-0)) drop-shadow(0 0 20px var(--active-node-color-0));
-    }
-}
-
-@keyframes pulse-active-rainbow-overlay {
-    0% {
-        opacity: 0.7;
-    }
-
-    50% {
-        opacity: 1;
+        fill: var(--active-node-color-5);
+        filter: drop-shadow(0 0 5px var(--active-node-color-5));
     }
 
     100% {
-        opacity: 0.7;
+        fill: var(--active-node-color-0);
+        filter: drop-shadow(0 0 5px var(--active-node-color-0));
     }
 }
 
@@ -223,6 +186,7 @@ header h1 {
     bottom: 5%;
     display: flex;
 }
+
 .overlay {
     position: fixed;
     top: 0;
@@ -261,11 +225,12 @@ header h1 {
 }
 
 .modal-buttons button {
-   padding: 10px 20px;
+    padding: 10px 20px;
     cursor: pointer;
     border-radius: 5px;
     border: 1px solid var(--border-color);
 }
+
 .modal-buttons button[title="Edit Node"] {
     background-color: #ffa500;
 }
@@ -282,12 +247,13 @@ header h1 {
     justify-content: space-between;
     width: 100%;
 }
+
 .switch {
     position: relative;
     display: inline-block;
     width: 50px;
     height: 24px;
-  margin-left: 10px;
+    margin-left: 10px;
 }
 
 .switch input {
@@ -307,7 +273,8 @@ header h1 {
     -webkit-transition: .4s;
     transition: .4s;
     border-radius: 34px;
-  pointer-events: auto; /* Allow pointer events on slider */
+    pointer-events: auto;
+    /* Allow pointer events on slider */
 }
 
 .slider:before {
@@ -320,18 +287,18 @@ header h1 {
     background-color: white;
     -webkit-transition: .4s;
     transition: .4s;
-  border-radius: 50%;
+    border-radius: 50%;
 }
 
-input:checked + .slider {
+input:checked+.slider {
     background-color: var(--secondary-color);
 }
 
-input:focus + .slider {
+input:focus+.slider {
     box-shadow: 0 0 1px var(--secondary-color);
 }
 
-input:checked + .slider:before {
+input:checked+.slider:before {
     -webkit-transform: translateX(26px);
     -ms-transform: translateX(26px);
     transform: translateX(26px);
@@ -339,11 +306,11 @@ input:checked + .slider:before {
 
 /* Rounded sliders */
 .slider.round {
-  border-radius: 34px;
+    border-radius: 34px;
 }
 
 .slider.round:before {
-  border-radius: 50%;
+    border-radius: 50%;
 }
 
 .switch-container label {
@@ -467,7 +434,7 @@ aside {
 
 /* ---------- Fire Ripple Button Style ---------- */
 .fire-ripple-button {
-     padding: 10px 20px;
+    padding: 10px 20px;
     cursor: pointer;
     border-radius: var(--button-radius);
     border: 1px solid var(--border-color);
@@ -675,9 +642,11 @@ aside {
 }
 
 .color-button-container button:disabled {
-    background-color: #ddd; /* Gray out */
+    background-color: #ddd;
+    /* Gray out */
     color: #999;
-    cursor: auto; /* Indicate not clickable */
+    cursor: auto;
+    /* Indicate not clickable */
 }
 
 .add-color-button,
@@ -727,7 +696,7 @@ aside {
 }
 
 .profile-selector button,
-.modal-buttons button{
+.modal-buttons button {
     padding: 8px;
     cursor: pointer;
     border-radius: var(--button-radius);
@@ -755,7 +724,7 @@ aside {
 }
 
 .profile-selector button:active,
-.modal-buttons button[title="Edit Node"]:active{
+.modal-buttons button[title="Edit Node"]:active {
     background-color: #bfbfbf;
 }
 
@@ -871,7 +840,7 @@ aside {
     justify-content: center;
     cursor: grab;
     z-index: 2;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     transition: background-color 0.2s, transform 0.1s;
     user-select: none;
     touch-action: none;
@@ -883,7 +852,7 @@ aside {
 
 .timeline-marker.selected {
     background: var(--secondary-color);
-    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.4), 0 2px 6px rgba(0,0,0,0.3);
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.4), 0 2px 6px rgba(0, 0, 0, 0.3);
     transform: translate(-50%, -50%) scale(1.1);
 }
 

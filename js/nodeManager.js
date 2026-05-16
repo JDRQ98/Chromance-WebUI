@@ -91,10 +91,10 @@ class NodeManager {
     }
 
     initializeNodes() {
-        const nodeElements = document.querySelectorAll('.hex');
+        const nodeElements = document.querySelectorAll('.svg-hex');
         nodeElements.forEach(element => {
             const id = Number(element.dataset.id);
-            const wrapper = element.closest('.hex-wrap');
+            const wrapper = element.closest('.svg-hex-wrap');
             const node = new Node(id, element, wrapper, this.profileSettings);
             this.nodes.push(node);
         });

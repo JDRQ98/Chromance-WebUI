@@ -39,7 +39,7 @@ let ProfileSettings = {
             RippleSpeed: 0.5,
             RainbowDeltaPerTick: 200,
             Direction: -1,
-            ActiveNodes: [0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0]
+            ActiveNodes: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         },
         { Enabled: false, TimeOffset_ms: 0, RippleLifeSpan: 5000, RippleType: 0, Behavior: 1, RippleSpeed: 0.5, RainbowDeltaPerTick: 200, Direction: -1, ActiveNodes: new Array(19).fill(0) },
         { Enabled: false, TimeOffset_ms: 0, RippleLifeSpan: 5000, RippleType: 0, Behavior: 1, RippleSpeed: 0.5, RainbowDeltaPerTick: 200, Direction: -1, ActiveNodes: new Array(19).fill(0) },
@@ -170,42 +170,8 @@ function readColors() {
     ProfileSettings.NumberOfColors = ProfileSettings.Colors.length;
 }
 
-function calculateNodePositions() {
-    const container = document.getElementById('container');
-    const containerWidth = container.offsetWidth;
-    const containerHeight = container.offsetHeight;
-    const baseNodeSize = 30;
-    const horizontalSpacing = containerWidth / 6;
-    const verticalSpacing = containerHeight / 6;
-    const nodePositions = [
-        { x: 3 * horizontalSpacing, y: 0 * verticalSpacing },
-        { x: 1.5 * horizontalSpacing, y: 1 * verticalSpacing },
-        { x: 4.5 * horizontalSpacing, y: 1 * verticalSpacing },
-        { x: 0.5 * horizontalSpacing, y: 2 * verticalSpacing },
-        { x: 3 * horizontalSpacing, y: 2 * verticalSpacing },
-        { x: 5.5 * horizontalSpacing, y: 2 * verticalSpacing },
-        { x: 1.5 * horizontalSpacing, y: 3 * verticalSpacing },
-        { x: 4.5 * horizontalSpacing, y: 3 * verticalSpacing },
-        { x: 0.5 * horizontalSpacing, y: 4 * verticalSpacing },
-        { x: 3 * horizontalSpacing, y: 4 * verticalSpacing },
-        { x: 5.5 * horizontalSpacing, y: 4 * verticalSpacing },
-        { x: 1.5 * horizontalSpacing, y: 5 * verticalSpacing },
-        { x: 4.5 * horizontalSpacing, y: 5 * verticalSpacing },
-        { x: 0.5 * horizontalSpacing, y: 6 * verticalSpacing },
-        { x: 3 * horizontalSpacing, y: 6 * verticalSpacing },
-        { x: 5.5 * horizontalSpacing, y: 6 * verticalSpacing },
-        { x: 1.5 * horizontalSpacing, y: 7 * verticalSpacing },
-        { x: 4.5 * horizontalSpacing, y: 7 * verticalSpacing },
-        { x: 3 * horizontalSpacing, y: 8 * verticalSpacing },
-    ];
-    document.querySelectorAll('.hex-wrap').forEach((nodeWrapper, index) => {
-        nodeWrapper.style.left = `${nodePositions[index].x - (baseNodeSize / 2)}px`;
-        nodeWrapper.style.top = `${nodePositions[index].y - (baseNodeSize / 2)}px`;
-    });
-}
-
 async function initializeApp() {
-    calculateNodePositions();
+    drawHexagon(); // Must draw SVG nodes first
     initNodeManager(updateNodeStyles, null, ProfileSettings);
 
     await loadProfilesFromMicrocontroller();
@@ -223,7 +189,6 @@ async function initializeApp() {
     loadColors();
     loadEventSettingsPanel(0);
     updateNodeStyles(ProfileSettings);
-    drawHexagon();
 }
 
 function setupProfilePeriodSlider() {
@@ -435,20 +400,20 @@ function sendConfigurationToMicrocontroller() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(mcData)
     })
-    .then(response => {
-        if (!response.ok) return response.text().then(t => { throw new Error(`HTTP ${response.status}: ${t}`); });
-        return response.json().catch(() => ({}));
-    })
-    .then(() => {
-        showNotification(window.isNewProfile ? 'New profile created!' : 'Profile updated!', 'success');
-        if (window.editingProfileIndex !== undefined) {
-            setTimeout(() => { window.location.href = 'index.html'; }, 1500);
-        }
-    })
-    .catch(error => {
-        console.error('Error saving:', error);
-        showNotification('Error saving profile', 'error');
-    });
+        .then(response => {
+            if (!response.ok) return response.text().then(t => { throw new Error(`HTTP ${response.status}: ${t}`); });
+            return response.json().catch(() => ({}));
+        })
+        .then(() => {
+            showNotification(window.isNewProfile ? 'New profile created!' : 'Profile updated!', 'success');
+            if (window.editingProfileIndex !== undefined) {
+                setTimeout(() => { window.location.href = 'index.html'; }, 1500);
+            }
+        })
+        .catch(error => {
+            console.error('Error saving:', error);
+            showNotification('Error saving profile', 'error');
+        });
 
     // Also save Decay
     fetch('/updateGlobalParameters', {
@@ -499,7 +464,6 @@ function showNotification(message, type = 'info') {
 
 document.addEventListener('DOMContentLoaded', async () => {
     await initializeApp();
-    window.addEventListener('resize', calculateNodePositions);
 
     document.getElementById('backButton').addEventListener('click', () => { window.location.href = 'index.html'; });
 });

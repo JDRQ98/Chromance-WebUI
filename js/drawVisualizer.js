@@ -1,86 +1,76 @@
-// drawVisualizer.js
-// Function to calculate the distance between two points
-function distance(x1, y1, x2, y2) {
-    return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
-}
+// drawVisualizer.js - Generates SVG for Profile Editor
+const HEX_NODE_POSITIONS = [
+    [2, 0], [1, 1], [3, 1], [0, 2], [2, 2], [4, 2],
+    [1, 3], [3, 3], [0, 4], [2, 4], [4, 4],
+    [1, 5], [3, 5], [0, 6], [2, 6], [4, 6],
+    [1, 7], [3, 7], [2, 8]
+];
 
-// Function to calculate the angle between two points in degrees
-function angle(x1, y1, x2, y2) {
-    return Math.atan2(y2 - y1, x2 - x1) * (180 / Math.PI);
-}
+const HEX_SEGMENT_CONNECTIONS = [
+    [17, 18], [15, 17], [10, 15], [7, 10], [7, 9], [9, 12], [12, 17], [14, 17],
+    [4, 9], [1, 4], [0, 1], [0, 2], [2, 5], [5, 10], [10, 12],
+    [16, 18], [13, 16], [8, 13], [6, 8], [6, 9], [9, 14], [14, 16],
+    [11, 16], [8, 11], [3, 8], [1, 3], [1, 6], [9, 11], [2, 4], [2, 7]
+];
 
-// Function to draw a line between two nodes
-function drawLine(nodeId1, nodeId2) {
-    // Get the container and the nodes by their IDs
-    const container = document.getElementById('container');
-    const nodeWrap1 = document.querySelector(`.hex-wrap [data-id="${nodeId1}"]`).closest('.hex-wrap');
-    const nodeWrap2 = document.querySelector(`.hex-wrap [data-id="${nodeId2}"]`).closest('.hex-wrap');
-
-    // If either node doesn't exist, return
-    if (!nodeWrap1 || !nodeWrap2) {
-        console.error('Invalid node IDs');
-        return;
-    }
-
-    // Get the positions of the nodes from the wrapper
-    const x1 = parseFloat(nodeWrap1.style.left);
-    const y1 = parseFloat(nodeWrap1.style.top);
-    const x2 = parseFloat(nodeWrap2.style.left);
-    const y2 = parseFloat(nodeWrap2.style.top);
-
-    // Calculate the distance and angle
-    const dist = distance(x1, y1, x2, y2);
-    const ang = angle(x1, y1, x2, y2);
-
-    // Create a new line element
-    const line = document.createElement('div');
-    line.classList.add('line');
-
-    // Set the line's width to the distance between the nodes
-    line.style.width = `${dist}px`;
-
-    // Set the line's rotation to the angle between the nodes
-    line.style.transform = `rotate(${ang}deg)`;
-
-    // Set the line's position at the center of node1
-    line.style.left = `${x1 + 15}px`; // MAGIC NUMBER: 15 = half of hexagon width. TODO.
-    line.style.top = `${y1 + 15}px`; // MAGIC NUMBER: 15 = half of hexagon height. TODO.
-
-    // Append the line to the container
-    container.appendChild(line);
-}
-
-// Function to draw the hexagon lines
 function drawHexagon() {
-    drawLine(0, 1);
-    drawLine(17, 18);
-    drawLine(15, 17);
-    drawLine(10, 15);
-    drawLine(7, 10);
-    drawLine(7, 9);
-    drawLine(9, 12);
-    drawLine(12, 17);
-    drawLine(14, 17);
-    drawLine(4, 9);
-    drawLine(1, 4);
-    drawLine(0, 2);
-    drawLine(2, 5);
-    drawLine(5, 10);
-    drawLine(10, 12);
-    drawLine(16, 18);
-    drawLine(13, 16);
-    drawLine(8, 13);
-    drawLine(6, 8);
-    drawLine(6, 9);
-    drawLine(9, 14);
-    drawLine(14, 16);
-    drawLine(11, 16);
-    drawLine(8, 11);
-    drawLine(3, 8);
-    drawLine(1, 3);
-    drawLine(1, 6);
-    drawLine(9, 11);
-    drawLine(2, 4);
-    drawLine(2, 7);
+    const container = document.getElementById('editorHexGrid');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const scale = 30, pad = 15;
+    const W = 4 * scale + 2 * pad;   // 150
+    const H = 8 * scale + 2 * pad;   // 270
+
+    // Mirror x so the UI matches the physical view from behind the device
+    const px = HEX_NODE_POSITIONS.map(([c, r]) => [W - (c * scale + pad), r * scale + pad]);
+
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    // Use responsive scaling so it naturally fits the container
+    svg.style.width = '100%';
+    svg.style.height = '100%';
+    svg.style.maxHeight = '400px';
+    svg.style.display = 'block';
+    svg.style.margin = '0 auto';
+
+    // Draw segment lines (decorative)
+    HEX_SEGMENT_CONNECTIONS.forEach(([n1, n2]) => {
+        const [x1, y1] = px[n1], [x2, y2] = px[n2];
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+        line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+        line.setAttribute('stroke', '#333');
+        line.setAttribute('stroke-width', 2);
+        line.setAttribute('stroke-linecap', 'round');
+        line.style.pointerEvents = 'none';
+        svg.appendChild(line);
+    });
+
+    // Draw clickable node circles and wrap them to maintain compatibility with nodeManager
+    px.forEach(([x, y], ni) => {
+        // We create a group to act as the "wrap" so nodeManager can stick classes on it
+        const wrap = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        wrap.classList.add('svg-hex-wrap');
+        wrap.dataset.id = ni;
+
+        const hexRadius = 12;
+        let points = [];
+        for (let i = 0; i < 6; i++) {
+            const angle = (Math.PI / 180) * (30 + 60 * i);
+            points.push(`${x + hexRadius * Math.cos(angle)},${y + hexRadius * Math.sin(angle)}`);
+        }
+
+        const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        poly.setAttribute('points', points.join(' '));
+        poly.classList.add('svg-hex');
+        poly.dataset.id = ni;
+
+        wrap.appendChild(poly);
+        svg.appendChild(wrap);
+    });
+
+    container.appendChild(svg);
 }
-export { drawHexagon }; // Export statement at the top level
+
+export { drawHexagon };
