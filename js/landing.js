@@ -670,6 +670,12 @@ class ProfileManager {
         const profile = this.profiles[profileIndex];
         const isCurrentlyActive = profile.Active === true || profile.Active === 1;
 
+        // If activating a profile while in stable color mode, drop back to
+        // ripple mode so the selection actually takes visible effect.
+        if (!isCurrentlyActive && this.stableColorState.mode) {
+            await this.setStableColorMode(false);
+        }
+
         // Check if we're in demo mode
         if (this.isDemoMode()) {
             // Toggle the active state in demo mode
@@ -1308,9 +1314,11 @@ class ProfileManager {
             rippleBtn.classList.remove('mode-btn-active');
             stableBtn.classList.add('mode-btn-active');
             panel.style.display = 'block';
-            if (profilesGrid) profilesGrid.style.display = 'none';
-            if (sequencer) sequencer.style.display = 'none';
-            if (bpmControl) bpmControl.style.display = 'none';
+            // Profiles remain accessible in stable mode — clicking a profile
+            // card auto-switches back to ripple mode (see toggleProfileActivation).
+            if (profilesGrid) profilesGrid.style.display = '';
+            if (sequencer) sequencer.style.display = '';
+            if (bpmControl) bpmControl.style.display = '';
         } else {
             rippleBtn.classList.add('mode-btn-active');
             stableBtn.classList.remove('mode-btn-active');
